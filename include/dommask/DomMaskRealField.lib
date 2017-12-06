@@ -1,0 +1,78 @@
+<?php
+
+/*
+    DomMaskRealField.lib, Dominion, the WebAbility(r) Database Abstraction Layer
+    Contains the class to manage a normal string field
+    (c) 2008-2010 Philippe Thomassigny
+
+    This file is part of Dominion
+
+    Dominion is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Dominion is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Dominion.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| DomMaskFieldText:                                                |
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace dommask;
+
+class DomMaskRealField extends DomMaskField
+{
+  function __construct($name = '', $iftable = false)
+  {
+    parent::__construct($name, $iftable);
+    $this->type = 'real';
+  }
+
+  public function create()
+  {
+    $f = new \wajaf\textfieldElement($this->name);
+
+    $f->setSize($this->size);
+    $f->setMinlength($this->minlength);
+    $f->setMaxlength($this->maxlength);
+    $f->setMinwords($this->minwords);
+    $f->setMaxwords($this->maxwords);
+    $f->setFormat($this->formatjs);
+
+    $f->setVisible($this->DomMask->createModes($this->authmodes));
+    $f->setInfo($this->DomMask->createModes($this->viewmodes));
+    $f->setReadonly($this->DomMask->createModes($this->readonlymodes));
+    $f->setNotnull($this->DomMask->createModes($this->notnullmodes));
+    $f->setDisabled('');
+    $f->setHelpmode('12');
+//    $f->setTabindex($this->tabindex);
+
+    $f->setData($this->title);
+
+    $f->setMessage('defaultvalue', $this->default);
+    $f->setMessage('helpdescription', $this->helpdescription);
+    $f->setMessage('statusnotnull', $this->statusnotnull);
+    $f->setMessage('statusbadformat', $this->statusbadformat);
+    $f->setMessage('statustooshort', $this->statustooshort);
+    $f->setMessage('statustoolong', $this->statustoolong);
+    $f->setMessage('statustoofewwords', $this->statustoofewwords);
+    $f->setMessage('statustoomanywords', $this->statustoomanywords);
+    $f->setMessage('statuscheck', $this->statuscheck);
+
+    return $f;
+  }
+
+}
+
+?>

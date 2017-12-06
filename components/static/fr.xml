@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="static" lang="fr">
+<!-- Messages from DomCore -->
+  <entry id="WAMessage.notfound"><![CDATA[Erreur: Le message n'a pas pu être trouvé avec l'ID:&nbsp;]]></entry>
+  <entry id="WAObject.badget"><![CDATA[Erreur: L'attribut à lire n'existe pas:&nbsp;]]></entry>
+  <entry id="WAObject.badset"><![CDATA[Erreur: L'attribut à écrire n'existe pas:&nbsp;]]></entry>
+  <entry id="WAObject.badcall"><![CDATA[Erreur: La fonction à appeler n'existe pas:&nbsp;]]></entry>
+  <entry id="WAClass.serial"><![CDATA[Erreur: Il faut déclarer la fonction serial().]]></entry>
+  <entry id="WAClass.unserial"><![CDATA[Erreur: Il faut déclarer la fonction unserial().]]></entry>
+  <entry id="WAFile.mkdirproblem"><![CDATA[Erreur: Le répertoire n'a pas pu être fabriqué:&nbsp;]]></entry>
+  <entry id="WAFile.unknownfile"><![CDATA[Erreur: Le fichier n'a pas été reconnu:&nbsp;]]></entry>
+  <entry id="WAFile.baddir"><![CDATA[Erreur: Le répertoire à effacer ne correspond pas aux conditions pour pouvoir l'effacer:&nbsp;]]></entry>
+  <entry id="WASHM.nosharedmemory"><![CDATA[Erreur: Il n'y a pas de mémoire compartie disponible]]></entry>
+  <entry id="WASHM.noattach"><![CDATA[Erreur: La connection avec la mémoire compartie n'a pas pu s'établir]]></entry>
+  <entry id="FileSource.fileerror"><![CDATA[Erreur: Le fichier n'a pas pu être créé en écriture:&nbsp;]]></entry>
+  <entry id="Singleton.nocore"><![CDATA[Error: Le singleton existe déjà et ne peut pas être cloné:&nbsp;]]></entry>
+  <entry id="Multiton.nocore"><![CDATA[Error: Le multiton existe déjà et ne peut pas être cloné:&nbsp;]]></entry>
+<!-- End Messages from DomCore -->
+<!-- Messages from Dominion -->
+  <entry id="DB_Date.badinit"><![CDATA[Inicialización del objeto no reconocida.]]></entry>
+  <entry id="DB_Date.badzone"><![CDATA[La zona no esta en límites autorizados de -12 a 12.]]></entry>
+  <entry id="DB_Date.baddateobject"><![CDATA[Necesita un objeto heredado de DB_Date para iniciar el objeto.]]></entry>
+  <entry id="DB_Date.baddateunix"><![CDATA[La fecha no puede ser traducida a un tiempo UnixTime.]]></entry>
+  <entry id="DB_Date.badyear"><![CDATA[El año no esta en límites autorizados de 0 a 9999.]]></entry>
+  <entry id="DB_Date.badmonth"><![CDATA[El mes no esta en límites autorizados de 1 a 12.]]></entry>
+  <entry id="DB_Date.daywithoutmonth"><![CDATA[Necesita el año y el mes antes de fijar el día.]]></entry>
+  <entry id="DB_Date.badday"><![CDATA[El día no esta en límites autorizados de 1 a 28,29,30 ó 31.]]></entry>
+  <entry id="DB_Date.badhour"><![CDATA[La hora no esta en límites autorizados de 0 a 23.]]></entry>
+  <entry id="DB_Date.badminutes"><![CDATA[Los minutos no estan en límites autorizados de 0 a 59.]]></entry>
+  <entry id="DB_Date.badseconds"><![CDATA[Los segundos no estan en límites autorizados de 0 a 59.]]></entry>
+  <entry id="DB_Date.badcents"><![CDATA[Los centesimas de segundos estan en límites autorizados de 0 a 99.]]></entry>
+  <entry id="DB_Date.baddateformat"><![CDATA[La fecha tiene un formate erróneo.]]></entry>
+  <entry id="DB_uTime.badinit"><![CDATA[Inicialización del objeto no reconocida.]]></entry>
+  <entry id="DB_uTime.badutimeobject"><![CDATA[El parámetro no es un objecto derivado de DB_uTime.]]></entry>
+<!-- End Messages from Dominion -->
+</language>

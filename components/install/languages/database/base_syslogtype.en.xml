@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="base_syslogtype" lang="en">
+
+  <entry id="name.1"><![CDATA[Evento sistema]]></entry>
+  <entry id="name.2"><![CDATA[Error en el root]]></entry>
+  <entry id="name.3"><![CDATA[Error en el admin]]></entry>
+  <entry id="name.4"><![CDATA[Error en el sitio]]></entry>
+  <entry id="name.5"><![CDATA[Error en el wrapper de sitios]]></entry>
+
+</language>

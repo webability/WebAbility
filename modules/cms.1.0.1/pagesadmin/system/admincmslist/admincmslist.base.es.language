@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="admincmslist" lang="es">
+
+  <entry id="cms"><![CDATA[Contenidos]]></entry>
+  <entry id="cms.summary"><![CDATA[Abrir o cerrar la lista de páginas.]]></entry>
+  <entry id="cms.title"><![CDATA[Páginas:]]></entry>
+  <entry id="cms.description"><![CDATA[Esta opción permite visualizar todas las páginas existentes en el sitio y administrarlas.]]></entry>
+
+  <entry id="newpage"><![CDATA[ <img src="/skins/__SKIN__/icons/cms-page-add.png" alt="" style="width: 16px; vertical-align: middle;" /> [Nueva página]]]></entry>
+  <entry id="newpage.summary"><![CDATA[Crear una nueva página.]]></entry>
+  <entry id="newpage.title"><![CDATA[Nueva página:]]></entry>
+  <entry id="newpage.description"><![CDATA[Esta opción permite crear una nueva página en el manejador de contenidos.]]></entry>
+
+  <entry id="treepage.summary"><![CDATA[Separar la lista de páginas.]]></entry>
+  <entry id="treepage.title"><![CDATA[Separar la lista:]]></entry>
+  <entry id="treepage.description"><![CDATA[Esta opción permite abrir un nuevo inciso en el centro de control para tener la lista de páginas separadas del menú principal. Es útil para buscar otras cosas en el menú mientras la lista de páginas queda visible.]]></entry>
+
+</language>

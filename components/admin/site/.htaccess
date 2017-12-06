@@ -1,0 +1,32 @@
+# rewriteengine begin
+RewriteEngine On    # Turn on the rewriting engine
+RewriteBase /
+# rewriteengine end
+
+# rewritemaster begin
+RewriteRule ^master$ /master.php [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^master/(.*)$ /master.php [L]
+# rewritemaster end
+
+# rewriteadmin begin
+RewriteRule ^admin$ /admin.php [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^admin/(.*)$ /admin.php [L]
+# rewriteadmin end
+
+# rewriteadmin begin
+RewriteRule ^api$ /api.php [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ /api.php [L]
+# rewriteadmin end
+
+# rewritesite begin
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+# rewritesite end
+

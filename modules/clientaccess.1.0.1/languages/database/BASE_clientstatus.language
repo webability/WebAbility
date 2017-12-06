@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_clientstatus" lang="es">
+
+  <entry id="name.A"><![CDATA[Activado]]></entry>
+  <entry id="name.P"><![CDATA[Pendiente]]></entry>
+  <entry id="name.D"><![CDATA[Desactivado]]></entry>
+
+</language>

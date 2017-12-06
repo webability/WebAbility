@@ -1,0 +1,320 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: Common
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 Common Library and object
+2015-05-07: Phil, added config params, entities for conectors.
+2017-01-11: Phil, Version 6 added
+
+@End_DESCR */
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| Base : Common part for 'Base' objects                            |
+|------------------------------------------------------------------|
+| - ::VERSION : string: version number of webability               |
+| - ::FREE : string: id for free version                           |
+| - ::MASTER : string: master identificator                        |
+| - ::ADMIN : string: admin identificator                          |
+| - ::SITE : string: site identificator                            |
+| - ::API : string: API identificador                              |
+| - ::CharSet : string: the sistem language set (UTF-8)            |
+| + VERSION : string: code version number of webability from version.inc|
+| + VERSIONTYPE : string: version type of webability from version.inc|
+| + VERSIONDATE : string: version date of webability from version.inc|
+| + VERSIONNAME : string: version name of webability from version.inc|
+| + BASEDIR : string: directory for base system                    |
+| + REPOSITORYDIR : string: directory of our data repository       |
+| + MASTERDIR : string: directory of master site                   |
+| + ADMINDIR : string: directory of admin site                     |
+| + SITEDIR : string: directory of www site                        |
+| + CDNDIR : string: directory of CDN site                         |
+| + APIDIR : string: directory of API site                         |
+| + MASTERDOMAIN : string: domain of master site                   |
+| + ADMINDOMAIN : string: domain of admin site                     |
+| + SITEDOMAIN : string: domain of www site                        |
+| + CDNDOMAIN : string: domain of CDN site                         |
+| + APIDOMAIN : string: domain of API site                         |
+|------------------------------------------------------------------|
+| + new Base($config: XConfig, $mode: string)                      |
+| + getSystem(): string                                            |
+| + getVersion() : string                                          |
+| + getCopyright() : string                                        |
+| + loadConnectors() : array(array())                              |
+| + getTablePath($table: string) : string                          |
+| + getModulePath($module: string, $installer: bollean = false) : string|
+| + ifModule($module: string) : boolean                            |
+| + getFastObject($type: string, $name: string, $useSHM: boolean = false) : FastObjectSource|
+| + readFastObject($type: string, $name: string, $useSHM: boolean = false) : mixed|
+| + writeFastObject($type: string, $name: string, $data: mixed, $useSHM: boolean = false) : void|
+| + createKey($large: integer, $unique: integer = null) : string   |
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace common;
+
+class Base extends \xamboo\Base_Engine
+{
+  // the version MUST match version.conf. this number is used to compile tar.gz to the published last version of WA6
+  const MODULE = 'WACore';
+  const VERSION = '6.0.1';
+
+  // constants to locate our needs
+  const FREE = 'FREE';
+  const MASTER = 'MASTER';
+  const ADMIN = 'ADMIN';
+  const SITE = 'SITE';
+  const API = 'API';
+  
+  const CharSet = 'UTF8';        // dont even think to change this, the whole world works on utf8 now
+
+  public $mode;                  // the working mode: MASTER, ADMIN, SITE, API
+
+  public $BASEDIR = '';          // the base installation directory
+  public $REPOSITORYDIR = '';    // the repository of data directory
+  public $MASTERDIR = '';        // directory for master site
+  public $ADMINDIR = '';         // directory for admin site
+  public $SITEDIR = '';          // directory for www site 
+  public $CDNDIR = '';           // directory for CDN site
+  public $APIDIR = '';           // directory for API site
+
+  public $MASTERDOMAIN = '';     // master domain
+  public $ADMINDOMAIN = '';      // admin domain
+  public $SITEDOMAIN = '';       // site domain
+  public $CDNDOMAIN = '';        // cdn domain
+  public $APIDOMAIN = '';        // api domain
+
+  public $connector = null;      // array of open connectors (database on site instance)
+  
+  public function __construct($config, $mode)
+  {
+    parent::__construct($config);
+
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('common/Base->loadConnectors()', \core\WADebug::SYSTEM);
+    
+    if ($config && $config->version && self::VERSION != $config->version)
+      throw new \core\WAException('The installed version has not been upgraded to the last version: ' . self::VERSION . ' vs ' . $config->version);
+
+    $this->mode = $mode;
+
+    $this->BASEDIR = isset($config['BASEDIR'])?$config['BASEDIR']:'';
+    $this->REPOSITORYDIR = isset($config['REPOSITORYDIR'])?$config['REPOSITORYDIR']:'';
+    $this->MASTERDIR = isset($config['MASTERDIR'])?$config['MASTERDIR']:'';
+    $this->ADMINDIR = isset($config['ADMINDIR'])?$config['ADMINDIR']:'';
+    $this->SITEDIR = isset($config['SITEDIR'])?$config['SITEDIR']:'';
+    $this->CDNDIR = isset($config['CDNDIR'])?$config['CDNDIR']:'';
+    $this->APIDIR = isset($config['APIDIR'])?$config['APIDIR']:'';
+
+    $this->MASTERDOMAIN = isset($config['MASTERDOMAIN'])?$config['MASTERDOMAIN']:'';
+    $this->ADMINDOMAIN = isset($config['ADMINDOMAIN'])?$config['ADMINDOMAIN']:'';
+    $this->SITEDOMAIN = isset($config['SITEDOMAIN'])?$config['SITEDOMAIN']:'';
+    $this->CDNDOMAIN = isset($config['CDNDOMAIN'])?$config['CDNDOMAIN']:'';
+    $this->APIDOMAIN = isset($config['APIDOMAIN'])?$config['APIDOMAIN']:'';
+
+    // load the connectors
+    $this->createConnectors();
+  }
+  
+  // ====================================================================
+  // Basic functions
+  // ====================================================================
+  public function getSystem()
+  {
+    return 'WebAbility&reg; ';
+  }
+
+  public function getVersion()
+  {
+    return $this->config->version;
+  }
+
+  public function getCopyright()
+  {
+    return '(c) 1999-2017 Philippe Thomassigny.';
+  }
+
+  // ====================================================================
+  // Xamboo Engines
+  // ====================================================================
+  public function loadEngines()
+  {
+    if (is_file($this->REPOSITORYDIR.'engines.conf'))
+      $engines = new \xconfig\XConfig(file_get_contents($this->REPOSITORYDIR.'engines.conf'));
+    else
+      $engines = new \xconfig\XConfig(null);
+    return $engines;
+  }
+  
+  public function linkEngines($engine, $engines)
+  {
+    if (sizeof($engines))
+    {
+      foreach ($engines as $k => $e)
+      {
+        $engine->registerPageType($k, array(
+          'type' => $e['type'],
+          'server' => $e['server'],
+          'run' => $e['run'],
+          'language' => $e['language'],
+          'template' => $e['template']
+        ));
+      }
+    }
+  }
+  
+  // ====================================================================
+  // Database connectors
+  // ====================================================================
+  public function createConnectors()
+  {
+    $connectors = $this->loadConnectors();
+    
+    // and create the connectors DB
+    if (sizeof($connectors))
+    {
+      foreach ($connectors as $k => $c)
+      {
+        try
+        {
+          $this->connector[$k] = new \dominion\DB_Base($c['type'], $c['flags']);
+          $this->connector[$k]->SetLogon($c['username'], isset($c['password'])?$c['password']:'', $c['database'], $c['extra']);
+        }
+        catch(\core\WAException $t)
+        {
+        }
+      }
+    }
+  }
+
+  public function loadConnectors()
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('common/Base->loadConnectors()', \core\WADebug::SYSTEM);
+
+    clearstatcache();
+    if (is_file($this->REPOSITORYDIR.'connectors.conf'))
+      $connectors = new \xconfig\XConfig(file_get_contents($this->REPOSITORYDIR.'connectors.conf'));
+    else
+      $connectors = new \xconfig\XConfig(null);
+    return $connectors;
+  }
+
+  // ====================================================================
+  // Modules and tables
+  // Search for a path, the paths can be cached
+  // The path cache is controlled by config-tablepathcache=true
+  // ====================================================================
+  public function getTablePath($table)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('common/Base->getTablePath(%)', \core\WADebug::SYSTEM, $table);
+
+    $path = null;
+    
+    // THROW ERROR IF TABLE NOT FOUND !!!!!!!!!!
+    // ******************************************************
+
+    $tabledef = null;
+    if ($this->config->tablepathcache)
+      $tabledef = $this->readFastObject('afo/admin', 'tabledefpath');
+    if(!$tabledef)
+    {
+      $baseModuleEntity = \entities\baseModuleEntity::getInstance();
+      $path = $baseModuleEntity->getPath($table);
+      if (!$path)
+        throw new \core\WAException('The table has not been found into the WebAbility Repository installation: ' . $table);
+      $tabledef = array($table => $path);
+      if ($this->config->tablepathcache)
+        $this->writeFastObject('afo/admin', 'tabledefpath', $tabledef);
+    }
+    else
+    {
+      if(isset($tabledef[$table]))
+      {
+        $path = $tabledef[$table];
+      }
+      else
+      {
+        $baseModuleEntity = \entities\baseModuleEntity::getInstance();
+        $path = $baseModuleEntity->getPath($table);
+        if (!$path)
+          throw new \core\WAException('The table has not been found into the WebAbility Repository installation: ' . $table);
+        $tabledef[$table] = $path;
+        if ($this->config->tablepathcache)
+          $this->writeFastObject('afo/admin', 'tabledefpath', $tabledef);
+      }
+    }
+
+    return $this->BASEDIR . $path;
+  }
+
+  // ==================
+  // FAST OBJECTS
+  // ==================
+  public function getFastObject($type, $name, $useSHM = false)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('common/Base->getFastObject(%, %, %)', \core\WADebug::SYSTEM, $type, $name, $useSHM);
+
+    $afo = new \datasources\FastObjectSource(
+        new \datasources\FileSource($this->REPOSITORYDIR, $type, $name.'.afo', true),
+        $this->SHM?new \datasources\SHMSource($this->REPOSITORYDIR.$type.'/'.$name.'.afo', $this->SHM):null
+    );
+
+    return $afo;
+  }
+
+  public function readFastObject($type, $name, $useSHM = false)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('common/Base->readFastObject(%, %, %)', \core\WADebug::SYSTEM, $type, $name, $useSHM);
+
+    $afo = $this->getFastObject($type, $name, $useSHM);
+    return $afo->read();
+  }
+
+
+  public function writeFastObject($type, $name, $data, $useSHM = false)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('common/Base>writeFastObject(%, %, %, %)', \core\WADebug::SYSTEM, $type, $name, $data, $useSHM);
+
+    $afo = $this->getFastObject($type, $name, $useSHM);
+    $afo->write($data);
+  }
+
+  // SECURITY AND HASH FUNCTIONS
+  // ======================================================
+  // CreateKey: Create a unique random Key alphanum case
+  //            sensitive based
+  // ======================================================
+  public function createKey($large, $unique = null)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('common/Base->createKey(%, %)', \core\WADebug::SYSTEM, $large, $unique);
+
+    srand((double)microtime()*1000000);
+    $_Key = '';
+    for ($i=0;$i<$large;$i++)
+    { $j=($unique!==null?$unique:rand()%3); // we use % rather than limits because of a bug on some Unixes
+      switch($j)
+      { case 0: $_Key .= chr(48+rand()%10); break;
+        case 1: $_Key .= chr(65+rand()%26); break;
+        case 2: $_Key .= chr(97+rand()%26); break;
+      } // switch
+    } // for
+    return $_Key;
+  } // CreateKey()
+
+}
+
+?>

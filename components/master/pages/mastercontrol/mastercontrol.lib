@@ -1,0 +1,515 @@
+<?php
+
+class mastercontrol extends \common\WAApplication
+{
+  private $baseModuleEntity = null;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
+  }
+
+  public function buildApplication($engine, $params)
+  {
+    $a = new \wajaf\Xapplication('mastercontrol');
+
+    $globalstatus = $this->base->getGlobalStatus();
+    if (!$globalstatus['fglobal']) // still have to install 3 components
+    {
+      $this->buildInstaller($a, $globalstatus);
+    }
+    else
+    {
+      $this->buildDashboard($a);
+    }
+
+    return $a;
+  }
+
+  private function buildInstaller($a, $gs)
+  {
+    // main title
+    $e1 = new \wajaf\htmlElement($this->language->getEntry('install.title'));
+    $e1->setClassname('maintitle');
+    $a->add($e1);
+
+    // database connector
+    $c1 = new \wajaf\simpleContainer();
+    $c1->size(150,150)->position(50,50, null, null);
+    $z1 = new \wajaf\simpleZone();
+    $c1->add($z1);
+    $title = $this->language->getEntry('connector.title');
+    switch ($gs['fconnector'])
+    {
+      case 0:
+        $c1->setClassname('installer_connector_no');
+        $image = '<img src="/skins/master/icons/connector-no.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+        $message = $this->language->getEntry('connector.repository.missing');
+        $repo = '';
+        $buttontitle = $this->language->getEntry('connector.button.title.create');
+        $nextstep = '/skins/master/icons/step-next-error.png';
+        break;
+      case 1:
+        $c1->setClassname('installer_connector_ok');
+        $image = '<img src="/skins/master/icons/connector-ok.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+        $message = $this->language->getEntry('connector.repository.ok');
+        $repo = '';
+        $buttontitle = $this->language->getEntry('connector.button.title.modify');
+        $nextstep = '/skins/master/icons/step-next-ok.png';
+        $names = $this->base->getDatabases();
+        $Connectors = $this->base->loadConnectors();
+        $repo = $names[$Connectors['Main']['type']];
+        break;
+      case 2:
+        $c1->setClassname('installer_connector_error');
+        $image = '<img src="/skins/master/icons/connector-error.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+        $message = $this->language->getEntry('connector.repository.error');
+        $repo = '';
+        $buttontitle = $this->language->getEntry('connector.button.title.correction');
+        $nextstep = '/skins/master/icons/step-next-error.png';
+        $names = $this->base->getDatabases();
+        $Connectors = $this->base->loadConnectors();
+        $repo = $names[$Connectors['Main']['type']];
+        break;
+    }
+    $h1 = new \wajaf\htmlElement($image.'<span class="generaltitle">'.$title.'</span><br /><br />'.$message.'<br />'.$repo);
+    $z1->add($h1);
+    $b1 = new \wajaf\buttonElement($buttontitle);
+    $tabtitle = $this->language->getEntry('connector.tab.title');
+    $b1->setEvent('click', <<<EOF
+function(e)
+{
+  var node = WA.\$N('masterindex|single|app_connector_Main');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_connector_Main',title:'$tabtitle Main',closeable:'yes',application:'masterconnector|Main',params:'Order=Modif&CONNECTORID=Main'}};
+    this.app.createTree('masterindex|single|application', tree);
+  }
+  this.app.getNode('masterindex|single|application').activateZone('app_connector_Main');
+}
+EOF
+    );
+    $b1->position(75,125, null, null);
+    $z1->add($b1);
+
+    $i1 = new \wajaf\imageElement($nextstep);
+    $i1->size(16,16)->position(222,117, null, null);
+    $a->add($i1);
+
+    // database / repository
+    $c2 = new \wajaf\simpleContainer();
+    $c2->size(150,150)->position(250,50, null, null);
+    $z2 = new \wajaf\simpleZone();
+    $c2->add($z2);
+    $title = $this->language->getEntry('repository.title');
+    switch($gs['frepository'])
+    {
+      case 0:
+        $c2->setClassname('installer_repository_no');
+        $image = '<img src="/skins/master/icons/repository-noconnector.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+        $message = $this->language->getEntry('repository.noconnector');
+        $buttontitle = null;
+        $nextstep = '/skins/master/icons/step-next-error.png';
+        break;
+      case 1:
+        $c2->setClassname('installer_repository_ok');
+        $image = '<img src="/skins/master/icons/repository-ok.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+        $message = $this->language->getEntry('repository.ok');
+        $buttontitle = $this->language->getEntry('repository.button.title.desinstall');
+        $nextstep = '/skins/master/icons/step-next-ok.png';
+        break;
+      case 2:
+        $c2->setClassname('installer_repository_no');
+        $image = '<img src="/skins/master/icons/repository-no.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+        $message = $this->language->getEntry('repository.no');
+        $buttontitle = $this->language->getEntry('repository.button.title.install');
+        $nextstep = '/skins/master/icons/step-next-error.png';
+        break;
+      case 3:
+        $c2->setClassname('installer_repository_update');
+        $image = '<img src="/skins/master/icons/repository-update.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+        $message = $this->language->getEntry('repository.update');
+        $buttontitle = $this->language->getEntry('repository.button.title.update');
+        $nextstep = '/skins/master/icons/step-next-error.png';
+        break;
+    }
+
+    $h2 = new \wajaf\htmlElement($image.'<span class="generaltitle">'.$title.'</span><br /><br />'.$message);
+    $z2->add($h2);
+    if ($buttontitle)
+    {
+      $b2 = new \wajaf\buttonElement($buttontitle);
+      $b2->position(75,125, null, null);
+      $tabtitle = $this->language->getEntry('repository.tab.title');
+      $b2->setEvent('click', <<<EOF
+function(e)
+{
+  var node = WA.\$N('masterindex|single|app_repository');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_repository',title:'$tabtitle',closeable:'yes',application:'masterrepository|single'}};
+    this.app.createTree('masterindex|single|application', tree);
+  }
+  this.app.getNode('masterindex|single|application').activateZone('app_repository');
+}
+EOF
+    );
+      $z2->add($b2);
+    }
+
+    $i2 = new \wajaf\imageElement($nextstep);
+    $i2->size(16,16)->position(422,117, null, null);
+    $a->add($i2);
+
+
+    // files on directory
+    $c3 = new \wajaf\simpleContainer();
+    $c3->size(150,150)->position(450,50, null, null);
+    $z3 = new \wajaf\simpleZone();
+    $c3->add($z3);
+    $title = $this->language->getEntry('sites.title');
+    if ($gs['fadmin'] == 1 && $gs['fsite'] == 1)
+    {
+      $c3->setClassname('installer_site_ok');
+      $image = '<img src="/skins/master/icons/sites-ok.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+      $message = $this->language->getEntry('sites.ok');
+      $buttontitle = $this->language->getEntry('sites.button.title.reinstall');
+    }
+    else if ($gs['fadmin'] == 0 || $gs['fsite'] == 0)
+    {
+      $c3->setClassname('installer_site_no');
+      $image = '<img src="/skins/master/icons/sites-no.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+      $message = $this->language->getEntry('sites.no');
+      $buttontitle = $this->language->getEntry('sites.button.title.install');
+    }
+    else
+    {
+      $c3->setClassname('installer_site_update');
+      $image = '<img src="/skins/master/icons/sites-update.png" class="imagemenu" alt="'.$title.'" title="'.$title.'" />';
+      $message = $this->language->getEntry('sites.update');
+      $buttontitle = $this->language->getEntry('sites.button.title.update');
+    }
+
+    $h3 = new \wajaf\htmlElement($image.'<span class="generaltitle">'.$title.'</span><br /><br />'.$message);
+    $z3->add($h3);
+    $b3 = new \wajaf\buttonElement($buttontitle);
+    $b3->position(75,125, null, null);
+    $tabtitle = $this->language->getEntry('sites.tab.title');
+    $b3->setEvent('click', <<<EOF
+function(e)
+{
+  var node = WA.\$N('masterindex|single|app_sites');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_sites',title:'$tabtitle',closeable:'yes',application:'mastersites|single'}};
+    this.app.createTree('masterindex|single|application', tree);
+  }
+  this.app.getNode('masterindex|single|application').activateZone('app_sites');
+}
+EOF
+    );
+    $z3->add($b3);
+
+    $a->add($c1);
+    $a->add($c2);
+    $a->add($c3);
+
+  }
+
+  private function buildDashboard($a)
+  {
+    // build the screen in 2 parts, 1 for important info (versions), 1 for dashboard
+    $vc = new \wajaf\separatorContainer();
+    $vc->size('max','max')->setMode('vertical')->setAuto('yes');
+    $z1 = new \wajaf\separatorZone();
+
+    $vc->add($z1);
+    $somethingnew = $this->fillImportant($z1);
+    $closed = $this->base->user->getParameter('indexcontrol', 'messages')?true:false;
+    $z1->setSize($closed&&!$somethingnew?20:100);
+
+    $z3 = new \wajaf\separatorZone();
+    $z3->setSize('*');
+    $vc->add($z3);
+    // The dashboard is a widgets container.
+    // Each widget is kept into the config of the user
+    $wid = new \wajaf\widgetContainer();
+    $wid->setColumns(3);
+
+    $this->fillWidgets($wid);
+    $z3->add($wid);
+
+    $a->add($vc);
+    return;
+
+
+
+
+
+
+
+    $basedir = $this->getBaseDirectory();
+    $repositorydir = $this->getRepositoryDirectory();
+    // mainconnector MUST be called before anything else since it connects to the main repository
+    $mainconnector = $this->getMainConnector();
+    $connectors = $this->getConnectors();
+    $database = $this->getDatabase();
+    $site = $this->getSite();
+    $generator = $this->getGenerator();
+    $modules = $this->getModules();
+
+    $exp = new \wajaf\expandableContainer();
+    $z1 = new \wajaf\Xzone();
+
+
+    // we do beautiful boxes !
+    $control = <<<EOF
+Centro de control:<br />
+<br />
+<fieldset>
+<legend>Master</legend>
+BASE DIRECTORY: <b>$basedir</b><br />
+MASTER DIRECTORY: <b>$ dir</b><br />
+MASTER: Instalado y OK (estas adentro !)<br />
+</fieldset>
+
+<fieldset>
+<legend>Repositorio</legend>
+REPOSITORIO DE DATOS: <b>$repositorydir</b><br />
+CONNECTOR PRINCIPAL: $mainconnector<br />
+BASE DE DATOS: $database<br />
+</fieldset>
+
+<fieldset>
+<legend>Site</legend>
+DIRECTORY: <b>$site</b><br />
+</fieldset>
+
+<fieldset>
+<legend>Root</legend>
+DIRECTORY: <b>$site</b><br />
+</fieldset>
+
+<fieldset>
+<legend>Admin</legend>
+DIRECTORY: <b>$site</b><br />
+</fieldset>
+
+<fieldset>
+<legend>Generator</legend>
+DIRECTORY: <b>$generator</b><br />
+</fieldset>
+
+<fieldset>
+<legend>Usuarios conectados</legend>
+Lista<br />
+</fieldset>
+
+<fieldset>
+<legend>Eventos</legend>
+Lista<br />
+</fieldset>
+
+<fieldset>
+<legend>Alertas</legend>
+Lista<br />
+</fieldset>
+
+<fieldset>
+<legend>Conectores</legend>
+$connectors<br />
+</fieldset>
+
+<fieldset>
+<legend>Cartuchos</legend>
+$modules<br />
+</fieldset>
+
+EOF;
+    $t = new \wajaf\textElement($control);
+    $t->setAnchorleft('*');
+    $t->setLeft('*');
+    $a->add($t);
+  }
+
+  private function fillImportant($zone)
+  {
+    // important can be close/opened, and if there is something important, put the highlight class
+
+    // check the version cached in the HD, etc
+    $dataversion = $this->getVersions();
+
+    // check the important messages
+    $messages = $this->getMessages();
+
+    return false;
+  }
+
+  private function fillWidgets($cont)
+  {
+    // get the widgets from the config. If there is no widgets, put the default ones
+
+
+
+
+
+
+  }
+
+
+
+  private function getBaseDirectory()
+  {
+    return $this->base->BASEDIR;
+  }
+
+  private function getRepositoryDirectory()
+  {
+    return $this->base->REPOSITORYDIR;
+  }
+
+  private function getMainConnector()
+  {
+  	$names = $this->base->getDatabases();
+    $Connectors = $this->base->loadConnectors();
+
+    // first the main connector
+    if (!isset($Connectors['Main']))
+    {
+      $txt = 'Main connector: not present';
+    }
+    else
+    {
+      // we check if the repository is working
+      $c = $this->base->getGlobalStatus();
+    	if ($c['fconnector'] == 1)
+      {
+        $txt = 'Main connector: '.$names[$Connectors['Main']['type']].' :: OK';
+      }
+      else
+      {
+        $txt = 'Main connector: '.$names[$Connectors['Main']['type']].' :: Connection Error';
+      }
+    }
+    return $txt;
+  }
+
+  private function getConnectors()
+  {
+    return '3 more connectors';
+  }
+
+  private function getDatabase()
+  {
+    // use the getGlobalStatus
+
+  }
+
+  private function getSite()
+  {
+    return 'installed (detail shows directories)';
+  }
+
+  private function getGenerator()
+  {
+    return 'generator installed (detail show directory)';
+  }
+
+  private function getModules()
+  {
+    return '5 cartriges, 2 installed (detail show installed status, versions, etc.)';
+  }
+
+  // ==============================================================
+  // VERSIONS MANAGER
+  // algorithm:
+  // get the list of modules
+  // if server, send the list of modules and gets the list of available in cache
+  // get the working version, stage version, local cache version
+  // write the versions and a upgrade button if
+  private function getVersions()
+  {
+    // get the local most recent
+
+    // get flag to check against server
+    $server = $this->base->HTTPRequest->getParameter('server');
+    if ($server)
+    {
+      // check if we need password and licence or not (monosite, enterprise)
+      if ($this->base->VERSIONTYPE == Base::MONOSITE || $this->base->VERSIONTYPE == Base::ENTERPRISE)
+        $connect = true;
+      $serial = $this->base->Master->serial;
+      $credentials = $this->base->readFastObject('', 'wacredentials');
+
+      // send the data, cache the result
+      $versions = array('BASE');
+      $mv = $this->baseModuleEntity->readModule(new \dominion\DB_Condition('installed', '=', 1), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC));
+      if ($mv)
+      {
+        foreach ($mv as $m)
+        {
+          if ($m['installed'] == 1)
+            $versions[] = $m['key'];
+        }
+      }
+      $jsondata = json_encode($versions);
+      $data = file_get_contents('http://version.webability.info');
+    }
+
+
+
+
+//    $localcached = $this->base->readFastObject('', 'versionavailable');
+
+//    $localavailable = $this->getStageVersion();
+
+
+    // check the version of modules
+
+
+
+  }
+
+  private function getStageVersion()
+  {
+    // check if there is something into the stage to install and its version
+
+
+    return null;
+  }
+
+  private function getModulesVersion()
+  {
+
+  }
+
+  private function getServerVersion()
+  {
+    // check server versions
+
+
+    return null;
+  }
+
+  private function getModulesStageVersion()
+  {
+
+  }
+
+  private function getVersionCache()
+  {
+
+  }
+
+  // ==============================================================
+  // MESSAGES MANAGER
+  private function getMessages()
+  {
+
+  }
+
+}
+
+?>

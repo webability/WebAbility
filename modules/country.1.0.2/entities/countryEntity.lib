@@ -1,0 +1,20 @@
+<?php
+
+namespace modules\country\entities;
+
+class countryEntity extends \patterns\Singleton
+{
+  public $country_country;
+
+  public function __construct()
+  {
+    parent::__construct();
+
+    require $this->base->getTablePath('country_country');
+    $this->country_country = $country_country;
+    $this->country_country->setDB($this->base->connector['Main']);
+  }
+
+}
+
+?>

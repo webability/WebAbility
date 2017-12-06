@@ -1,0 +1,79 @@
+<?php
+
+namespace modules\client\install;
+
+class installer extends \common\installer
+{
+  const ID = 'client';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateMenuTheme',
+           'Id' => 'client',
+           'Template' => null,
+           'Name' => 'client',
+           'Icon' => '/skins/admin/modules/client/client.png',
+           'Cond' => null,
+           'Help' => 'client' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'client_',
+           'Theme' => 'client',
+           'Father' => null,
+           'Template' => null,
+           'Access' => null,
+           'Name' => 'clients',
+           'Link' => '@adminclientlist',
+           'Params' => null,
+           'Icon' => null,
+           'Cond' => null,
+           'Help' => 'clients' ),
+    );  
+  
+  public function __construct($language)
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
+  }  
+  
+  public function install()
+  {
+    $messages = $this->installDatabase();
+    
+    $this->setModule(self::ID, $this->BASEDIR);
+
+    $messages .= $this->language->getEntry('records');
+
+    $this->setConfigParam('site', 'security', '\modules\client\entities\securityEntity');
+
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+
+    $messages .= $this->language->getEntry('pagesadmin') . "<br />\n";
+
+    // run the scripter
+    $messages .= $this->installScript();
+    
+    return $messages;
+  }
+  
+  public function uninstall()
+  {
+    // run the scripter
+    $messages = $this->uninstallScript();
+
+    // unlink securityEntity
+    $this->delConfigParam('site', 'security', '\modules\client\entities\securityEntity');
+    
+    $messages .= $this->language->getEntry('security') . "<br />\n";;
+
+    $this->delModule(self::ID);
+
+    $messages .= $this->uninstallDatabase();
+    return $messages;
+  }
+  
+};
+
+?>

@@ -1,0 +1,45 @@
+<?php
+
+class adminstatlist extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  public function runApplication($engine, $params)
+  {
+    if (isset($params['templates']) && $params['templates'])
+    {
+      return $this->template->resolve();
+    }
+    
+    $data = array();
+
+    $data[] = array('id' => 's_stat', 'template' => 'option2icons', 'father' => 'stat', 'loadable' => false, 'closeable' => true, 'closed' => true,
+
+        'name' => $this->language->getEntry('users'), 'icon' => 'users.png', 'help.summary' => '123', 'help.title' => '123', 'help.description' => '123',
+        'icon1' => 'user-new.png',
+        'icon2' => 'users-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1, 'na_zid' => 's_users',
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 1, 'na1_zid' => 's_users',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 1, 'na2_zid' => 's_users'
+       );
+    
+    return $data;
+  }
+  
+  public function template($engine, $params)
+  {
+    return $this->template->resolve();
+  }
+
+  public function language($engine, $params)
+  {
+    return $this->language;
+  }
+
+}
+
+?>

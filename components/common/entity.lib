@@ -1,0 +1,154 @@
+<?php
+/*
+  Base class for any entity
+  An entity is a sinleton class charged on a specific task. 
+  For example the access to database tables or access to an external API
+  The entity support tables auto-loader and CRUD basic operations
+  
+  Control:
+  2017-11-01: Phil, creation
+*/
+
+namespace common;
+
+class entity extends \patterns\Singleton
+{
+  // tables: id => array(table => table_name, connector => [Main], init => [false])
+  // connector and init are optional, default fixed to Main and false.
+  // id is used for __get    Entity->[name] and Entity->CRUD[name]
+  protected $tables = array();
+  protected $connector = 'Main';
+  protected $key = 'key';
+
+  public function __construct()
+  {
+    parent::__construct();
+  }
+
+  // table get
+  public function __get($name)
+  {
+    if (isset($this->tables[$name]))
+    {
+      if ($this->tables[$name] instanceof \dominion\DB_Table)
+        return $this->tables[$name];
+    }
+
+    // search the table
+    foreach($this->tables as $id => $xtable)
+    {
+      if ($this->tables[$id] instanceof \dominion\DB_Table)
+        continue;
+      if ($id == $name || $xtable['table'] == $name)
+      {
+        $table = $this->tables[$id]['table'];
+        $connector = isset($this->tables[$id]['connector'])?$this->tables[$id]['connector']:$this->connector;
+        $init = isset($this->tables[$id]['init'])?$this->tables[$id]['init']:false;
+        break;
+      }
+    }
+    if (!$table)
+      throw new \throwables\wajafError('Error, ' . $name . ' is not a valid table/attribute.');
+
+    require $this->base->getTablePath($table);
+
+    $this->tables[$table] = ${$table};
+    $this->tables[$table]->setDB($this->base->connector[$connector]);
+    if ($init)
+    {
+      $this->tables[$table]->synchronize(false);
+    }
+    return $this->tables[$table];
+  }
+  
+  // CRUD basic auto functions   create, read, update, delete, count, check
+  public function __call($name, $vars)
+  {
+    // countTable(conditions)
+    // checkTable(key)
+    // createTable(record)
+    // updateTable(key, record)
+    // deleteTable(key)
+    // selectTable(key)
+    
+    $sub = substr($name, 0, 3);
+    $tableid = strtolower(substr($name, 3));
+    if (!in_array($sub, array('max')))
+    {
+      $sub = substr($name, 0, 4);
+      $tableid = strtolower(substr($name, 4));
+      if (!in_array($sub, array('read')))
+      {
+        $sub = substr($name, 0, 5);
+        $tableid = strtolower(substr($name, 5));
+        if (!in_array($sub, array('count', 'check')))
+        {
+          $sub = substr($name, 0, 6);
+          $tableid = strtolower(substr($name, 6));
+        }
+      }
+    }
+    
+    if (!isset($this->tables[$tableid]))
+    {
+      throw new \throwables\wajafError('Error, ' . $name . '(vars) is not a valid function.');
+    }
+    $table = $this->tables[$tableid]['table'];
+    switch($sub)
+    {
+      case 'read':
+      case 'select':
+        // if var natural => doSelect
+        // if array(DB_conditions) => doSelectCondition
+        // if array(natural) => Union doSelects || doSelectCondition(key in array)
+        if (!$vars)
+        {
+          return $this->$table->doSelectCondition(null, null);
+        }
+        $key = $where = $orderby = null;
+        if (isset($vars[0]) && (($vars[0] instanceof \dominion\DB_Condition) || (is_array($vars[0]) && isset($vars[0][0]) && $vars[0][0] instanceof \dominion\DB_Condition)))
+          $where = $vars[0];
+        elseif (isset($vars[0]) && $vars[0])
+          $key = $vars[0];
+        if (isset($vars[1]) && $vars[1] instanceof \dominion\DB_OrderBy)
+          $orderby = $vars[1];
+        if ($key)
+          return $this->$table->doSelect($key);
+        return $this->$table->doSelectCondition($where, $orderby);
+      case 'count':
+        return $this->$table->getNumberOfRecords($vars[0]);
+      case 'max':
+        $cond = null;
+        if (isset($vars[1]))
+          $cond = $vars[1];
+        return $this->$table->getMaxValue($vars[0], $cond);
+      case 'check':
+        break;
+      case 'create':
+      case 'insert':
+        return $this->$table->doInsert($vars[0]);
+      case 'update':
+        $key = $where = null;
+        if (isset($vars[0]) && (($vars[0] instanceof \dominion\DB_Condition) || (is_array($vars[0]) && isset($vars[0][0]) && $vars[0][0] instanceof \dominion\DB_Condition)))
+          $where = $vars[0];
+        elseif (isset($vars[0]) && $vars[0])
+          $key = $vars[0];
+        if ($key)
+          return $this->$table->doUpdate($key, $vars[1]);
+        return $this->$table->doUpdateCondition($where, $vars[1]);
+      case 'delete':
+        $key = $where = null;
+        if (isset($vars[0]) && (($vars[0] instanceof \dominion\DB_Condition) || (is_array($vars[0]) && isset($vars[0][0]) && $vars[0][0] instanceof \dominion\DB_Condition)))
+          $where = $vars[0];
+        elseif (isset($vars[0]) && $vars[0])
+          $key = $vars[0];
+        if ($key)
+          return $this->$table->doDelete($key);
+        return $this->$table->doDeleteCondition($where);
+    }
+    throw new \throwables\wajafError('Error, ' . $name . '(' . $vars . ') is not a valid function.');
+  }
+
+}
+
+?>

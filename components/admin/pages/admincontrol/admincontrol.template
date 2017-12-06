@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="admincontrol">
+<!--
+<container type="separatorContainer" classname="" width="max" height="max" mode="vertical" auto="yes">
+    <zone size="120" classname="">
+      <container type="simpleContainer" height="max" width="max" classname="">
+        <zone>
+          <element type="htmlElement" classname="introcenter">
+<![CDATA[CENTRO DE CONTROL EN CONSTRUCCION:<br />]]>
+          </element>
+        </zone>
+      </container>
+    </zone>
+    <zone size="*" classname="">
+    </zone>
+  </container>
+-->
+</application>

@@ -1,0 +1,490 @@
+/* Native XHTML elements */
+body
+{
+  color: black;
+  background-color: white;
+  font-family: Arial, Helvetica;
+  font-size: 12px;
+  line-height: 1.2em;
+}
+
+a:link
+{
+  color: #0000aa;
+  text-decoration: none;
+}
+
+a:active
+{
+  color: #0000ff;
+  text-decoration: underline;
+}
+
+a:visited
+{
+  color: #0000aa;
+  text-decoration: underline;
+}
+
+a:hover
+{
+  color: #ff0000;
+  text-decoration: underline;
+}
+
+/* structural elements */
+#adminmain\|single\|
+{
+  background-color: #dfe8f6;
+  min-width: 840px !important;
+  min-height: 480px !important;
+}
+
+#adminmain\|single\|header
+{
+  background-color: #c6d9f1;
+  overflow: hidden;
+}
+
+#adminmain\|single\|workarea
+{
+  background-color: transparent;
+  border: 0px;
+  -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none;
+  overflow: hidden;
+}
+
+#adminindex\|single\|workarea
+{
+  background-color: transparent;
+  border: 0px;
+  overflow: hidden;
+}
+
+#adminmain\|single\|footer
+{
+  background-color: #c6d9f1;
+}
+
+/* used standart classes */
+/* used standart classes */
+.flaggreen
+{
+  background-color: #6f6;
+  border: 1px solid blue;
+}
+
+.flagred
+{
+  background-color: #f66;
+  border: 1px solid blue;
+}
+
+.flagyellow
+{
+  background-color: yellow;
+  border: 1px solid blue;
+  cursor: pointer;
+}
+
+.flagblue
+{
+  background-color: #66f;
+  border: 1px solid blue;
+}
+
+.maintitle
+{
+  font-size: 14px;
+  font-weight: bold;
+  color: #000088;
+  padding: 10px;
+}
+
+.alttitle
+{
+  color: #dd0000;
+  font-size: 14px;
+}
+
+.usertitle
+{
+  color: #333333;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: right;
+}
+
+.alerttitle
+{
+  color: #dd0000;
+  font-size: 10px;
+}
+
+.generaltitle
+{
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.timertitle
+{
+  color: #333333;
+  font-size: 12px;
+  text-align: right;
+}
+
+.footertitle
+{
+  font-size: 12px;
+  padding-left: 10px;
+  font-weight: bold;
+}
+
+.imagemenu
+{
+  border: 0px;
+  margin-left: 1px;
+  margin-right: 1px;
+  vertical-align: middle;
+}
+
+.buttonmenuconfig
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/config.png');
+}
+
+.buttonmenuuser
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/user-me.png');
+}
+
+.buttonmenuhelp
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/help-tip.png');
+}
+
+.buttonmenuhelpfull
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/help-full.png');
+}
+
+.buttonmenuhelpmute
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/help-off.png');
+}
+
+.buttonmenusoundon
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/sound-on.png');
+}
+
+.buttonmenusoundoff
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/sound-off.png');
+}
+
+.buttonmenudisconnect
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-image: url('/skins/admin/icons/disconnect.png');
+}
+
+.modalbackground
+{
+  background-color: green;
+  opacity: .6;
+  filter: alpha(opacity: 60);
+}
+
+.modallogin
+{
+  background-color: white;
+  border: 2px Solid #880000;
+}
+
+.fondomodal
+{
+  background-color: red;
+  opacity: .5;
+  filter: alpha(opacity: 50);
+}
+
+.loginmodal
+{
+  background-color: white;
+  border: 2px black solid;
+}
+
+.simplebox
+{
+  background-color: white;
+  border: 10px Solid #aa0000;
+}
+
+.buttonmenu
+{
+  border: 0px;
+  cursor: pointer;
+  margin-left: 1px;
+  margin-right: 1px;
+  vertical-align: middle;
+}
+
+.introcenter
+{
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: #000088;
+  margin: 10px;
+}
+
+.blocktitle
+{
+  text-align: left;
+  font-size: 14px;
+  font-weight: bold;
+  color: #000000;
+  background-color: #dddddd;
+  vertical-align: middle;
+  padding-top: 5px;
+  height: 20px;
+  border: 1px solid #888888;
+}
+
+/* login error */
+
+.loginerror { background-color: red; border: 1px solid #880000; height: 20px; color: white; text-align: left; font-size: 14px; font-weight: bold; vertical-align: middle; padding-left: 10px; padding-top: 5px; }
+
+.hidden
+{
+  display: none;
+}
+
+.visible
+{
+}
+
+.textmenu
+{
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.textmenulink
+{
+  margin-left: 2px;
+  margin-right: 2px;
+  cursor: pointer;
+}
+
+.textmenulink:hover { background-color: #eeeeee; }
+
+/* index tree */
+
+.treeclickable
+{
+  cursor: pointer;
+  padding: 3px;
+  white-space: nowrap;
+}
+
+.treeclickable:hover
+{
+  background-color: #ccccff;
+}
+
+.treedata
+{
+  white-space: nowrap;
+}
+
+
+
+/* login classes */
+
+.logingroup { border: 1px solid #888888; border-top: 0px; background-color: #f8f8f8; }
+.logingroupok { border: 1px solid #88ff88; border-top: 0px; background-color: #f8fff8; }
+.logingrouperror { border: 1px solid #ff8888; border-top: 0px; background-color: #fff8f8; }
+.logingroupmodified { border: 1px solid #8888ff; border-top: 0px; background-color: #f8f8ff; }
+
+
+
+/* CMS */
+
+.separatorinvisiblevertical>.newpageselector { position: absolute; left: 0px; right: 0px; margin: 10px; border-bottom: 1px dotted blue; }
+
+/* Types of pages */
+
+.pagerestart
+{
+  text-align: center;
+  background-color: #ffeeee;
+  border: 2px solid #ffaaaa;
+  font-size: 10px;
+  color: #660000;
+  border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; -khtml-border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagerestart .icon
+{
+  margin: 5px;
+  vertical-align: middle;
+}
+
+.pagerestart:hover
+{
+  background-color: #ffffee;
+  border: 2px solid #ffaaaa;
+}
+
+.pagetype
+{
+  text-align: center;
+  background-color: #eeeeff;
+  border: 2px solid #aaaaff;
+  font-size: 10px;
+  color: #000066;
+  border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; -khtml-border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagetype .icon
+{
+  margin: 5px;
+  vertical-align: middle;
+}
+
+.pagetype:hover
+{
+  background-color: #aaccff;
+  border: 2px solid #aaaaff;
+}
+
+/* Status of pages */
+
+.pagestatus
+{
+  text-align: center;
+  background-color: #ddddff;
+  border: 2px solid #9999ff;
+  font-size: 10px;
+  color: #000066;
+  border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; -khtml-border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagestatus .icon
+{
+  margin: 5px;
+  vertical-align: middle;
+}
+
+.pagestatus:hover
+{
+  background-color: #ddffff;
+  border: 2px solid #9999ff;
+}
+
+.pageselection
+{
+  border-bottom: 1px dotted #cccccc;
+}
+
+/* Page dashboard */
+
+/* SIMPLECONTAINER ON CONTENT */
+.simplecontent { }
+.simplecontent>.zone { }
+
+.boxdashboard
+{
+  border: 1px solid #79C;
+  padding: 5px;
+  border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; -khtml-border-radius: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-right: 10px;
+  margin-left: 10px;
+  text-align: left;
+  font-size: 10px;
+}
+
+.buttondashboard
+{
+  text-align: center;
+  border: 1px solid #9999ff;
+  font-size: 10px;
+  color: #000066;
+  border-radius: 3px; -moz-border-radius: 3px; -webkit-border-radius: 3px; -khtml-border-radius: 3px;
+  cursor: pointer;
+}
+
+.buttondashboard .icon
+{
+  margin: 5px;
+  vertical-align: middle;
+}
+
+.cmskeyword
+{
+  color: #777;
+}
+
+.cmspagelink
+{
+  color: #080;
+  cursor: pointer;
+}
+
+.cmsblockindent
+{
+  margin-left: 16px; border-left: 1px solid #acf; padding-left: 4px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

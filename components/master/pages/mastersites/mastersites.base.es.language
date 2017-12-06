@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="masterrepository" lang="es">
+  <entry id="title"><![CDATA[Configuracion de los archivos de los sitios:]]></entry>
+  <entry id="status"><![CDATA[Estatus actual de los archivos de los sitios: ]]></entry>
+  <entry id="statusimage"><![CDATA[Estatus actual]]></entry>
+  <entry id="status.1.text"><![CDATA[Los archivos de los sitios estan instalados y al día.]]></entry>
+  <entry id="status.2.text"><![CDATA[Los archivos de los sitios no estan instalados.]]></entry>
+  <entry id="status.3.text"><![CDATA[Los archivos de los sitios necesitan actualización.]]></entry>
+
+  <entry id="installed.code.text"><![CDATA[Versión instalada del código disponible:&nbsp;]]></entry>
+  <entry id="installed.repository.text"><![CDATA[Versión instalada en el repositorio de datos:&nbsp;]]></entry>
+  <entry id="available.text"><![CDATA[Versión disponible para instalar:&nbsp;]]></entry>
+
+  <entry id="install"><![CDATA[Copiar los archivos originales en los sitios]]></entry>
+  <entry id="upgrade"><![CDATA[Actualizar los archivos en los sitios]]></entry>
+
+  <entry id="errorduringinstall"><![CDATA[Error durante la instalación de los archivos:]]></entry>
+  <entry id="errorduringupgrade"><![CDATA[Error durante la actualización de los archivos:]]></entry>
+
+  <!-- Special entries for HTML build of installation result -->
+  <entry id="result"><![CDATA[<span class="maintitle">Resultado:</span><br /><br />]]></entry>
+  <entry id="file"><![CDATA[Copiando archivos/carpetas:&nbsp;<b>]]></entry>
+  <entry id="php"><![CDATA[Ajustando archivo PHP:&nbsp;<b>]]></entry>
+  <entry id="afo"><![CDATA[Generando AFO de configuración:&nbsp;<b>]]></entry>
+  <entry id="done"><![CDATA[</b>... Hecho.<br />]]></entry>
+
+  <entry id="mask.titleview"><![CDATA[Verificar las carpetas de los varios sitios:<br />]]></entry>
+  <entry id="mask.titleupdate"><![CDATA[Modificar las carpetas de los varios sitios:<br />]]></entry>
+  <entry id="mask.errormessage"><![CDATA[Error en los nombres de carpetas:<br />]]></entry>
+  <entry id="mask.servermessage"><![CDATA[Error desde el servidor:<br />]]></entry>
+
+  <entry id="admindir.title"><![CDATA[Carpeta del sitio de <b>administración</b>:<br />]]></entry>
+  <entry id="admindir.help.description"><![CDATA[La carpeta debe de ser una carpeta existente en el servidor. Las varias carpetas de los varios sitios pueden ser las mismas, incluso que la carpeta del Master (valor por defecto), el sistema adaptará los archivos en consecuencia en la medida de lo posible.<br />]]></entry>
+  <entry id="admindir.status.notnull"><![CDATA[La carpeta debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+
+  <entry id="admindomain.title"><![CDATA[Dominio del sitio de <b>administración</b>:<br />]]></entry>
+  <entry id="admindomain.help.description"><![CDATA[El dominio debe de existir y ser accesible por el navegador. Puede ser el mismo que el sitio o el sitio maestro, aunque no se recomienda por efectos de seguridad. También se recomienda fuertemente usar un certificado de seguridad.<br />]]></entry>
+  <entry id="admindomain.status.notnull"><![CDATA[El dominio debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+
+  <entry id="sitedir.title"><![CDATA[Carpeta del sitio <b>principal</b>:<br />]]></entry>
+  <entry id="sitedir.help.description"><![CDATA[La carpeta debe de ser una carpeta existente en el servidor. Las varias carpetas de los varios sitios pueden ser las mismas, incluso que la carpeta del Master (valor por defecto), el sistema adaptará los archivos en consecuencia en la medida de lo posible.<br />]]></entry>
+  <entry id="sitedir.status.notnull"><![CDATA[La carpeta debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+
+  <entry id="sitedomain.title"><![CDATA[Dominio del sitio <b>principal</b>:<br />]]></entry>
+  <entry id="sitedomain.help.description"><![CDATA[El dominio debe de existir y ser accesible por el navegador. Puede ser el mismo que el sitio o el sitio maestro, aunque no se recomienda por efectos de seguridad. Normalmente es el "www.<dominio>". También se recomienda fuertemente usar un certificado de seguridad.<br />]]></entry>
+  <entry id="sitedomain.status.notnull"><![CDATA[El dominio debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+
+  <entry id="apidir.title"><![CDATA[Carpeta del sitio de la <b>API</b>:<br />]]></entry>
+  <entry id="apidir.help.description"><![CDATA[La carpeta debe de ser una carpeta existente en el servidor. Las varias carpetas de los varios sitios pueden ser las mismas, incluso que la carpeta del Master (valor por defecto), el sistema adaptará los archivos en consecuencia en la medida de lo posible.<br />]]></entry>
+  <entry id="apidir.status.notnull"><![CDATA[La carpeta debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+  
+  <entry id="apidomain.title"><![CDATA[Dominio del sitio <b>API</b>:<br />]]></entry>
+  <entry id="apidomain.help.description"><![CDATA[El dominio debe de existir y ser accesible por el navegador. Puede ser el mismo que el sitio o el sitio maestro, aunque no se recomienda por efectos de seguridad. Normalmente es el "api.<dominio>". También se recomienda fuertemente usar un certificado de seguridad.<br />]]></entry>
+  <entry id="apidomain.status.notnull"><![CDATA[El dominio debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+
+  <entry id="cdndir.title"><![CDATA[Carpeta del sitio del <b>CDN</b>:<br />]]></entry>
+  <entry id="cdndir.help.description"><![CDATA[La carpeta debe de ser una carpeta existente en el servidor. Las varias carpetas de los varios sitios pueden ser las mismas, incluso que la carpeta del Master (valor por defecto), el sistema adaptará los archivos en consecuencia en la medida de lo posible.<br />]]></entry>
+  <entry id="cdndir.status.notnull"><![CDATA[La carpeta debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+  
+  <entry id="cdndomain.title"><![CDATA[Dominio del sitio del <b>CDN</b>:<br />]]></entry>
+  <entry id="cdndomain.help.description"><![CDATA[El dominio debe de existir y ser accesible por el navegador. Puede ser el mismo que el sitio o el sitio maestro, aunque no se recomienda por efectos de seguridad. Normalmente es el "cdn.<dominio>". También se recomienda fuertemente usar un certificado de seguridad. Cuidado: Usar el dominio generico oficial de la tercera parte, siendo que la fuente del CDN unicamente local y accesible por el administrador principal del CDN para indexar los archivos y no se apunta aquí.<br />]]></entry>
+  <entry id="cdndomain.status.notnull"><![CDATA[El dominio debe de tener un valor válido y no puede ser vacio:<br />]]></entry>
+  
+  <entry id="form.update"><![CDATA[Modificar los directorios]]></entry>
+  <entry id="form.continue"><![CDATA[Guardar los cambios]]></entry>
+  <entry id="form.reset"><![CDATA[Deshacer los cambios]]></entry>
+ 
+</language>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="mastermodule">
+  <element type="htmlElement" classname="maintitle">
+<![CDATA[##title## __MOD__ - __NAME__]]>
+  </element>
+
+  <element id="loading" type="htmlElement" classname="mastermodule_loading" left="0" top="0" width="max" height="max" display="none"></element>
+
+  <container type="simpleContainer" classname="simplecontent">
+    <zone id="modulestatus">
+      <element type="textElement">
+<![CDATA[##status##]]>
+      </element>
+      <element id="image" type="imageElement" width="16" height="16" style="margin-left: 10px; margin-right: 10px;">
+<![CDATA[##statusimage##]]>
+      </element>
+      <element id="status_1" type="textElement" display="none">
+<![CDATA[##status.1.text##]]>
+      </element>
+      <element id="status_2" type="textElement" display="none">
+<![CDATA[##status.2.text##]]>
+      </element>
+      <element id="status_3" type="textElement" display="none">
+<![CDATA[##status.3.text##]]>
+      </element>
+      <element id="versioninstalled" type="textElement" display="none">
+<![CDATA[<br />##installed.text##<br /><span class="moduleversion">[__INSTALLED__] - __NAME__</span>]]>
+      </element>
+      <element id="versionavailable" type="textElement" display="none">
+<![CDATA[<br />##available.text##<br /><span class="moduleversion">[__AVAILABLE__] - __AVAILABLENAME__</span>]]>
+      </element>
+    </zone>
+  </container>
+
+__VERSIONLIST__
+  
+  <container id="installationlog" type="simpleContainer" classname="simplecontent">
+    <zone classname="modulelog">
+      <element id="log" type="textElement">
+<![CDATA[__LOG__]]>
+      </element>
+    </zone>
+  </container>
+
+  <!-- container to fill with the installation/uninstallation/upgrade log -->
+  <element id="fillme" type="htmlElement" classname="mastermodule_fillme" display="none">
+  </element>
+
+  <element type="codeElement">
+<![CDATA[
+
+// status is 3 = not installed, 1 = ok, 2 = upgrade needed
+var mastermodulestatus = __STATUS__;
+var mastermoduleinstalled = '__INSTALLED__';
+var mastermoduleavailable = '__AVAILABLE__';
+
+function startinstallmodule(mod, version)
+{
+  WA.$N('fillme').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/master/mastermodule/install/json', 'POST', 'Mod='+mod+'&Version='+version, moduleinstalled, true);
+}
+
+function moduleinstalled(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  console.log(data);
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  WA.$N('masterindex|single|menu').reload();
+  // reload ourself
+  setTimeout(
+    function() {
+      WA.Managers.wa4gl.destroyApplication('mastermodule', data.id);
+      WA.Managers.wa4gl.startApplication('masterindex|single|app_module_' + data.id, 'mastermodule', data.id, 'Mod=' + data.id, '');
+      }, 0 );
+}
+
+function startreinstallmodule(mod, version)
+{
+  WA.$N('fillme').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/master/mastermodule/reinstall/json', 'POST', 'Mod='+mod+'&Version='+version, modulereinstalled, true);
+}
+
+function modulereinstalled(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  WA.$N('masterindex|single|menu').reload();
+  // reload ourself
+  setTimeout(
+    function() {
+      WA.Managers.wa4gl.destroyApplication('mastermodule', data.id);
+      WA.Managers.wa4gl.startApplication('masterindex|single|app_module_' + data.id, 'mastermodule', data.id, 'Mod=' + data.id, '');
+      }, 0 );
+  // WA.$N('loading').hide();
+}
+
+function startupgrademodule(mod, version)
+{
+  WA.$N('fillme').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/master/mastermodule/upgrade/json', 'POST', 'Mod='+mod+'&Version='+version, moduleupgraded, true);
+}
+
+function moduleupgraded(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  WA.$N('masterindex|single|menu').reload();
+  WA.$N('masterindex|single|menu').reload();
+  // reload ourself
+  setTimeout(
+    function() {
+      WA.Managers.wa4gl.destroyApplication('mastermodule', data.id);
+      WA.Managers.wa4gl.startApplication('masterindex|single|app_module_' + data.id, 'mastermodule', data.id, 'Mod=' + data.id, '');
+      }, 0 );
+  // WA.$N('loading').hide();
+}
+
+function startuninstallmodule(mod, version)
+{
+  WA.$N('fillme').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/master/mastermodule/uninstall/json', 'POST', 'Mod='+mod+'&Version='+version, moduleuninstalled, true);
+}
+
+function moduleuninstalled(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  WA.$N('masterindex|single|menu').reload();
+  WA.$N('masterindex|single|menu').reload();
+  // reload ourself
+  setTimeout(
+    function() {
+      WA.Managers.wa4gl.destroyApplication('mastermodule', data.id);
+      WA.Managers.wa4gl.startApplication('masterindex|single|app_module_' + data.id, 'mastermodule', data.id, 'Mod=' + data.id, '');
+      }, 0 );
+  // WA.$N('loading').hide();
+}
+
+function showmodulestatus()
+{
+  // status is 3 = not installed, 1 = ok, 2 = upgrade needed
+  switch(mastermodulestatus)
+  {
+    case 1:
+      WA.toDOM('modulestatus').className = 'modulestatus_1';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/module-ok.png';
+      WA.$N('status_1').show();
+      WA.$N('versioninstalled').show();
+      break;
+    case 2:
+      WA.toDOM('modulestatus').className = 'modulestatus_2';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/module-update.png';
+      WA.$N('status_2').show();
+      WA.$N('versioninstalled').show();
+      WA.$N('versionavailable').show();
+      break;
+    case 3:
+      WA.toDOM('modulestatus').className = 'modulestatus_3';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/module-no.png';
+      WA.$N('status_3').show();
+      WA.$N('versionavailable').show();
+      break;
+  }
+}
+]]>
+  </element>
+
+  <event type="start">
+    <code>
+<![CDATA[
+function()
+{
+  showmodulestatus();
+}
+]]>
+    </code>
+  </event>
+
+</application>

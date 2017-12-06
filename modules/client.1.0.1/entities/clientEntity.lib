@@ -1,0 +1,129 @@
+<?php
+
+namespace modules\client\entities;
+
+class clientEntity extends \common\entity
+{
+  protected $tables = array(
+    'client' => array('table' => 'client_client'),
+    'social' => array('table' => 'client_social')
+  );
+
+  public function __construct()
+  {
+    parent::__construct();
+  }
+  
+  // =====================================================================
+  // USERS RELATED FUNCTIONS
+  public function getUserData($key)
+  {
+    if (!is_numeric($key))
+      return null;
+    return $this->client_client->doSelect($key);
+  }
+
+  public function getUserStatus()
+  {
+    return $this->base->loadLanguage('client_client_status', 'repository');
+  }
+
+  public function getClientsList($father)
+  {
+    return $this->client_client->doSelectCondition(null, new \dominion\DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+  }
+
+  // Deletes all information relative to the group
+  public function deleteUserInformation($client)
+  {
+   $clients = $this->searchUsers($client);
+       // deletes all the registers of security acceses
+  }
+
+  public function transferUserInformation($client, $destination)
+  {
+    $rec = $this->client_client->doSelectCondition(new \dominion\DB_Condition('father','=',$client));
+    $record = array( 'father' => $destination);
+    foreach ($rec as $element)
+    {
+      $this->client_client->doUpdateCondition(new \dominion\DB_Condition('key', '=', $element['key']), $record);
+    }
+    // transfer all the information to another client (normally not the security options ?
+     //$this->client_client->doUpdateCondition(new \dominion\DB_Condition('un', '=', $client), $record);
+  }
+
+  public function searchUsers($client)
+  {
+    $rec = $this->client_client->doSelectCondition(new \dominion\DB_Condition('key','=',$client), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC));
+    if($rec != null)
+    {
+      foreach ($rec as $element) {
+        //echo '-->'.$element['key'];
+         $this->searchSon($element['key']);
+      }
+      //if($this->base->COMPONENT != 'admin')
+        $this->deleteSon($this->id_client);
+    }
+  }
+
+  public function searchSon($client)
+  {
+    $rec = $this->client_client->doSelectCondition(new \dominion\DB_Condition('father','=',$client), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC));
+    if($rec != null){
+      foreach ($rec as $element)
+      {
+         array_push($this->id_client, $element['key']);
+         $this->searchSon($element['key']);
+      }
+    }
+  }
+
+  public function deleteSon($client)
+  {
+    if(count($client)>0)
+    {
+      $in = '(';
+      for($delclient = 0; $delclient <=count($client)-1; $delclient++)
+      {
+        //echo $delclient;
+         if($delclient == count($client)-1)
+          $in.= $client[$delclient];
+         else
+          $in.= $client[$delclient].',';
+      }
+      $in.=')';
+
+      $this->client_client->doDeleteCondition(new \dominion\DB_Condition('key', 'in', $in));
+    }
+  }
+
+  public function getClientsNumberByStatus($status)
+  {
+    //Show only the clients that corresponds to register client.
+    if($this->base->COMPONENT == 'admin')
+    {
+      $where  = array();
+      $where[] = new \dominion\DB_Condition('status','=',$status,'and');
+      $records = $this->client_client->doSelectCondition($where,null);
+      $records = $this->client_client->doSelectCondition(new \dominion\DB_Condition('status','=',$status));
+    }
+    else
+    {
+      $records = $this->client_client->doSelectCondition(new \dominion\DB_Condition('status','=',$status));
+    }
+
+    if($records)
+    {
+      $record_num = count($records);
+    }
+    else
+    {
+      $record_num = 0;
+    }
+
+    return $record_num;
+
+  }
+}
+
+?>

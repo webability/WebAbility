@@ -1,0 +1,111 @@
+<?php
+
+namespace install;
+
+class installer extends \common\installer
+{
+  protected $script = array(
+
+  // MENU ADMIN
+  array( 'Order' => 'CreateMenuTheme',
+         'Id' => 'tools',
+         'Template' => null,
+         'Name' => 'tools',
+         'Icon' => '/skins/admin/icons/tools.png',
+         'Cond' => null,
+         'Help' => 'tools' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'sitelink',
+           'Theme' => 'tools',
+           'Template' => 'sitelink',
+           'Name' => 'sitelink',
+           'Link' => "window.open('/index.php');",
+           'Icon' => '/skins/admin/icons/sitelink.png',
+           'Cond' => null,
+           'Help' => 'sitelink' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'explorer',
+           'Theme' => 'tools',
+           'Template' => 'option',
+           'Name' => 'explorer',
+           'Link' => 'adminexplorer',
+           'Params' => null,
+           'Icon' => '/skins/admin/icons/explorer.png',
+           'Cond' => null,
+           'Help' => 'explorer' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'config',
+           'Theme' => 'tools',
+           'Template' => 'option',
+           'Name' => 'config',
+           'Link' => 'adminconfig',
+           'Params' => null,
+           'Icon' => '/skins/admin/icons/config.png',
+           'Cond' => null,
+           'Help' => 'config' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'mypage',
+           'Theme' => 'tools',
+           'Template' => 'option',
+           'Name' => 'mypage',
+           'Link' => 'adminmypage',
+           'Params' => null,
+           'Icon' => '/skins/admin/icons/user-me.png',
+           'Cond' => null,
+           'Help' => 'mypage' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'console',
+           'Theme' => 'tools',
+           'Template' => 'console',
+           'Name' => 'console',
+           'Link' => '#',
+           'Params' => null,
+           'Icon' => '/skins/admin/icons/console.png',
+           'Cond' => null,
+           'Help' => 'console' ),
+
+  );
+  
+  private $baseLogEntity = null;
+  
+  public function __construct($language)
+  {
+    parent::__construct('components/', \common\Base::MODULE, \common\Base::VERSION, $language);
+    
+    $this->baseLogEntity = \entities\baseLogEntity::getInstance();
+  }  
+  
+  public function install()
+  {
+    $messages = $this->installDatabase();
+    
+    // we insert the default data values in the database
+    // we load the language
+    $messages .= $this->language->getEntry('records');
+
+    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/base_syslogtype.'.$this->base->Language.'.xml'));
+    $this->baseLogEntity->createSysLogType( array('key' => 1, 'name' => $l->getEntry('name.1')) );
+    $this->baseLogEntity->createSysLogType( array('key' => 2, 'name' => $l->getEntry('name.2')) );
+    $this->baseLogEntity->createSysLogType( array('key' => 3, 'name' => $l->getEntry('name.3')) );
+    $this->baseLogEntity->createSysLogType( array('key' => 4, 'name' => $l->getEntry('name.4')) );
+    $this->baseLogEntity->createSysLogType( array('key' => 5, 'name' => $l->getEntry('name.5')) );
+
+    // run the scripter
+    $messages .= $this->installScript();
+    
+    return $messages;
+  }
+  
+  public function uninstall()
+  {
+    return $this->uninstallDatabase();
+  }
+  
+};
+
+?>

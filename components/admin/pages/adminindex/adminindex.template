@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="adminindex">
+  <container type="separatorContainer" width="max" height="max" mode="horizontal" auto="no">
+    <zone size="200">
+
+      <container id="menu" type="treeContainer" haslistener="yes">
+
+        <!-- DEFAULT THEME TEMPLATE -->
+        <template name="theme">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink" style="font-weight: bold;"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  WA.$N('menu').switchzone('{id}');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+        <!-- DEFAULT OPTION TEMPLATE, NO ICON -->
+        <template name="option">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct_mode})
+    callindex.call(this, {ct_mode}, '{ct_zid}', '{ct_apptitle}', '{ct_appid}', '{ct_params}');
+  else if (sh && {sh_mode})
+    callindex.call(this, {sh_mode}, '{sh_zid}', '{sh_apptitle}', '{sh_appid}', '{sh_params}');
+  else if ({na_mode})
+    callindex.call(this, {na_mode}, '{na_zid}', '{na_apptitle}', '{na_appid}', '{na_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+        <!-- DEFAULT OPTION TEMPLATE, 1 ICON EXTRA -->
+        <template name="option1icon">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct_mode})
+    callindex.call(this, {ct_mode}, '{ct_zid}', '{ct_apptitle}', '{ct_appid}', '{ct_params}');
+  else if (sh && {sh_mode})
+    callindex.call(this, {sh_mode}, '{sh_zid}', '{sh_apptitle}', '{sh_appid}', '{sh_params}');
+  else if ({na_mode})
+    callindex.call(this, {na_mode}, '{na_zid}', '{na_apptitle}', '{na_appid}', '{na_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="{icon1}"><![CDATA[{name1}]]>
+            <help>
+              <summary><![CDATA[{help1.summary}]]></summary>
+              <title><![CDATA[{help1.title}]]></title>
+              <description><![CDATA[{help1.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct1_mode})
+    callindex.call(this, {ct1_mode}, '{ct1_zid}', '{ct1_apptitle}', '{ct1_appid}', '{ct1_params}');
+  else if (sh && {sh1_mode})
+    callindex.call(this, {sh1_mode}, '{sh1_zid}', '{sh1_apptitle}', '{sh1_appid}', '{sh1_params}');
+  else if ({na1_mode})
+    callindex.call(this, {na1_mode}, '{na1_zid}', '{na1_apptitle}', '{na1_appid}', '{na1_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+        <!-- DEFAULT OPTION TEMPLATE, 2 ICONS EXTRA -->
+        <template name="option2icons">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct_mode})
+    callindex.call(this, {ct_mode}, '{ct_zid}', '{ct_apptitle}', '{ct_appid}', '{ct_params}');
+  else if (sh && {sh_mode})
+    callindex.call(this, {sh_mode}, '{sh_zid}', '{sh_apptitle}', '{sh_appid}', '{sh_params}');
+  else if ({na_mode})
+    callindex.call(this, {na_mode}, '{na_zid}', '{na_apptitle}', '{na_appid}', '{na_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="{icon1}"><![CDATA[{name1}]]>
+            <help>
+              <summary><![CDATA[{help1.summary}]]></summary>
+              <title><![CDATA[{help1.title}]]></title>
+              <description><![CDATA[{help1.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct1_mode})
+    callindex.call(this, {ct1_mode}, '{ct1_zid}', '{ct1_apptitle}', '{ct1_appid}', '{ct1_params}');
+  else if (sh && {sh1_mode})
+    callindex.call(this, {sh1_mode}, '{sh1_zid}', '{sh1_apptitle}', '{sh1_appid}', '{sh1_params}');
+  else if ({na1_mode})
+    callindex.call(this, {na1_mode}, '{na1_zid}', '{na1_apptitle}', '{na1_appid}', '{na1_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="{icon2}"><![CDATA[{name2}]]>
+            <help>
+              <summary><![CDATA[{help2.summary}]]></summary>
+              <title><![CDATA[{help2.title}]]></title>
+              <description><![CDATA[{help2.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct2_mode})
+    callindex.call(this, {ct2_mode}, '{ct2_zid}', '{ct2_apptitle}', '{ct2_appid}', '{ct2_params}');
+  else if (sh && {sh2_mode})
+    callindex.call(this, {sh2_mode}, '{sh2_zid}', '{sh2_apptitle}', '{sh2_appid}', '{sh2_params}');
+  else if ({na2_mode})
+    callindex.call(this, {na2_mode}, '{na2_zid}', '{na2_apptitle}', '{na2_appid}', '{na2_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+        
+        <!-- GO TO THE SITE -->
+        <template name="sitelink">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/icons/sitelink.png"><![CDATA[##sitelink.summary##]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[##SITELINKMENU##]]>
+            <help>
+              <summary>##sitelink.summary##</summary>
+              <title>##sitelink.title##</title>
+              <description>##sitelink.description##</description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  window.open('/index.php');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+        
+        <!-- CONSOLE -->
+        <template name="console">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/icons/console.png"><![CDATA[##console.summary##]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[##CONSOLEMENU##]]>
+            <help>
+              <summary>##console.summary##</summary>
+              <title>##console.title##</title>
+              <description>##console.description##</description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  debugconsole();
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+__TEMPLATES__
+
+      </container>
+
+    </zone>
+    <zone id="workarea" size="*">
+      <container id="application" type="tabContainer" width="max" height="max" mode="top">
+        <zone id="controlcenter" title="##CONTROLNAME##" application="admincontrol|single" shortcut="##CONTROLSHORTCUT##" />
+      </container>
+    </zone>
+  </container>
+
+  <element type="codeElement"><![CDATA[
+
+function callindex(mode, zoneid, apptitle, appid, params)
+{
+  switch(mode)
+  {
+    case 1: // open/close
+      WA.$N('adminindex|single|menu').switchzone(zoneid); break;
+    case 2: // open app in tab
+      var node = WA.$N('adminindex|single|'+zoneid);
+      console.log(node);
+      if (!node)
+      {
+        var tree = {tag:'zone',attributes:{id:zoneid,title:apptitle,closeable:'yes',application:appid, params:params}};
+        this._4gl.app.createTree('adminindex|single|application', tree);
+      }
+      // absolute, other app can call this method
+      WA.$N('adminindex|single|application').activateZone(zoneid);
+      break;
+    case 3: // new app in tab
+      var tree = {tag:'zone',attributes:{id:zoneid + globalcount,title:apptitle,closeable:'yes',application:appid + globalcount, params:params}};
+      this._4gl.app.createTree('application', tree);
+      WA.$N('adminindex|single|application').activateZone(zoneid + globalcount);
+      globalcount++;
+      break;
+    case 4:
+      params();
+      break;
+  }
+}
+
+]]></element>
+
+</application>

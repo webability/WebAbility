@@ -1,0 +1,136 @@
+__CONTENT__
+__FOOTNOTES__
+
+[[footnoteanchor]]<sup>(__SERIAL__)</sup>[[]]
+
+[[footnotes]]
+<hr style="border: 1px Solid #ffaaaa;" a="a" />
+__FOOTNOTES__
+[[]]
+
+[[footnote]]
+__SERIAL__. __CONTENT__<br />
+[[]]
+
+[[toc]]
+<table><tr><td>__CONTENT__</td></tr></table>
+[[]]
+
+[[hr]]
+<hr style="border: 1px Solid #aaaaff;" />
+[[]]
+
+[[bold]]<b>__CONTENT__</b>[[]]
+
+[[italic]]<i>__CONTENT__</i>[[]]
+
+[[underline]]<u>__CONTENT__</u>[[]]
+
+[[deleted]]<del>__CONTENT__</del>[[]]
+
+[[superscript]]<sup>__CONTENT__</sup>[[]]
+
+[[subscript]]<sub>__CONTENT__</sub>[[]]
+
+[[important]]<span style="color: red;">__CONTENT__</span>[[]]
+
+[[center]]<p style="text-align: center;">__CONTENT__</p>[[]]
+
+[[left]]<p style="text-align: left;">__CONTENT__</p>[[]]
+
+[[right]]<p style="text-align: right;">__CONTENT__</p>[[]]
+
+[[justified]]<p style="text-align: justify;">__CONTENT__</p>[[]]
+
+
+[[box.0]]<div style="background-color: #eeeeee; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.1]]<div style="background-color: #eeeeee; border: 1px Solid black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.2]]<div style="background-color: #eeeeee; border: 2px Solid black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.3]]<div style="background-color: #eeeeee; border: 1px Dotted black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.4]]<div style="background-color: #eeeeee; border: 2px Dotted black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.5]]<div style="background-color: #ffeeee; border: 1px Solid black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.6]]<div style="background-color: #eeffee; border: 1px Solid black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.7]]<div style="background-color: #eeeeff; border: 1px Solid black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.8]]<div style="background-color: #ffffee; border: 1px Solid black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+[[box.9]]<div style="background-color: #eeffff; border: 1px Solid black; margin: 10px; padding: 10px;">__CONTENT__</div>[[]]
+
+[[br]]<br />[[]]
+
+[[color]]<span style="color: __COLOR__;__BACKGROUND__">__CONTENT__</span>[[]]
+[[backgroundcolor]] background-color: __BACKGROUND__;[[]]
+
+[[link.http]]__POPUPICON__<a href="__LINK__" style="color: #008800;"__POPUP__>__TITLE__</a>[[]]
+
+[[link.https]]__POPUPICON__<a href="__LINK__" style="color: #008800;"__POPUP__>__TITLE__</a>[[]]
+
+[[link.ftp]]<img src="/skins/clean/modules/wiki/ftp.gif" alt="link to a FTP file" title="link to a FTP file" class="cleanimage" /><a href="__LINK__" style="color: #008800;"__POPUP__>__TITLE__</a>[[]]
+
+[[link.mail]]<img src="/skins/clean/modules/wiki/mail.gif" alt="link to an email" title="link to an email" class="cleanimage" /><a href="__LINK__" style="color: #008800;">__TITLE__</a>[[]]
+
+[[link.internal]]<img src="/skins/clean/modules/wiki/internal.gif" alt="link to another page" title="link to another page" /><a href="__LINK__" style="color: #008800;"__POPUP__>__TITLE__</a>[[]]
+
+[[link.wiki]]<a href="__LINK__" style="color: #0000ff;"__POPUP__>__TITLE__</a>[[]]
+[[link.wikibroken]]<img src="/skins/clean/modules/wiki/wikibroken.gif" alt="" class="cleanimage" />__TITLE__ [<a href="__LINK__?edit=1" style="color: #ff0000;"__POPUP__>New</a>][[]]
+
+[[icon.popup]]<img src="/skins/clean/modules/wiki/http.gif" alt="Link to another Internet page, will open in a new browser" title="Link to another Internet page, will open in a new browser" class="cleanimage" />[[]]
+[[icon.nopopup]]<img src="/skins/clean/modules/wiki/nopopup.gif" alt="" class="cleanimage" />[[]]
+
+[[h1]]<h1 class="h1">__NUMBER__ __CONTENT__</h1>[[]]
+[[h2]]<h2 class="h2">__NUMBER__ __CONTENT__</h2>[[]]
+[[h3]]<h3 class="h3">__NUMBER__ __CONTENT__</h3>[[]]
+[[h4]]<h4 class="h4">__NUMBER__ __CONTENT__</h4>[[]]
+[[h5]]<h5 class="h5">__NUMBER__ __CONTENT__</h5>[[]]
+[[h6]]<h5 class="h6">__NUMBER__ __CONTENT__</h5>[[]]
+[[h7]]<h5 class="h7">__NUMBER__ __CONTENT__</h5>[[]]
+
+[[bullet1]]<ul style="margin: 0px;"><li style="margin-left: 10px;">__CONTENT__</li></ul>[[]]
+[[bullet2]]<ul style="margin: 0px;"><li style="margin-left: 20px;">__CONTENT__</li></ul>[[]]
+[[bullet3]]<ul style="margin: 0px;"><li style="margin-left: 30px;">__CONTENT__</li></ul>[[]]
+[[bullet4]]<ul style="margin: 0px;"><li style="margin-left: 40px;">__CONTENT__</li></ul>[[]]
+[[bullet5]]<ul style="margin: 0px;"><li style="margin-left: 50px;">__CONTENT__</li></ul>[[]]
+[[bullet6]]<ul style="margin: 0px;"><li style="margin-left: 60px;">__CONTENT__</li></ul>[[]]
+[[bullet7]]<ul style="margin: 0px;"><li style="margin-left: 70px;">__CONTENT__</li></ul>[[]]
+[[bullet8]]<ul style="margin: 0px;"><li style="margin-left: 80px;">__CONTENT__</li></ul>[[]]
+[[bullet9]]<ul style="margin: 0px;"><li style="margin-left: 90px;">__CONTENT__</li></ul>[[]]
+[[bullet10]]<ul style="margin: 0px;"><li style="margin-left: 100px;">__CONTENT__</li></ul>[[]]
+[[bullet11]]<ul style="margin: 0px;"><li style="margin-left: 110px;">__CONTENT__</li></ul>[[]]
+
+[[quote1]]<br />| __CONTENT__[[]]
+[[quote2]]<br />|| __CONTENT__[[]]
+[[quote3]]<br />||| __CONTENT__[[]]
+[[quote4]]<br />|||| __CONTENT__[[]]
+[[quote5]]<br />||||| __CONTENT__[[]]
+[[quote6]]<br />|||||| __CONTENT__[[]]
+[[quote7]]<br />||||||| __CONTENT__[[]]
+
+[[number1]]<span style="margin-left: 10px;">__NUMBER__ __CONTENT__</span><br />[[]]
+[[number2]]<span style="margin-left: 20px;">__NUMBER__ __CONTENT__</span><br />[[]]
+[[number3]]<span style="margin-left: 30px;">__NUMBER__ __CONTENT__</span><br />[[]]
+[[number4]]<span style="margin-left: 40px;">__NUMBER__ __CONTENT__</span><br />[[]]
+[[number5]]<span style="margin-left: 50px;">__NUMBER__ __CONTENT__</span><br />[[]]
+[[number6]]<span style="margin-left: 60px;">__NUMBER__ __CONTENT__</span><br />[[]]
+[[number7]]<span style="margin-left: 70px;">__NUMBER__ __CONTENT__</span><br />[[]]
+
+[[table]]<table border="0" cellspacing="0" cellpadding="0"__SIZE__>__CONTENT__</table>[[]]
+[[tableborder]]<table border="1" cellspacing="0" cellpadding="0"__SIZE__>__CONTENT__</table>[[]]
+[[tablesize]] width="__WIDTH__"[[]]
+[[tablerow]]<tr>__CONTENT__</tr>[[]]
+[[tablecell]]__CONTENT__[[]]
+[[tablecellcontent]]<td style="text-align: __ALIGN__; vertical-align: top;">__CONTENT__</td>[[]]
+
+[[multimedia]]<img src="__MULTIMEDIA__" alt="__TITLE___" />[[]]
+
+[[tm]]<span style="color: #880000; font-weight: bold; font-decoration: underline;">__CONTENT__</span>[[]]
+[[class]]<span style="color: #008800; background-color: #ffeeaa; font-weight: bold; border: 1px Solid #ccaa88;">__CONTENT__</span>[[]]
+[[method]]<span style="color: #008800; background-color: #eeeeff; font-weight: bold; border: 1px Solid #ccccee;">__CONTENT__</span>[[]]
+[[attribute]]<span style="color: #008800; background-color: #ffff77; font-weight: bold;">__CONTENT__</span>[[]]
+[[constant]]<span style="color: #ff8800; background-color: #ffff77; font-weight: bold;">__CONTENT__</span>[[]]
+[[var1]]<span style="color: #ff0000;">__CONTENT__</span>[[]]
+[[var2]]<span style="color: #ff8800;">__CONTENT__</span>[[]]
+[[var3]]<span style="color: #0088ff;">__CONTENT__</span>[[]]
+[[var4]]<span style="color: #000088;">__CONTENT__</span>[[]]
+[[var5]]<span style="color: #ff00ff;">__CONTENT__</span>[[]]
+[[var6]]<span style="color: #880088;">__CONTENT__</span>[[]]
+[[var7]]<span style="color: #880000;">__CONTENT__</span>[[]]
+[[var8]]<span style="color: #004400;">__CONTENT__</span>[[]]
+[[var9]]<span style="color: #008800;">__CONTENT__</span>[[]]

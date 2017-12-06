@@ -1,0 +1,52 @@
+<?php
+
+namespace modules\user\entities;
+
+class connectEntity extends \patterns\Singleton
+{
+  public $regexpID = '/^[a-zA-Z0-9]{5,24}$/';
+
+  public $base_connection;
+  public $base_connectionhistory;
+
+  public function __construct()
+  {
+    parent::__construct();
+
+    require $this->base->getTablePath('base_connection');
+    $this->base_connection = $base_connection;
+    $this->base_connection->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('base_connectionhistory');
+    $this->base_connectionhistory = $base_connectionhistory;
+    $this->base_connectionhistory->setDB($this->base->connector['Main']);
+  }
+
+  // =============================================================
+  // conexion
+  public function getConnectionData($key)
+  {
+    if (!is_number($key))
+      return null;
+    return $this->base_connection->doSelect($key);
+  }
+
+  public function getConnectionDataByID($id)
+  {
+    if (!preg_match($this->regexpID, $id))
+      return null;
+    return $this->base_connection->doSelectCondition(new DB_Condition('id', '=', $id));
+  }
+
+  // =============================================================
+  // conexion history
+  public function getConnectionHistoryData($key)
+  {
+    if (!is_number($key))
+      return null;
+    return $this->base_connectionhistory->doSelect($key);
+  }
+
+}
+
+?>

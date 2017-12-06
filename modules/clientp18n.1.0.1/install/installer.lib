@@ -1,0 +1,75 @@
+<?php
+
+namespace modules\clientp18n\install;
+
+class installer extends \common\installer
+{
+  const ID = 'clientp18n';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateMenuTheme',
+           'Id' => 'clientp18n',
+           'Template' => null,
+           'Name' => 'clientp18n',
+           'Icon' => '/skins/admin/modules/clientp18n/clientp18n.png',
+           'Cond' => null,
+           'Help' => 'clientp18n' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'clientp18n_',
+           'Theme' => 'clientp18n',
+           'Father' => null,
+           'Template' => null,
+           'Access' => null,
+           'Name' => 'clientp18n',
+           'Link' => '/adminclientp18nlist',
+           'Params' => null,
+           'Icon' => null,
+           'Cond' => null,
+           'Help' => 'clientp18n' ),
+    );  
+  
+  public function __construct($language)
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
+  }  
+  
+  public function install()
+  {
+    $messages = $this->installDatabase();
+    
+    $this->setModule();
+
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+
+    $messages .= $this->language->getEntry('pagesadmin') . "<br />\n";
+
+    // run the scripter
+    $messages .= $this->installScript();
+    
+    return $messages;
+  }
+  
+  public function uninstall()
+  {
+    // run the scripter
+    $messages = $this->uninstallScript();
+
+    $this->delModule();
+
+    $messages .= $this->uninstallDatabase();
+    return $messages;
+  }
+  
+  public function upgrade($from)
+  {
+    // Special tasks to execute in case of an upgrade
+  }
+
+};
+
+?>

@@ -1,0 +1,106 @@
+<?php
+
+class importtable extends WAObject
+{
+
+  function __construct()
+  {
+    parent::__construct();
+  }
+
+  // be sure table is empty, or will add the records
+  // $replace = false: we just try to insert records, = true we delete all records before
+  public function import($table, $xmlfile)
+  {
+    $xml = simplexml_load_file($xmlfile);
+    if(!empty($xml))
+    {
+	    foreach($xml->records->record as $rec)
+	    {
+var_dump($rec);
+	      foreach($rec as $f => $v)
+	      {
+var_dump($f);
+var_dump($v);
+	      }
+
+
+
+
+/*
+
+
+
+
+	      $r = array();
+	      foreach($fields as $k => $f)
+	      {
+	        $att = $rec->$k->attributes();
+	        if ($f == "%")
+	        {
+	          if ($att['null'] == 1)
+	            $val = null;
+	          else
+	            $val = rawurldecode((string)$rec->$k);
+	        }
+	        elseif($f == "/")
+	        {
+	          if ($att['null'] == 1)
+	            $val = null;
+	          else
+	            $val = rawurldecode((string)$rec->$k);
+	          if (!$val) $val = null;
+	        }
+	        elseif($f[0] == ".")
+	        {
+	          $name = substr($f, 1);
+	          $att = $rec->$name->attributes();
+	          if ($att['null'] == 1)
+	            $val = null;
+	          else
+	            $val = rawurldecode((string)$rec->$name);
+	        }
+	        elseif($f[0] == "!")
+	        {
+	          $name = substr($f, 1);
+	          $att = $rec->$name->attributes();
+	          if ($att['null'] == 1)
+	            $val = null;
+	          else
+	            $val = rawurldecode((string)$rec->$name);
+	          if (!$val) $val = null;
+	        }
+	        elseif($f[0] == "?")
+	        {
+
+	          $name = substr($f, 1);
+	          if (isset($transposition[$name]["?Function"]))
+	          {
+	            $val = $transposition[$name]["?Function"]($rec);
+	          }
+	          else
+	          {
+	            $val1 = rawurldecode((string)$rec->$name);
+
+	            if (!isset($transposition[$name][$val1]))
+	              $val = $val1;
+	            else
+	              $val = $transposition[$name][$val1];
+	          }
+	        }
+	        else
+	          $val = $f;
+
+*/
+
+        $r[$k] = $val;
+      }
+
+      $table->doInsert($r);
+    }
+
+  }
+
+}
+
+?>

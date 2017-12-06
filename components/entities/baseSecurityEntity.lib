@@ -1,0 +1,176 @@
+<?php
+
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: Common
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 Common Master Library and object
+2015-05-07: Phil, added config params, entities for conectors.
+2017-02-03: Phil, Version 6 revamp
+
+@End_DESCR */
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| BaseMaster : Master base object                                  |
+|------------------------------------------------------------------|
+  private $parameters = array();
+  private $cookiesize = 24;   // Master cookie 24 positions
+  private $timeout = 600;     // 10 minutes default for Master timeout
+  public $session = null;  // 24 char session number
+  public $connected = false;  // true if well connected
+  public $username = null;    // username (unique user for master)
+  public $User = null;        // no user by default
+  public $UserData;
+|------------------------------------------------------------------|
+  public function __construct($config)
+  private function loadParameterGroup($group)
+  private function saveParameterGroup($group)
+  public function setParameter($group, $parameter, $value)
+  public function getParameter($group, $parameter)
+  public function __Connect(&$Session, $ADDR)
+  public function ifAccess($acc)
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace entities;
+
+class baseSecurityEntity extends \common\entity
+{
+  private $cookiesize = 24;   // Master cookie 24 positions
+  private $timeout = 600;     // 10 minutes default for Master timeout
+  
+  public $session = null;  // session number
+  public $connected = false;  // true if well connected
+  public $username = null;    // username (unique user for master)
+  public $User = null;        // no user by default
+  public $UserData;
+  
+  public function __construct()
+  {
+    parent::__construct();
+    
+    if ($this->base->config->cookiesize)
+      $this->cookiesize = $this->base->config->cookiesize;
+    if ($this->base->config->timeout)
+      $this->timeout = $this->base->config->timeout;
+  }
+
+  // =======================================================
+  // PARAMETERS
+  // =======================================================
+  public function loadParameterGroup($user, $group)
+  {
+    return $this->base->readFastObject('session/parameters/'.$user, $group);
+  }
+
+  public function saveParameterGroup($user, $group, $data)
+  {
+    $this->base->writeFastObject('session/parameters/'.$user, $group, $data);
+  }
+
+  // ======================================================
+  // __Connect: Connect user
+  // Returns an AFO session object if OK, or NULL
+  // ======================================================
+
+  public function checkUser()
+  {
+    $A = $this->base->HTTPRequest->getParameter('OrderSecurity', \xamboo\Validator::SETOFVALUES, array('Connect', 'Disconnect'));
+    $AFOsession = null;
+    $ADDR = $_SERVER['REMOTE_ADDR'];
+    if (isset($_COOKIE[$this->base->mode . 'Session']))
+    {
+      $this->session = rawurlencode($_COOKIE[$this->base->mode . 'Session']);  // to protect any try of hack
+      // we load the AFO cookie
+      $AFOsession = $this->base->readFastObject('session', $this->session);
+      // We verify the AFO
+
+      if ($AFOsession)
+      {
+        if ($AFOsession['timeout'] <= time() || $AFOsession['IP'] != $ADDR)
+        {
+          // We actualize the cookie of the session
+          $AFOsession['timeout'] = time();
+          $this->base->writeFastObject('session', $this->session, $AFOsession);
+          // we destroy the memory cookie
+          $AFOsession = null;
+          $this->session = null;
+        }
+      }
+      else
+        $this->session = null;
+    }
+    else
+      $this->session = null;
+
+    if ($A == 'Connect')
+    {
+      // we connect or reconnect
+      $AFOsession = $this->__Connect($this->session, $ADDR);
+    }
+
+    if ($A == 'Disconnect' && $this->session)
+    {
+      // we neutralize the AFO cookie
+      $AFOsession['timeout'] = time();
+      $this->base->writeFastObject('session', $this->session, $AFOsession);
+      // we disconnect
+      $AFOsession = null;
+      $this->session = null;
+      $this->User = null;
+      $this->UserData = null;
+    }
+
+    if ($AFOsession != null)
+    {
+      // we set up extra variables of connection
+      // we regenerate the cookie and actualize the session
+      $AFOsession['timeout'] = time() + $this->timeout;
+      $this->base->writeFastObject('session', $this->session, $AFOsession);
+      $this->User = 1;
+      $this->UserData = array('un' => $this->base->config->user);
+      $this->connected = true;
+      
+      $this->base->user = new \structures\user(
+        array('key' => 1, 'name' => $this->base->config->user, 'session' => $this->session)
+      );
+    }
+
+    // Send the cookie or delete it
+    if ($this->session)
+      SetCookie($this->base->mode . 'Session', $this->session, 0, '/', '');
+  }
+  
+  private function __Connect(&$Session, $ADDR)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('master/Base_Security->__Connect(%, %)', \core\WADebug::SYSTEM, $Session, $ADDR);
+
+    // Connect and create session and variables.
+    // 1. check user is active
+    // 2. stick user variables to the session
+    $UNAME = $this->base->HTTPRequest->getParameter('username');
+    $PWORD = $this->base->HTTPRequest->getParameter('password');
+
+    $uname = rawurlencode($UNAME);
+    $pword = md5($PWORD);
+    $AFO = null;
+    if ($pword == $this->base->config->password && $uname == $this->base->config->user)
+    {
+      // we are connected
+      $Session = $this->base->CreateKey($this->cookiesize);
+      $AFO = array('IP' => $ADDR, 'timeout' => time()+$this->timeout, 'creation' => time() );
+    }
+    return $AFO;
+  }
+}
+
+?>

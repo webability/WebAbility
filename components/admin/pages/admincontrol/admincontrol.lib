@@ -1,0 +1,110 @@
+<?php
+
+class admincontrol extends \common\WAApplication
+{
+  private $MainConnector = null;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  public function buildApplication($engine, $params)
+  {
+    $a = new \wajaf\Xapplication('admincontrol');
+
+    // build the screen in 2 parts, 1 for important info (versions), 1 for dashboard
+    $vc = new \wajaf\separatorContainer();
+    $vc->size('max','max')->setMode('vertical')->setAuto('yes');
+    $z1 = new \wajaf\separatorZone();
+
+    $vc->add($z1);
+    $somethingnew = $this->fillImportant($z1);
+    $closed = $this->base->user->getParameter('indexcontrol', 'messages')?true:false;
+    $z1->setSize($closed&&!$somethingnew?20:100);
+
+    $z3 = new \wajaf\separatorZone();
+    $z3->setSize('*');
+    $vc->add($z3);
+    // The dashboard is a widgets container.
+    // Each widget is kept into the config of the user
+    $wid = new \wajaf\widgetContainer();
+    $wid->size('max','max')->setColumns(3);
+
+    $this->fillWidgets($wid);
+    $z3->add($wid);
+
+    $a->add($vc);
+    return $a;
+
+
+
+
+
+    $exp = new \wajaf\expandableContainer();
+    $z1 = new \wajaf\Xzone();
+
+    // we do beautiful boxes !
+    $control = <<<EOF
+Centro de control del ADMIN:<br />
+<br />
+<fieldset>
+<legend>ADMIN</legend>
+Estatus general del admin<br />
+mensajes, alertas<br />
+ultimas modificaciones<br />
+algunas estadisticas<br />
+algo en tiempo real<br />
+cajitas personalizables<br />
+</fieldset>
+
+EOF;
+    $t = new \wajaf\htmlElement($control);
+    $t->setAnchorleft('*');
+    $t->setLeft('*');
+    $a->add($t);
+
+    return $a;
+  }
+
+  private function fillImportant($zone)
+  {
+    // important can be close/opened, and if there is something important, put the highlight class
+
+    $zone->setSize('20');
+//    $zone->setClassname();
+
+
+    // check the version cached in the HD
+//    $actual = $this->base->getVersion();
+//    $localcached = $this->base->readFastObject('', 'versionavailable');
+//    $localavailable = $this->getStageVersion();
+
+
+
+  }
+
+  private function fillWidgets($cont)
+  {
+    // get the widgets from the config. If there is no widgets, put the default ones
+
+
+    $w1 = new \wajaf\widgetZone();
+    $w1->setTitle('Zone 1')->setColumn(0);
+    $cont->add($w1);
+
+    $w2 = new \wajaf\widgetZone();
+    $w2->setTitle('Zone 2')->setColumn(1);
+    $cont->add($w2);
+
+    $w3 = new \wajaf\widgetZone();
+    $w3->setTitle('Zone 3')->setColumn(2);
+    $cont->add($w3);
+
+
+  }
+
+
+}
+
+?>

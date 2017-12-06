@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="masterlanguageinstall">
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes" classname="separatorinvisiblevertical">
+    <zone size="80">
+      <container type="simpleContainer" height="max" width="max">
+        <zone>
+          <element type="htmlElement" classname="introcenter">
+<![CDATA[<br />__SELECT__<br />]]>
+          </element>
+        </zone>
+      </container>
+    </zone>
+    <zone size="*">
+__FLAGS__
+    </zone>
+  </container>
+  <element id="code1" type="codeElement"><![CDATA[
+
+function calllanguage(node, language, country)
+{
+  if (language != '__LANGUAGE__')
+  {
+    location.href = '/__INDEXPHP__?LANGUAGE='+language+'&COUNTRY='+country;
+  }
+  else
+  {
+    WA.toDOM('mastermaininstall|single|step1').className = 'installstep1done';
+    WA.toDOM('mastermaininstall|single|step1').onclick = backtolanguage;
+    WA.Managers.wa4gl.startApplication('mastermaininstall|single|wizard', 'masteraccountinstall', 'single', 'LANGUAGE='+language+'&COUNTRY='+country, '');
+  }
+}
+
+]]></element>
+  <event type="start">
+    <code>
+function()
+{
+  WA.toDOM('mastermaininstall|single|step1').className = 'installstepactual';
+}
+    </code>
+  </event>
+</application>

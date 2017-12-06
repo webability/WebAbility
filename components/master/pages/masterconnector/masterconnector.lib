@@ -1,0 +1,306 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master for to build a database connector
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class masterconnector extends \common\WAApplication
+{
+  private $Connectors;
+  private $types;
+  private $method;
+  private $persistent;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    // already created connectors
+    $this->Connectors = $this->base->loadConnectors();
+    // Database types
+    $this->types = $this->base->getDatabases();
+    // Database methods
+    $this->method = $this->base->getMethods();
+    // Database persistent
+    $this->persistent = $this->base->getPersistency();
+  }
+
+  // we add our own parameters to application
+  public function getParameters($engine, $params)
+  {
+    return array('CONNECTOR' => $this->connector()->compile() );
+  }
+
+  private function createMaskDefinition()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, $this);
+    $M->maskid = 'formconnector';
+    $M->key = 'Main';
+    if (!isset($this->Connectors['Main']))
+      $M->mode = \dommask\DomMask::UPDATE;
+    else
+      $M->mode = \dommask\DomMask::VIEW;
+    $M->alertmessage = '##mask.errormessage##';
+    $M->servermessage = '##mask.servermessage##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##mask.titleupdate##';
+    $M->titles[\dommask\DomMask::VIEW] = '##mask.titleview##';
+
+    $M->jsonsuccess = <<<EOF
+function()
+{
+  WA.\$N('masterindex|single|menu').reload();
+  WA.Managers.wa4gl.destroyApplication('mastercontrol', 'single');
+  WA.Managers.wa4gl.startApplication('masterindex|single|controlcenter', 'mastercontrol', 'single', '', '');
+  var n = WA.\$N('masterindex|single|app_repository');
+  if (n)
+    WA.Managers.wa4gl.startApplication('masterindex|single|app_repository', 'masterrepository', 'single', '', '');
+}
+EOF;
+    $M->jsonfailure = "function(params) { this.icontainer.setMessages(params); }";
+
+    // then we create each field
+    $ti = 1;
+
+    // ID
+    $F = new \dommask\DomMaskTextField('ID');
+    $F->readonlymodes = \dommask\DomMask::UPDATE;
+    $F->title = '##id.title##';
+    $F->helpsummary = '##id.help.summary##';
+    $F->helptitle = '##id.help.title##';
+    $F->helpdescription = '##id.help.description##';
+    $F->viewmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::VIEW;
+    $F->statusnotnull = '##id.status.notnull##';
+    $F->size = 100;
+    $F->maxlength = 8;
+    $F->tabindex = $ti++;
+    $F->format = $F->formatjs = '^[a-z|A-Z|0-9|_]{1,8}$';
+    $F->statusbadformat = '##id.status.badformat##';
+    $M->addMaskField($F);
+
+    // Types of database
+    $F = new \dommask\DomMaskLOOField('TYPE');
+    $F->title = '##type.title##';
+    $F->helpsummary = '##type.help.summary##';
+    $F->helptitle = '##type.help.title##';
+    $F->helpdescription = '##type.help.description##';
+    $F->notnullmodes = \dommask\DomMask::UPDATE;
+    $F->tabindex = $ti++;
+    $F->options = $this->types;
+    $M->addMaskField($F);
+
+    // connection method
+    $F = new \dommask\DomMaskLOOField('METHOD');
+    $F->title = '##method.title##';
+    $F->helpsummary = '##method.help.summary##';
+    $F->helptitle = '##method.help.title##';
+    $F->helpdescription = '##method.help.description##';
+    $F->notnullmodes = \dommask\DomMask::UPDATE;
+    $F->tabindex = $ti++;
+    $F->options = $this->method;
+    $M->addMaskField($F);
+
+    // Persistency
+    $F = new \dommask\DomMaskLOOField('PERSISTENT');
+    $F->title = '##persistent.title##';
+    $F->helpsummary = '##persistent.help.summary##';
+    $F->helptitle = '##persistent.help.title##';
+    $F->helpdescription = '##persistent.help.description##';
+    $F->notnullmodes = \dommask\DomMask::UPDATE;
+    $F->tabindex = $ti++;
+    $F->options = $this->persistent;
+    $M->addMaskField($F);
+
+    // DB
+    $F = new \dommask\DomMaskTextField('DATABASE');
+    $F->title = '##database.title##';
+    $F->helpsummary = '##database.help.summary##';
+    $F->helptitle = '##database.help.title##';
+    $F->helpdescription = '##database.help.description##';
+    $F->format = $F->formatjs = '^[a-z|A-Z|0-9|_-]{1,30}$';
+    $F->notnullmodes = \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##database.status.notnull##';
+    $F->size = 150;
+    $F->maxlength = 30;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    // USERDB
+    $F = new \dommask\DomMaskTextField('UNAME');
+    $F->title = '##username.title##';
+    $F->helpsummary = '##username.help.summary##';
+    $F->helptitle = '##username.help.title##';
+    $F->helpdescription = '##username.help.description##';
+    $F->notnullmodes = \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##username.status.notnull##';
+    $F->size = 150;
+    $F->maxlength = 50;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    // PW
+    $F = new \dommask\DomMaskPWField('PWORD');
+    $F->title = '##password.title##';
+    $F->helpsummary = '##password.help.summary##';
+    $F->helptitle = '##password.help.title##';
+    if (!isset($this->Connectors['Main']))
+      $F->helpdescription = '##password.help.description##';
+    else
+      $F->helpdescription = '##password.help.descriptionoptional##';
+    if (!isset($this->Connectors['Main']))
+      $F->notnullmodes = \dommask\DomMask::UPDATE;
+    $F->authmodes = \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##password.status.notnull##';
+    $F->size = 150;
+    $F->maxlength = 50;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    // EXTRA
+    $F = new \dommask\DomMaskTextField('EXTRA');
+    $F->title = '##extra.title##';
+    $F->helpsummary = '##extra.help.summary##';
+    $F->helptitle = '##extra.help.title##';
+    $F->helpdescription = '##extra.help.description##';
+    $F->size = 350;
+    $F->maxlength = 255;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('update');
+    $F->action = 'update';
+    $F->title = '##form.update##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submit');
+    $F->action = 'submit';
+    $F->title = '##form.submit##';
+    $F->authmodes = \dommask\DomMask::UPDATE;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    return $M;
+  }
+
+  public function getRecord($key)
+  {
+    $Record = array( 'ID' => $key );
+    if (isset($this->Connectors[$key]))
+    {
+      $Record['TYPE'] = $this->Connectors[$key]["type"];
+      $Record['METHOD'] = $this->Connectors[$key]["method"];
+      $Record['PERSISTENT'] = $this->Connectors[$key]["persistent"];
+      $Record['DATABASE'] = $this->Connectors[$key]["database"];
+      $Record['UNAME'] = $this->Connectors[$key]["username"];
+      $Record['PWORD'] = null;
+      $Record['EXTRA'] = $this->Connectors[$key]["extra"];
+    }
+    return $Record;
+  }
+
+  public function connector()
+  {
+    $M = $this->createMaskDefinition();
+
+    $M->record = array( 'ID' => 'Main' );
+    if (isset($this->Connectors->Main))
+    {
+      $M->record['TYPE'] = $this->Connectors->Main['type'];
+      $M->record['METHOD'] = $this->Connectors->Main['method'];
+      $M->record['PERSISTENT'] = $this->Connectors->Main['persistent'];
+      $M->record['DATABASE'] = $this->Connectors->Main['database'];
+      $M->record['UNAME'] = $this->Connectors->Main['username'];
+      $M->record['EXTRA'] = $this->Connectors->Main['extra'];
+      $M->record['PWORD'] = null;
+    }
+
+    return $M->code();
+  }
+
+  public function Update($key, $rec)
+  {
+    return $this->saveConnector();
+  }
+
+  // general form listener
+  public function formconnector()
+  {
+    $M = $this->createMaskDefinition();
+    return $M->run();
+  }
+
+  private function saveConnector()
+  {
+    $Connectors = $this->base->loadConnectors();
+
+    $TYPE = $this->base->HTTPRequest->getParameter("TYPE", \xamboo\Validator::SET, $this->types);
+    $METHOD = $this->base->HTTPRequest->getParameter("METHOD", \xamboo\Validator::SET, $this->method);
+    $PERSISTENT = $this->base->HTTPRequest->getParameter("PERSISTENT", \xamboo\Validator::SET, $this->persistent);
+    $UNAME = $this->base->HTTPRequest->getParameter("UNAME", \xamboo\Validator::ALL);
+    $PWORD = $this->base->HTTPRequest->getParameter("PWORD", \xamboo\Validator::ALL);
+    $DATABASE = $this->base->HTTPRequest->getParameter("DATABASE", \xamboo\Validator::ALL);
+    $EXTRA = $this->base->HTTPRequest->getParameter("EXTRA", \xamboo\Validator::ALL);
+
+    if ($TYPE == null)
+    {
+      throw new \throwables\masterError($this->language->getEntry("error.connector.badtype"));
+    }
+    if ($METHOD == null)
+    {
+      throw new \throwables\masterError($this->language->getEntry("error.connector.badmethod"));
+    }
+    if ($PERSISTENT == null)
+    {
+      throw new \throwables\masterError($this->language->getEntry("error.connector.badpersistent"));
+    }
+    if ($UNAME == null)
+    {
+      throw new \throwables\masterError($this->language->getEntry("error.connector.badusername"));
+    }
+//    if ($PWORD == null)
+//    {
+//      throw new masterError($this->language->getEntry("error.connector.badpassword"));
+//    }
+    if ($UNAME == $PWORD)
+    {
+      // ERROR: DANGER ! same password as user
+      throw new \throwables\masterError($this->language->getEntry("error.connector.logindanger"));
+    }
+//    if (isset($Connectors[$ID]))
+//    {
+//      // ERROR: connector already exists
+//      throw new masterError($this->language->getEntry("error.connector.idexists"));
+//    }
+
+    $dataconnector = array('id' => 'Main',
+                           'type' => $TYPE,
+                           'method' => $METHOD,
+                           'persistent' => $PERSISTENT,
+                           'flags' => $METHOD | $PERSISTENT,
+                           'username' => $UNAME,
+                           'database' => $DATABASE,
+                           'extra' => $EXTRA
+                           );
+    if ($PWORD)
+      $dataconnector['password'] = $PWORD;
+    $Connectors->Main = $dataconnector;
+    $this->base->writeconfig("connectors", $Connectors);
+
+    return 'Main';
+  }
+}
+
+?>

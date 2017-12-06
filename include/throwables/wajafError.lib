@@ -1,0 +1,53 @@
+<?php
+
+/*
+    wajafError.lib, WAJAF, the WebAbility(r) Javascript Application Framework
+    Contains the WAJAF classes to build WAJAF applications in PHP
+    (c) 2008-2010 Philippe Thomassigny
+
+    This file is part of WAJAF
+
+    WAJAF is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    WAJAF is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with WAJAF.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+namespace throwables;
+
+class wajafError extends \Exception
+{
+  private $trace = null;
+  public $message = null;
+
+  function __construct($message = null)
+  {
+    $this->message = $message;
+    $this->trace = debug_backtrace();
+  }
+
+  public function __toString()
+  {
+    $error = "<table border=\"1\"><tr><td bgcolor=\"#FFDDDD\"><b>ERROR: </b></td><td bgcolor=\"#FFDDDD\">$this->message</td></tr>\n".
+     "<tr><td><b>THROWN: </b></td><td>$this->file (<b>$this->line</b>)</td></tr>\n".
+     "<tr><td valign=\"top\"><b>TRACE: </b></td><td valign=\"top\">";
+    foreach($this->trace as $k => $t)
+    {
+      if ($k) // we dont write 1rst errror since it is where we threw the object
+        $error .= "".(isset($t["file"])?$t["file"]:"No file")." (<b>".(isset($t["line"])?$t["line"]:"No line")."</b>) :: calling <font color=\"blue\">".(isset($t["class"])?$t["class"]:"").(isset($t["type"])?$t["type"]:"").(isset($t["function"])?$t["function"]:"No function")."</font><br />\n";
+    }
+    $error .= "</td></tr>\n</table>";
+    return $error;
+  }
+}
+
+?>

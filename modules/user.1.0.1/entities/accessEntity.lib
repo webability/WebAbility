@@ -1,0 +1,204 @@
+<?php
+
+namespace modules\user\entities;
+
+class accessEntity extends \patterns\Singleton
+{
+  public $regexpAccessGroupKey = '/^[a-z0-9-_]{1,30}$/';
+  public $regexpAccessKey = '/^[a-z0-9-_]{1,30}$/';
+  public $regexpAccessExtendedKey = '/^[a-z0-9-_]{1,30}$/';
+  public $regexpProfileKey = '/^[a-z0-9-_]{1,30}$/';
+
+  public $user_accessgroup;
+  public $user_access;
+  /*
+  public $base_accessextended;
+  public $base_profile;
+  public $base_profileaccess;
+  public $base_profileaccessextended;
+  public $base_userprofile;
+  public $base_useraccess;
+  public $base_useraccessextended;
+  */
+
+  public function __construct()
+  {
+    parent::__construct();
+
+    require $this->base->getTablePath('user_accessgroup');
+    $this->user_accessgroup = $user_accessgroup;
+    $this->user_accessgroup->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('user_access');
+    $this->user_access = $user_access;
+    $this->user_access->setDB($this->base->connector['Main']);
+/*
+    require $this->base->getTablePath('base_accessextended');
+    $this->base_accessextended = $base_accessextended;
+    $this->base_accessextended->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('base_profile');
+    $this->base_profile = $base_profile;
+    $this->base_profile->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('base_profileaccess');
+    $this->base_profileaccess = $base_profileaccess;
+    $this->base_profileaccess->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('base_profileaccessextended');
+    $this->base_profileaccessextended = $base_profileaccessextended;
+    $this->base_profileaccessextended->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('base_userprofile');
+    $this->base_userprofile = $base_userprofile;
+    $this->base_userprofile->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('base_useraccess');
+    $this->base_useraccess = $base_useraccess;
+    $this->base_useraccess->setDB($this->base->connector['Main']);
+
+    require $this->base->getTablePath('base_useraccessextended');
+    $this->base_useraccessextended = $base_useraccessextended;
+    $this->base_useraccessextended->setDB($this->base->connector['Main']);
+*/
+  }
+
+  // =============================================================
+  // DIRECT TABLES METHODS
+  // =============================================================
+
+  // =============================================================
+  // access data
+  public function getAccessData($key)
+  {
+    if (!preg_match($this->regexpAccessKey, $key))
+      return null;
+    return $this->base_access->doSelect($key);
+  }
+
+  // =============================================================
+  // gets list of all accesses (optionally in a module)
+
+  public function getAccessesList($MOD = null)
+  {
+    $w = $MOD?new DB_Condition('module', '=', $MOD):null;
+    return $this->base_access->doSelectCondition($w, new DB_OrderBy('name', DB_OrderBy::ASC));
+  }
+
+  // =============================================================
+  // check validity of an extended access
+  public function getAccessExtendedData($key)
+  {
+    if (!preg_match($this->regexpAccessExtendedKey, $key))
+      return null;
+    return $this->base_accessextended->doSelect($key);
+  }
+
+  // =============================================================
+  // gets list of all extended accesses (optionally in a module)
+
+  public function getAccessesExtendedList($MOD = null)
+  {
+    $w = $MOD?new DB_Condition('module', '=', $MOD):null;
+    return $this->base_accessextended->doSelectCondition($w, new DB_OrderBy('name', DB_OrderBy::ASC));
+  }
+
+  // =============================================================
+  // check validity of a profile key
+  public function getProfileData($key)
+  {
+    if (!preg_match($this->regexpProfileKey, $key))
+      return null;
+    return $this->base_profile->doSelect($key);
+  }
+
+  public function getProfileStatus()
+  {
+    return $this->base->loadLanguage('base_profile_status', 'repository');
+  }
+
+  // =============================================================
+  // gets all the accesses a profile have in a key=>rec structure
+
+  public function getProfileAccesses($key)
+  {
+    return $this->base_profileaccess->doSelectCondition(new DB_Condition('profile', '=', $key), null);
+  }
+
+  // =============================================================
+  // gets all the profiles the user have, all or only activated
+
+  public function getUserProfiles($user, $status = 1)
+  {
+    $join = new DB_Join(array('usp' => $this->base_userprofile, 'pro' => $this->base_profile), array(new DB_JoinCondition('pro', 'key', '=', 'usp', 'profile', 'inner')));
+    $where = array(array('pro', new DB_Condition('status', '=', $status, 'and')));
+    $where[] = array('usp', new DB_Condition('user', '=', $user, 'and'));
+    $res = $join->doSelectCondition($where, null);
+    $profiles = array();
+    if ($res)
+      foreach($res as $r) { $profiles[] = $r['usp.profile']; }
+    return $profiles;
+  }
+
+  // =============================================================
+  // SECURITY CHECKS METHODS
+  // ============================================================
+
+  // =============================================================
+  // check if access is linked with the profile
+  // there is no key on this N:M table
+
+  public function ifProfileAccess($profile, $access)
+  {
+    return !!$this->base_profileaccess->doSelectCondition(array(new DB_Condition('profile', '=', $profile), new DB_Condition('access', '=', $access, 'and')));
+  }
+
+  // =============================================================
+  // check if access extended is linked with the profile
+  // there is no key on this N:M table
+
+  public function ifProfileAccessExtended($profile, $extaccess, $extkey)
+  {
+    return !!$this->base_profileaccessextended->doSelectCondition(array(new DB_Condition('profile', '=', $profile), new DB_Condition('extaccess', '=', $extaccess, 'and'), new DB_Condition('extkey', '=', $extkey, 'and')));
+  }
+
+  // =============================================================
+  // check if the user is linked with the profile
+  // there is no key on this N:M table
+
+  public function ifUserProfile($user, $profile)
+  {
+    return !!$this->base_userprofile->doSelectCondition(array(new DB_Condition('user', '=', $user), new DB_Condition('profile', '=', $profile, 'and')));
+  }
+
+  // =============================================================
+  // Check if the user has an access
+  // there is no key on this N:M table
+  // return true/false if ok or denied, NULL if no record found (unknown status)
+
+  public function ifUserAccess($user, $access)
+  {
+    if (($rec = $this->base_useraccess->doSelectCondition(array(new DB_Condition('user', '=', $user), new DB_Condition('access', '=', $access, 'and')))))
+    {
+      return ($rec['denied'] != 1);
+    }
+    return null;
+  }
+
+  // =============================================================
+  // User access extended
+  // there is no key on this N:M table
+  // return true/false if ok or denied, NULL if no record found (unknown status)
+
+  public function ifUserAccessExtended($user, $extaccess, $extkey)
+  {
+    if (($rec = $this->base_useraccessextended->doSelectCondition(array(new DB_Condition('user', '=', $user), new DB_Condition('extaccess', '=', $extaccess, 'and'), new DB_Condition('extkey', '=', $extkey, 'and')))))
+    {
+      return ($rec['denied'] != 1);
+    }
+    return null;
+  }
+
+}
+
+?>

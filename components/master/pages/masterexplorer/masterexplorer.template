@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="masterexplorer">
+  <container id="directories" type="treeContainer" haslistener="yes">
+
+    <!-- Installation options -->
+    <template name="directory">
+      <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/__SKIN__/icons/{image}"><![CDATA[{title}]]></element>
+      <element type="textElement" classname="textmenulink"><![CDATA[{title}]]>
+        <help>
+          <summary><![CDATA[##installation.summary##]]></summary>
+          <title><![CDATA[##installation.title##]]></title>
+          <description><![CDATA[##installation.description##]]></description>
+        </help>
+        <event type="onclick">
+          <code><![CDATA[
+function(e)
+{
+  alert('Directory click');
+}
+          ]]></code>
+        </event>
+      </element>
+    </template>
+
+    <template name="file">
+      <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/__SKIN__/icons/{image}"><![CDATA[{title}]]></element>
+      <element type="textElement" classname="textmenulink"><![CDATA[{title}]]>
+        <help>
+          <summary><![CDATA[##installation.summary##]]></summary>
+          <title><![CDATA[##installation.title##]]></title>
+          <description><![CDATA[##installation.description##]]></description>
+        </help>
+        <event type="onclick">
+          <code><![CDATA[
+function(e)
+{
+  alert('file click');
+}
+          ]]></code>
+        </event>
+      </element>
+    </template>
+
+  </container>
+</application>

@@ -1,0 +1,43 @@
+<?php
+
+namespace tools\xml;
+
+class xmltoarray
+{
+  private static function convert($xml)
+  {
+    if (!($xml instanceof \SimpleXMLElement))
+      return $xml;
+
+    $nodename = $xml->getName();
+    $node = array('tag' => $nodename);
+
+    // 1. the attributes
+    foreach ($xml->attributes() as $name => $value)
+    {
+      $node['attributes'][$name] = (string)$value;
+    }
+
+    // 2. the children
+    foreach ($xml->children() as $name => $value)
+    {
+      $node['children'][] = self::convert($value);
+    }
+
+    // 3. the content data
+    $data = trim((string)$xml);
+    if ($data)
+      $node['data'] = $data;
+
+    return $node;
+  }
+
+  static public function parse($xml)
+  {
+    $tree = simplexml_load_string($xml);
+    return self::convert($tree);
+  }
+
+}
+
+?>

@@ -1,0 +1,94 @@
+<?php
+
+namespace modules\clientaccess\install;
+
+class installer extends \common\installer
+{
+  const ID = 'clientaccess';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateMenuTheme',
+           'Id' => 'clientaccess',
+           'Template' => null,
+           'Name' => 'clientaccess',
+           'Icon' => '/skins/admin/modules/clientaccess/clientaccess.png',
+           'Cond' => null,
+           'Help' => 'clientaccess' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'clientaccess_',
+           'Theme' => 'clientaccess',
+           'Father' => null,
+           'Template' => null,
+           'Access' => null,
+           'Name' => 'clientaccess',
+           'Link' => '@adminclientaccesslist',
+           'Params' => null,
+           'Icon' => null,
+           'Cond' => null,
+           'Help' => 'clientaccess' ),
+    );  
+  
+  private $accessEntity = null;
+
+  public function __construct($language)
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
+  }
+  
+  public function install()
+  {
+    $messages = $this->installDatabase();
+    
+    $this->setModule();
+
+    $this->accessEntity = \modules\clientaccess\entities\accessEntity::getInstance();
+
+    // we insert the default data values in the database
+    // we load the language
+    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/client_accessgroup.'.$this->base->Language.'.xml'));
+    $this->accessEntity->createAccessGroup( array('key' => 'clientlogin', 'name' => $l->getEntry('name.login'), 'module' => self::ID) );
+
+    // we insert 3 basic rights
+    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/client_access.'.$this->base->Language.'.xml'));
+    $this->accessEntity->createAccess( array('key' => '&notconnected', 'name' => $l->getEntry('name.notconnected'), 'group' => 'clientlogin') );
+    $this->accessEntity->createAccess( array('key' => '&connected', 'name' => $l->getEntry('name.connected'), 'group' => 'clientlogin') );
+    $this->accessEntity->createAccess( array('key' => '&public', 'name' => $l->getEntry('name.public'), 'group' => 'clientlogin') );
+
+    $messages .= $this->language->records;
+
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+
+    $messages .= $this->language->pagesadmin . "<br />\n";
+
+    // run the scripter
+    $messages .= $this->installScript();
+    
+    return $messages;
+  }
+  
+  public function uninstall()
+  {
+    // run the scripter
+    $messages = $this->uninstallScript();
+
+    $messages .= $this->language->security . "<br />\n";;
+
+    $this->delModule();
+
+    $messages .= $this->uninstallDatabase();
+    return $messages;
+  }
+  
+  public function upgrade($from)
+  {
+    // Special tasks to execute in case of an upgrade
+  }
+  
+};
+
+?>

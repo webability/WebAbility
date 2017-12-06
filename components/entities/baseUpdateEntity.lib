@@ -1,0 +1,31 @@
+<?php
+
+namespace entities;
+
+class baseUpdateEntity extends \common\entity
+{
+  public function __construct()
+  {
+    parent::__construct();
+  }
+
+  public function verifyBase()
+  {
+  
+  }
+  
+  public function verifyModule($module)
+  {
+  
+  }
+
+  private function getStatus($params)
+  {
+    $result = file_get_contents('https://version.webability.info/');
+    $xresult = json_decode($result);
+    return $xresult;
+  }
+  
+}
+
+?>

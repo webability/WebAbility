@@ -1,0 +1,141 @@
+<?php
+
+namespace modules\client\entities;
+
+class securityEntity extends \patterns\Singleton
+{
+  private $cookiesize = 24;   // Master cookie 24 positions
+  private $timeout = 600;     // 10 minutes default for Master timeout
+  
+  public $session = null;     // session number
+  public $connected = false;  // true if well connected
+  public $clientname = null;    // username (unique user for master)
+  public $Client = null;        // no user by default
+  public $ClientData;
+  
+  public $clientEntity;
+  public $connectEntity;
+  public $accessEntity;
+
+  public function __construct()
+  {
+    parent::__construct();
+
+    if ($this->base->config->cookiesize)
+      $this->cookiesize = $this->base->config->cookiesize;
+    if ($this->base->config->timeout)
+      $this->timeout = $this->base->config->timeout;
+  }
+
+  // =======================================================
+  // PARAMETERS
+  // =======================================================
+  public function loadParameterGroup($user, $group)
+  {
+    return $this->base->readFastObject('session/parameters/'.$user, $group);
+  }
+
+  public function saveParameterGroup($user, $group)
+  {
+    $this->base->writeFastObject('session/parameters/'.$user, $group, $this->parameters[$group]);
+  }
+
+  // ======================================================
+  // __Connect: Connect user
+  // Returns an AFO session object if OK, or NULL
+  // ======================================================
+
+  public function checkClient()
+  {
+    $A = $this->base->HTTPRequest->getParameter('OrderSecurity', \xamboo\Validator::SETOFVALUES, array('Connect', 'Disconnect'));
+    $AFOsession = null;
+    $ADDR = $_SERVER['REMOTE_ADDR'];
+    if (isset($_COOKIE[$this->base->mode . 'Session']))
+    {
+      $this->session = rawurlencode($_COOKIE[$this->base->mode . 'Session']);  // to protect any try of hack
+      // we load the AFO cookie
+      $AFOsession = $this->base->readFastObject('session', $this->session);
+      // We verify the AFO
+
+      if ($AFOsession)
+      {
+        if ($AFOsession['timeout'] <= time() || $AFOsession['IP'] != $ADDR)
+        {
+          // We actualize the cookie of the session
+          $AFOsession['timeout'] = time();
+          $this->base->writeFastObject('session', $this->session, $AFOsession);
+          // we destroy the memory cookie
+          $AFOsession = null;
+          $this->session = null;
+        }
+      }
+      else
+        $this->session = null;
+    }
+    else
+      $this->session = null;
+
+    if ($A == 'Connect')
+    {
+      // we connect or reconnect
+      $AFOsession = $this->__Connect($this->session, $ADDR);
+    }
+
+    if ($A == 'Disconnect' && $this->session)
+    {
+      // we neutralize the AFO cookie
+      $AFOsession['timeout'] = time();
+      $this->base->writeFastObject('session', $this->session, $AFOsession);
+      // we disconnect
+      $AFOsession = null;
+      $this->session = null;
+      $this->User = null;
+      $this->UserData = null;
+    }
+
+    if ($AFOsession != null)
+    {
+      // we set up extra variables of connection
+      // we regenerate the cookie and actualize the session
+      $AFOsession['timeout'] = time() + $this->timeout;
+      $this->base->writeFastObject('session', $this->session, $AFOsession);
+      $this->User = 1;
+      $this->UserData = array('un' => $this->base->config->user);
+      $this->connected = true;
+      
+      $this->base->user = new \structures\user(
+        array('key' => 1, 'name' => $this->base->config->user, 'session' => $this->session)
+      );
+    }
+
+    // Send the cookie or delete it
+    if ($this->session)
+      SetCookie($this->base->mode . 'Session', $this->session, 0, '/', '');
+  }
+  
+  private function __Connect(&$Session, $ADDR)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('master/Base_Security->__Connect(%, %)', \core\WADebug::SYSTEM, $Session, $ADDR);
+
+    // Connect and create session and variables.
+    // 1. check user is active
+    // 2. stick user variables to the session
+    $UNAME = $this->base->HTTPRequest->getParameter('username');
+    $PWORD = $this->base->HTTPRequest->getParameter('password');
+
+    $uname = rawurlencode($UNAME);
+    $pword = md5($PWORD);
+    $AFO = null;
+    if ($pword == $this->base->config->password && $uname == $this->base->config->user)
+    {
+      // we are connected
+      $Session = $this->base->CreateKey($this->cookiesize);
+      $AFO = array('IP' => $ADDR, 'timeout' => time()+$this->timeout, 'creation' => time() );
+    }
+    return $AFO;
+  }
+
+}
+
+?>

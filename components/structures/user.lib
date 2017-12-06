@@ -1,0 +1,43 @@
+<?php
+
+namespace structures;
+
+class user extends \dominion\DB_Record
+{
+  private $parameters = array();
+  
+  public function __construct($data)
+  {
+    parent::__construct($data);
+  }
+  
+  public function setParameter($group, $parameter, $value)
+  {
+    if (!isset($this->parameters[$group]))
+    {
+      $grp = $this->base->security->loadParameterGroup($this->key, $group);
+      $this->parameters[$group] = $grp?$grp:array();
+    }
+    $this->parameters[$group][$parameter] = $value;
+    $this->base->security->saveParameterGroup($this->key, $group, $this->parameters[$group]);
+  }
+
+  public function getParameter($group, $parameter)
+  {
+    if (!isset($this->parameters[$group]))
+    {
+      $grp = $this->base->security->loadParameterGroup($this->key, $group);
+      $this->parameters[$group] = $grp?$grp:array();
+    }
+    if (isset($this->parameters[$group][$parameter]))
+      return $this->parameters[$group][$parameter];
+    return null;
+  }
+
+  public function ifAccess($acc)
+  {
+    return true;
+  }
+}
+
+?>

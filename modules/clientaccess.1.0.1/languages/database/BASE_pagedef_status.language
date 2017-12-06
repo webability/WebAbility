@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_pagedef_status" lang="es">
+  <entry id="0"><![CDATA[No visible]]></entry>
+  <entry id="1"><![CDATA[Visible y publicado]]></entry>
+  <entry id="6"><![CDATA[Visible y publicado sin headers (Ajax, WSDL, etc)]]></entry>
+  <entry id="sep1"><![CDATA[----------------------------------------------------]]></entry>
+  <entry id="3"><![CDATA[Bloque de datos]]></entry>
+  <entry id="sep2"><![CDATA[----------------------------------------------------]]></entry>
+  <entry id="2"><![CDATA[Plantilla global]]></entry>
+  <entry id="4"><![CDATA[Plantilla interna]]></entry>
+  <entry id="5"><![CDATA[Plantilla de bloques]]></entry>
+</language>

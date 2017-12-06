@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="{{charcode}}"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{language}}" lang="{{language}}">
+
+<head>
+  <title>{{htmltitle}}</title>
+  <meta name="Generator" content="WebAbility(r) v5 - www.webability.info - (c) 1999-2013, Ing. Philippe Thomassigny C." />
+  <meta name="Component" content="Admin Engine" />
+  <meta http-equiv="PRAGMA" content="NO-CACHE" />
+  <meta http-equiv="Expires" content="-1" />
+  <meta http-equiv="Content-Type" content="text/html; charset={{charcode}}" />
+{{css}}{{js}}
+</head>
+
+<body>
+
+[[CONTENT]]
+
+</body>
+
+</html>

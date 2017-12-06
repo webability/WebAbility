@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_clientprofile_type" lang="es">
+
+  <entry id="1"><![CDATA[Normal]]></entry>
+  <entry id="2"><![CDATA[Virtual]]></entry>
+
+</language>

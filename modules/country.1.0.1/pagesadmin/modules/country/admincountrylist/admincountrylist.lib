@@ -1,0 +1,50 @@
+<?php
+
+class admincountrylist extends \common\WAApplication
+{
+  private $countryEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->countryEntity = \modules\country\entities\countryEntity::getInstance();
+  }
+
+  public function code($engine, $params)
+  {
+    $code = $this->template->resolve();
+    return $code;
+  }
+  
+  public function countries($engine, $params)
+  {
+    $order = $this->base->HTTPRequest->getParameter('Order');
+
+    switch($order)
+    {
+      case 'get':
+        $r = $this->getData();
+        return $r;
+    }
+  }
+
+  private function getData()
+  {
+    $countries = $this->countryEntity->readCountry(null, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC));
+    $quantity = $this->countryEntity->countCountry(null);
+
+    $result = array();
+    if ($countries)
+    {
+      foreach($countries as $country)
+      {
+        $result[] = array('key' => $country->key, 'flag' => '<img src="/skins/admin/modules/country/'.strtolower($country->key).'.gif">', 'iso3' => $country->iso3, 'geoip' => $country->geoip, 'name' => $country->name);
+      }
+    }
+    return array('row' => $result, 'total' => $quantity, 'first' => 1, 'quantity' => $quantity, 'page' => 1);
+  
+  }
+}
+
+?>

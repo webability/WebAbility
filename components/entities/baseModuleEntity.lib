@@ -1,0 +1,136 @@
+<?php
+
+namespace entities;
+
+class baseModuleEntity extends \common\entity
+{
+  public $basenamemask = "(([a-zA-Z0-9]{3,15})\\.([0-9]{0,1}[0-9]\\.[0-9]{0,1}[0-9]\\.[0-9]{0,1}[0-9]))";
+  public $modmask = "/[a-zA-Z0-9]{3,15}/";
+  public $versionmask = "/[0-9]{0,1}[0-9]\\.[0-9]{0,1}[0-9]\\.[0-9]{0,1}[0-9]/";
+
+  public $regexpModuleKey = '/^[A-Za-z0-9]{3,15}$/';
+  public $regexpModuleTableKey = '/^[A-Za-z0-9-_]{1,100}$/';
+
+  protected $tables = array(
+      'module' => array('table' => 'base_module'),
+      'modulelog' => array('table' => 'base_modulelog'),
+      'modulefile' => array('table' => 'base_modulefile'),
+      'moduletable' => array('table' => 'base_moduletable')
+    );
+
+  public function __construct()
+  {
+    parent::__construct();
+  }
+
+  // Search for a path into database
+  public function getPath($table)
+  {
+    // very special case, base_mode and base_moduletable are needed to calculate any other path
+    if ($table == 'base_module' || $table == 'base_moduletable')
+      return 'components/tables/'.$table.'.inc';
+
+    $r = $this->readModuleTable($table);
+    if ($r)
+    {
+      $pathmodule = $this->getModulePath($r->module);
+      if ($pathmodule !== null)
+      {
+        return $pathmodule.'/tables/'.$table.'.inc';
+      }
+    }
+    return null;
+  }
+  
+  public function getModulePath($module)
+  {
+    if ($module == 'base')
+      return 'components';
+    
+    // USE LOCAL MODULES CACHE
+    $modules = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'modules.conf'));
+    return 'modules/' . $modules->$module;
+  }
+
+  public function ifModule($module)
+  {
+    return ($this->getModulePath($module) != null);
+  }
+
+  // =============================================================
+  // preinstall subdir load
+
+  // The the full list of valid modules on /modules/ directory
+  // If seek is present, it's the ID of a module to load (will ignore others)
+  public function getLocalModulesList($seek = null)
+  {
+    $plugins = array();
+
+    // 1. loop on the include/plugins directory
+    if (is_dir($this->base->BASEDIR . "/modules"))
+    {
+      $handle=opendir($this->base->BASEDIR . "/modules");
+      while ($file = readdir($handle))
+      {
+        if ($file == "." || $file == "..")
+          continue;
+
+        if (is_dir($this->base->BASEDIR . "/modules/".$file) && preg_match("/".$this->basenamemask."/i", $file, $res))
+        {
+          $id = $res[1];
+          $mod = $res[2];
+          $num = $res[3];
+          if ($seek && $mod != $seek)
+            continue;
+
+          if (is_file($this->base->BASEDIR . "/modules/".$file."/install/version.conf"))
+          {
+            $module = $this->loadVersion($this->base->BASEDIR . "/modules/".$file."/install/version.conf");
+
+            if ($module->id == $mod && $module->version == $num)
+            {
+              if (isset($plugins[$mod]))
+                $plugins[$mod][$num] = $module;
+              else
+                $plugins[$mod] = array($num => $module);
+            }
+          }
+        }
+      }
+      closedir($handle);
+    }
+
+    return $plugins;
+  }
+  
+  function loadVersion($path)
+  {
+    $version = new \xconfig\XConfig(file_get_contents($path));
+    if (isset($version->name[$this->base->Language]))
+      $name = $version->name[$this->base->Language];
+    else
+      $name = $version->name[$this->base->DefaultLanguage];
+    $version->name = $name;
+    if (!is_array($version->versionfrom))
+      $version->versionfrom = $version->versionfrom?array($version->versionfrom):array();
+    if (!is_array($version->modules))
+      $version->modules = $version->modules?array($version->modules):array();
+    return $version;
+  }
+  
+  function compareVersion($v1, $v2)
+  {
+    $xv1 = explode('.', $v1);
+    $xv2 = explode('.', $v2);
+    if (0+$xv1[0] < 0+$xv2[0]) return -1;
+    if (0+$xv1[0] > 0+$xv2[0]) return 1;
+    if (0+$xv1[1] < 0+$xv2[1]) return -1;
+    if (0+$xv1[1] > 0+$xv2[1]) return 1;
+    if (0+$xv1[2] < 0+$xv2[2]) return -1;
+    if (0+$xv1[2] > 0+$xv2[2]) return 1;
+    return 0;
+  }
+  
+}
+
+?>

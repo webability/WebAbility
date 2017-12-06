@@ -1,0 +1,155 @@
+<?php
+
+class adminclientlist extends \common\WAApplication
+{
+  private $clientEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->clientEntity = \modules\client\entities\clientEntity::getInstance();
+  }
+
+  public function runApplication($engine, $params)
+  {
+    $data = array();
+/*
+    // acceses
+    $closed = $this->base->user->getParameter('indextree', 'client_accessgrouplist')?true:false;
+    
+    $data[] = array('id' => 'client_accessgrouplist', 'template' => 'option2icons', 'father' => 'clientsecurity', 'loadable' => false, 'closeable' => true, 'closed' => $closed,
+        'name' => $this->language->accessgroup, 'icon' => '/skins/admin/modules/client/accesses.png', 'help.summary' => $this->language->accessgrouphelpsum, 'help.title' => $this->language->accessgrouphelptitle, 'help.description' => $this->language->accessgrouphelpdesc,
+        'icon1' => '/skins/admin/modules/client/access-new.png',
+        'icon2' => '/skins/admin/modules/client/accesses-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1, 
+        'name1' => 'Nuevo grupo de acceso',
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newclientaccessgroup', 'na1_appid' => 'modules/client/adminaccessgroup', 'na1_apptitle' => 'Nuevo grupo de acceso',
+        'help1.summary' => 'Nuevo grupo de acceso', 'help1.title' => '', 'help1.description' => '',        
+        'name2' => 'Lista de Grupos y Accesos',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 2, 'na2_zid' => 'zapp_clientaccessgrouplist', 'na2_appid' => 'modules/client/adminaccessgrouplist', 'na2_apptitle' => 'Lista de Grupos y Accesos',
+        'help2.summary' => 'Lista de Grupos y Accesos', 'help2.title' => '', 'help2.description' => '',
+       );
+       
+    // get the groups of accesses
+    $accessgroups = $this->accessEntity->getGroups();
+
+    if ($accessgroups)
+    {
+      foreach($accessgroups as $group)
+      {
+        $accesses = $this->accessEntity->getAccessesByGroup($group->key);
+        if ($accesses)
+        {
+          $closed = $this->base->user->getParameter('indextree', 'client_accessgroup_'.$group->key)?true:false;
+          $closeable = true;
+        }
+        else
+        {
+          $closeable = $closed = false;
+        }
+
+        $data[] = array('id' => 'client_accessgroup_'.$group->key, 'template' => 'option1icon', 'father' => 'client_accessgrouplist', 'loadable' => false, 'closeable' => $closeable, 'closed' => $closed,
+          'name' => 'Grupo: ' . $group->name, 'icon' => '/skins/admin/modules/client/accesses-tree.png', 'help.summary' => $group->name, 'help.title' => $group->name, 'help.description' => $group->name,
+          'icon1' => '/skins/admin/modules/client/access-new.png',
+
+          'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1, 
+          'name1' => 'Nuevo grupo de acceso',
+          'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newclientaccessgroup', 'na1_appid' => 'modules/client/adminaccess', 'na1_apptitle' => 'Nuevo grupo de acceso',
+          'help1.summary' => 'Nuevo grupo de acceso', 'help1.title' => '', 'help1.description' => '',        
+         );
+         
+        if ($accesses)
+        {
+          foreach($accesses as $access)
+          {
+            $profiles = $this->accessEntity->getProfilesByAccess($group->key);
+            if ($accesses)
+            {
+              $closed = $this->base->user->getParameter('indextree', 'client_accessgroup_'.$group->key)?true:false;
+              $closeable = true;
+            }
+            else
+            {
+              $closeable = $closed = false;
+            }
+            
+            
+            
+            $data[] = array('id' => 'client_access_'.$access->key, 'template' => 'option1icon', 'father' => 'client_accessgroup_'.$group->key, 'loadable' => false, 'closeable' => false,
+              'name' => 'Acceso: ' . $access->name, 'icon' => '/skins/admin/modules/client/accesses-tree.png', 'help.summary' => $access->name, 'help.title' => $access->name, 'help.description' => $access->name,
+
+              'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 0, 
+              'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 0
+             );
+          }
+        }
+         
+      }
+    }
+
+    // profiles
+    $data[] = array('id' => 'client_profilelist', 'template' => 'option2icons', 'father' => 'clientsecurity', 'loadable' => false, 'closeable' => true, 'closed' => true,
+
+        'name' => $this->language->getEntry('profiles'), 'icon' => '/skins/admin/modules/client/profiles.png', 'help.summary' => '123', 'help.title' => '123', 'help.description' => '123',
+        'icon1' => '/skins/admin/modules/client/profile-new.png',
+        'icon2' => '/skins/admin/modules/client/profiles-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1,
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newclientprofile', 'na1_appid' => 'modules/client/adminprofile', 'na1_apptitle' => 'Nuevo perfil',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 2, 'na1_zid' => 'zapp_clientprofilelist', 'na1_appid' => 'modules/client/adminprofilelist', 'na1_apptitle' => 'Perfiles',
+       );
+*/
+
+    // clients
+    $data[] = array('id' => 'client_list', 'template' => 'option2icons', 'father' => 'client', 'loadable' => false, 'closeable' => true, 'closed' => true,
+
+        'name' => $this->language->getEntry('clients'), 'icon' => '/skins/admin/modules/client/clients.png', 'help.summary' => '123', 'help.title' => '123', 'help.description' => '123',
+        'icon1' => '/skins/admin/modules/client/user-new.png',
+        'icon2' => '/skins/admin/modules/client/users-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1, 'na_zid' => 's_users',
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newclient', 'na1_appid' => 'modules/client/adminclient', 'na1_apptitle' => 'Nuevo cliente',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 2, 'na2_zid' => 'zapp_clientlist', 'na2_appid' => 'modules/client/adminclientlist', 'na1_apptitle' => 'Clientes',
+       );
+/*
+    $clients = $this->clientEntity->getClient(null, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC));
+    if ($clients)
+    {
+      foreach($clients as $c)
+      {
+        $children = false; //$this->getData($c['key']);
+
+        if ($c['key'] == $this->base->user->key)
+          $sex = 'me';
+        else
+          $sex = $c['sex'] == 'F'?'female':'male';
+        $name = $c['name']; // . ($c['status']=='S'?' <img classname="imagemenu" style="width:16px; height:16px;" src="/skins/admin/icons/user-superadmin.png" alt="" title="" />':'');
+        $father = 'client_list';
+
+        // users are closed by default
+        $closed = $this->base->user->getParameter('indextree', 'user_'.$c['key'])?false:true;
+
+        $data[] = array('id' => 'user_'.$c['key'], 'uid' => $c['key'], 'template' => 'option', 'father' => $father, 'name' => $name, 'icon' => '/skins/admin/modules/client/user-'.$sex.'.png', 'help' => '123', 'loadable' => false, 'closeable' => ($children?true:false), 'closed' => $closed);
+
+        if ($children)
+          $data = array_merge($data, $children);
+      }
+    }
+*/
+    return $data;
+  }
+  
+  public function template($engine, $params)
+  {
+    return $this->template->resolve();
+  }
+
+  public function language($engine, $params)
+  {
+    return $this->language;
+  }
+}
+
+?>

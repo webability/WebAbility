@@ -1,0 +1,28 @@
+<?php
+
+class template extends \xamboo\XBLibrary
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  public function run($engine, $params)
+  {
+    $this->base->HTTPResponse->buildHeaders();
+    $this->base->HTTPResponse->buildCookies();
+
+    $this->template->metaElements(
+      array('charcode' => \common\Base::CharSet,
+            'language' => $this->base->Language,
+            'htmltitle' => 'Admin ' . $this->base->getSystem() . ' ' . $this->base->getVersion(),
+            'css' => $this->base->HTTPResponse->buildCSS(),
+            'js' => $this->base->HTTPResponse->buildJS()
+            )
+      );
+    return $this->template;
+  }
+
+}
+
+?>

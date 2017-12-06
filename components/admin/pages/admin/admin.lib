@@ -1,0 +1,12 @@
+<?php
+
+class admin extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+    $this->base->HTTPResponse->setJSFromRepository('wajaf.js');
+  }
+}
+
+?>

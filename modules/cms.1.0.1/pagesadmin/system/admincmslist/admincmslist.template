@@ -1,0 +1,62 @@
+        <!-- CMS THEME TEMPLATE WITH 2 BUTTONS EXTRA -->
+        <template name="cms">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/modules/cms/cms.png"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink" style="font-weight: bold;"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[##cms.summary##]]></summary>
+              <title><![CDATA[##cms.title##]]></title>
+              <description><![CDATA[##cms.description##]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  WA.$N('menu').switchzone('{id}');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="/skins/admin/modules/cms/cms-page-add.png">
+            <help>
+              <summary><![CDATA[##newpage.summary##]]></summary>
+              <title><![CDATA[##newpage.title##]]></title>
+              <description><![CDATA[##newpage.description##]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var node = WA.$N('app_cmsnewpage');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_cmsnewpage',title:'##newpage##',closeable:'yes',application:'modules/cms/admincms|single'}};
+    this._4gl.app.createTree('application', tree);
+  }
+  this._4gl.app.getNode('application').activateZone('app_cmsnewpage');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="/skins/admin/modules/cms/cms-page-tree.png">
+            <help>
+              <summary><![CDATA[##treepage.summary##]]></summary>
+              <title><![CDATA[##treepage.title##]]></title>
+              <description><![CDATA[##treepage.description##]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var node = WA.$N('app_cmspages');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_cmspages',title:'##pages##',closeable:'yes',application:'modules/cms/admincmspages|single'}};
+    this._4gl.app.createTree('application', tree);
+  }
+  this._4gl.app.getNode('application').activateZone('app_cmspages');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+

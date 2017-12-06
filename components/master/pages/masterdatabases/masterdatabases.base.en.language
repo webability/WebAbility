@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="masterdatabases" lang="en">
+
+  <entry id="title"><![CDATA[Available connectors:]]></entry>
+
+  <entry id="name"><![CDATA[Name:]]></entry>
+  <entry id="ok"><![CDATA[Available]]></entry>
+  <entry id="no"><![CDATA[Missing]]></entry>
+
+</language>

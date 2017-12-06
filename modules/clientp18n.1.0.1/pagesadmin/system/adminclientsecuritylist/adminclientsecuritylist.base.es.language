@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="adminsecuritylist" lang="es">
+
+  <entry id="clientsecurity"><![CDATA[Clientes y seguridad]]></entry>
+
+  <entry id="clients"><![CDATA[Clientes]]></entry>
+  <entry id="accessgroup"><![CDATA[Navega por accesos]]></entry>
+  <entry id="accessgrouphelpsum"><![CDATA[Grupos de derechos de acceso]]></entry>
+  <entry id="accessgrouphelptitle"><![CDATA[Herramientas de administración de los grupos de derechos de accesos]]></entry>
+  <entry id="accessgrouphelpdesc"><![CDATA[Permite administrar los grupos de derechos de acceso, los derechos de acceso, los perfiles afiliados y los clientes que tienen estos derechos.]]></entry>
+  <entry id="xxx"><![CDATA[clientes que tienen estos accesos.]]></entry>
+  
+  <entry id="profiles"><![CDATA[Perfiles]]></entry>
+
+</language>

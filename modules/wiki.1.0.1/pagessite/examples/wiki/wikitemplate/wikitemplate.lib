@@ -1,0 +1,31 @@
+<?php
+
+class wikitemplate extends \xamboo\XBLibrary
+{
+  protected $wikiEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->wikiEntity = \modules\wiki\entities\wikiEntity::getInstance();
+  }
+
+  public function run($engine, $params)
+  {
+    // we search for the page to read
+    $wikipage = $this->wikiEntity->getPage($engine->URI);
+
+    // we put the page into the content
+    $this->template->metaElements(array(
+        'title' => $wikipage->getTitle(),
+        'breadcrumbs' => $wikipage->getbreadcrumbs(),
+        'tools' => $engine->run('examples/wiki/wikitemplate/tools', 1, array('wikipage' => $wikipage))
+      ));
+
+    return $this->template->resolve();
+  }
+
+}
+
+?>

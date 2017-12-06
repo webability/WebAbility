@@ -1,0 +1,21 @@
+<?php
+
+namespace modules\clientp18n\entities;
+
+class p18nEntity extends \patterns\Singleton
+{
+  protected $tables = array(
+      'parametergroup' => array('table' => 'client_parametergroup'),
+      'parameter' => array('table' => 'client_parameter'),
+      'parameteraccess' => array('table' => 'client_parameteraccess'),
+      'parameterprofile' => array('table' => 'client_parameterprofile'),
+      'clientparameter' => array('table' => 'client_clientparameter'),
+    );
+
+  public function __construct()
+  {
+    parent::__construct();
+  }
+}
+
+?>

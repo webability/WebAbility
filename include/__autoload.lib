@@ -1,0 +1,70 @@
+<?php
+
+/*
+    __autoload.lib, WebAbility v6
+    Contains the auto class loader for PHP
+    (c) 2008-2017 Philippe Thomassigny
+
+    This file is part of WebAbility
+
+    Webability v6 - Free is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Webability v6 - Free is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Dominion.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+function WAautoload($classname)
+{
+  global $BASEDIR, $REPOSITORYDIR;
+  
+  if (substr($classname, 0, 8) == 'modules\\')
+  {
+    // translate module version
+    $modules = new \xconfig\XConfig(file_get_contents($REPOSITORYDIR.'modules.conf'));
+    $path = explode('\\', $classname);
+    $path[1] = $modules->$path[1];
+    $classname = implode('\\', $path);
+  }
+  
+  if (is_file($BASEDIR . 'include/'.str_replace('\\', '/', $classname).".lib"))
+  {
+    include_once $BASEDIR . 'include/'.str_replace('\\', '/', $classname).".lib";
+    return;
+  }
+  elseif (is_file($BASEDIR . 'components/'.str_replace('\\', '/', $classname).".lib"))
+  {
+    include_once $BASEDIR . 'components/'.str_replace('\\', '/', $classname).".lib";
+    return;
+  }
+  elseif (is_file($BASEDIR . 'application/'.str_replace('\\', '/', $classname).".lib"))
+  {
+    include_once $BASEDIR . 'application/'.str_replace('\\', '/', $classname).".lib";
+    return;
+  }
+  elseif (is_file($BASEDIR . str_replace('\\', '/', $classname).".lib"))
+  {
+    include_once $BASEDIR . str_replace('\\', '/', $classname).".lib";
+    return;
+  }
+  
+  // Special incompatibility PHP <= 5.2 no traits
+  if (($classname == 'core\WAError' || $classname == 'core\WAException') && PHP_VERSION_ID < 50400)
+  {
+    include_once $BASEDIR . 'include/'.str_replace('\\', '/', $classname)."NT.lib";
+    return;
+  }
+
+  throw new \Exception("The common library <b>$BASEDIR + $classname</b> doesn't exist.");
+}
+
+spl_autoload_register('WAautoload');
+
+?>

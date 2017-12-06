@@ -1,0 +1,4 @@
+type=wiki
+status=published
+template=examples/wiki/wikitemplate
+acceptpathparameters=yes

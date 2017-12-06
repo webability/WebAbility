@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_pagedef_type" lang="es">
+
+  <entry id="1"><![CDATA[Página sencilla]]></entry>
+  <entry id="2"><![CDATA[Página por idioma]]></entry>
+  <entry id="3"><![CDATA[Página por navegador]]></entry>
+  <entry id="13"><![CDATA[Página por bloques]]></entry>
+  <entry id="sep1"><![CDATA[----------------------------------------]]></entry>
+  <entry id="21"><![CDATA[Tabla de idiomas]]></entry>
+  <entry id="22"><![CDATA[Código de plantilla suelta]]></entry>
+  <entry id="sep2"><![CDATA[----------------------------------------]]></entry>
+  <entry id="4"><![CDATA[Script directo]]></entry>
+  <entry id="5"><![CDATA[Script sistema]]></entry>
+  <entry id="6"><![CDATA[Macro]]></entry>
+  <entry id="sep3"><![CDATA[----------------------------------------]]></entry>
+  <entry id="23"><![CDATA[Hoja de estilos (.css)]]></entry>
+  <entry id="26"><![CDATA[Javascript (.js)]]></entry>
+  <entry id="24"><![CDATA[Archivo para buscadores robots.txt]]></entry>
+  <entry id="25"><![CDATA[Objetos para plantillas de Dominion]]></entry>
+  <entry id="27"><![CDATA[Cualquier otro archivo editable]]></entry>
+  <entry id="sep4"><![CDATA[----------------------------------------]]></entry>
+  <entry id="10"><![CDATA[Definición del Wrapper]]></entry>
+  <entry id="11"><![CDATA[Tarea del Workflow]]></entry>
+  <entry id="12"><![CDATA[Reporte basado en xml]]></entry>
+  <entry id="sep5"><![CDATA[----------------------------------------]]></entry>
+  <entry id="14"><![CDATA[Menú dinámico]]></entry>
+  <entry id="9"><![CDATA[Liga directa para construcción del menú]]></entry>
+  <entry id="sep6"><![CDATA[----------------------------------------]]></entry>
+  <entry id="7"><![CDATA[OS Directo]]></entry>
+  <entry id="8"><![CDATA[OS Codificado]]></entry>
+  <entry id="sep7"><![CDATA[----------------------------------------]]></entry>
+  <entry id="41"><![CDATA[Folder]]></entry>
+<!--
+//  "31"   => "Página WebAbility",
+//  "32"   => "Página archivo HTML",
+-->
+</language>

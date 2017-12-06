@@ -1,0 +1,218 @@
+        <!-- USERS THEME TEMPLATE WITH 2 BUTTONS EXTRA -->
+        <template name="users">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/icons/{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  WA.$N('menu').switchzone('{id}');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="/skins/admin/icons/security-user-add.png">
+            <help>
+              <summary>##useradd.summary##</summary>
+              <title>##useradd.title##</title>
+              <description>##useradd.description##</description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var node = WA.$N('app_useradd_' + globalcount );
+  if (!node)
+  {
+    self.createTree('application', {tag:'zone',attributes:{id:'app_useradd_' + globalcount,title:'{name}',closeable:'yes',application:'adminuser|' + globalcount}});
+  }
+  self.getNode('application').icontainer.activateZone('app_useradd_' + globalcount);
+  globalcount++;
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="/skins/admin/icons/security-user-tree.png">
+            <help>
+              <summary>##usertree.summary##</summary>
+              <title>##usertree.title##</title>
+              <description>##usertree.description##</description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var node = WA.$N('app_userlist');
+  if (!node)
+  {
+    self.createTree('application', {tag:'zone',attributes:{id:'app_userlist',title:'##userlist##',closeable:'yes',application:'adminusers|single'}});
+  }
+  self.getNode('application').icontainer.activateZone('app_userlist');
+  globalcount++;
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+        <!-- USER OPTION TEMPLATE -->
+        <template name="user">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/icons/{icon}"><![CDATA[{id}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{name}{help.summary}]]></summary>
+              <title><![CDATA[{uid}]]></title>
+              <description><![CDATA[{name}<br />{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  // click: open page
+  // shift click: open/close tree
+  // control click: insert child
+
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (!sh && !ct)
+  {
+    var node = WA.$N('app_user_{uid}');
+    if (!node)
+    {
+      self.createTree('application', {tag:'zone',attributes:{id:'app_user_{uid}',title:'{name}',closeable:'yes',application:'adminuser|{id}', params:'id={uid}&order=show'}});
+    }
+    self.getNode('application').icontainer.activateZone('app_user_{uid}');
+  }
+  else if (sh)
+  {
+    WA.$N('menu').switchzone('{id}');
+  }
+  else if (ct)
+  {
+    // new child
+    var node = WA.$N('app_useradd_' + globalcount );
+    if (!node)
+    {
+      self.createTree('application', {tag:'zone',attributes:{id:'app_useradd_' + globalcount,title:'##newuser##',closeable:'yes',application:'adminuser|' + globalcount, params:'father={uid}'}});
+    }
+    self.getNode('application').icontainer.activateZone('app_useradd_' + globalcount);
+    globalcount++;
+  }
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+        <!-- USER OPTION TEMPLATE -->
+        <template name="superuser">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/icons/{icon}"><![CDATA[{id}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{name}{help.summary}]]></summary>
+              <title><![CDATA[{uid}]]></title>
+              <description><![CDATA[{name}<br />{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  // click: open page
+  // shift click: open/close tree
+  // control click: insert child
+
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (!sh && !ct)
+  {
+    var node = WA.$N('app_user_{uid}');
+    if (!node)
+    {
+      self.createTree('application', {tag:'zone',attributes:{id:'app_user_{uid}',title:'{name}',closeable:'yes',application:'adminuser|{id}', params:'id={uid}&order=show'}});
+    }
+    self.getNode('application').icontainer.activateZone('app_user_{uid}');
+  }
+  else if (sh)
+  {
+    WA.$N('menu').switchzone('{id}');
+  }
+  else if (ct)
+  {
+    // new child
+    var node = WA.$N('app_useradd_' + globalcount );
+    if (!node)
+    {
+      self.createTree('application', {tag:'zone',attributes:{id:'app_useradd_' + globalcount,title:'##newuser##',closeable:'yes',application:'adminuser|' + globalcount, params:'father={uid}'}});
+    }
+    self.getNode('application').icontainer.activateZone('app_useradd_' + globalcount);
+    globalcount++;
+  }
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/icons/user-superadmin.png"><![CDATA[{id}]]></element>
+        </template>
+
+        <!-- ACCESSES THEME TEMPLATE WITH 2 BUTTONS EXTRA -->
+        <template name="accesses">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="/skins/admin/icons/{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  WA.$N('menu').switchzone('{id}');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="/skins/admin/icons/security-access-add.png">
+            <help>
+              <summary>##accessadd.summary##</summary>
+              <title>##accessadd.title##</title>
+              <description>##accessadd.description##</description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var node = WA.$N('app_accessadd_' + globalcount );
+  if (!node)
+  {
+    self.createTree('application', {tag:'zone',attributes:{id:'app_accessadd_' + globalcount,title:'##CMSNAME##',closeable:'yes',application:'adminaccess|' + globalcount}});
+  }
+  self.getNode('application').icontainer.activateZone('app_accessadd_' + globalcount);
+  globalcount++;
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="/skins/admin/icons/security-access-tree.png">
+            <help>
+              <summary>##accesstree.summary##</summary>
+              <title>##accesstree.title##</title>
+              <description>##accesstree.description##</description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  alert('Open accesses tree into a separator');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>

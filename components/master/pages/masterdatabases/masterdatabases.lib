@@ -1,0 +1,78 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master databases availability
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class masterdatabases extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  public function buildApplication($engine, $params)
+  {
+    $a = new \wajaf\Xapplication('masterdatabases');
+
+    // main title
+    $e1 = new \wajaf\htmlElement($this->getStatus());
+    $a->add($e1);
+    return $a;
+  }
+
+  private function getStatus()
+  {
+    // prueba de DB_Base
+    $db = $this->base->getDatabases();
+
+    $flags = array(0 => 'NATIVO', \dominion\DB_Base::IFODBC => 'ODBC', \dominion\DB_Base::IFPDO => 'PDO', \dominion\DB_Base::IFODBC | \dominion\DB_Base::IFPDO => 'PDO/ODBC');
+
+    $text = '<div style="padding: 10px;">'.$this->language->title.'<br /><br /><table style="border: 1px solid black; padding: 10px;"><tr><td style="border-bottom: 1px dotted black; padding: 10px; background-color: #eef;"><b>'.$this->language->name.'</b></td>';
+    foreach ($flags as $flagstype => $name2)
+    {
+      $text .= '<td style="border-bottom: 1px dotted black; padding: 10px; background-color: #eef;"><b>'.$name2.'</b></td>';
+    }
+    $text .= "</tr>";
+    foreach($db as $dbtype => $name1)
+    {
+      $text .= '<tr><td style="border-bottom: 1px dotted black; padding: 10px; background-color: #eef;"><b>'.$name1.'</b></td>';
+      foreach($flags as $flagstype => $name2)
+      {
+        $text .= '<td style="border-bottom: 1px dotted black; padding: 10px;">';
+        try
+        {
+          $DB = new \dominion\DB_Base($dbtype, $flagstype);
+          $text .= '<font color="green"><b>'.$this->language->ok.'</b></font>';
+        }
+        catch(\core\WAException $t)
+        {
+          $text .= '<font color="red">'.$this->language->no.'</font>';
+        }
+        catch(\core\WAError $t)
+        {
+          $text .= '<font color="red">'.$this->language->no.'</font>';
+        }
+        $text .= '</td>';
+      }
+      $text .= '</tr>';
+    }
+    $text .= '</table>';
+
+    return $text;
+  }
+
+}
+
+?>

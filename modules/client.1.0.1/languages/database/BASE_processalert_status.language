@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_processalert_status" lang="es">
+
+  <entry id="1"><![CDATA[Abierto]]></entry>
+  <entry id="2"><![CDATA[Cerrado]]></entry>
+  <entry id="3"><![CDATA[Cancelado]]></entry>
+
+</language>

@@ -1,0 +1,43 @@
+<?php
+
+class admincountrylist extends \common\WAApplication
+{
+  private $countryEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->countryEntity = \modules\country\entities\countryEntity::getInstance();
+  }
+
+  public function runApplication($engine, $params)
+  {
+    $data = array();
+
+    // users
+    $data[] = array('id' => 'country_list', 'template' => 'option2icons', 'father' => 'country', 'loadable' => false, 'closeable' => false,
+        'name' => $this->language->getEntry('countrys'), 'icon' => '/skins/admin/modules/country/country.png', 'help.summary' => '123', 'help.title' => '123', 'help.description' => '123',
+        'icon1' => '/skins/admin/modules/country/user-new.png',
+        'icon2' => '/skins/admin/modules/country/users-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1, 'na_zid' => 's_users',
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newcountry', 'na1_appid' => 'modules/country/admincountrylist', 'na1_apptitle' => 'Nuevo country',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 2, 'na2_zid' => 'zapp_countrylist', 'na2_appid' => 'modules/country/admincountrylist', 'na1_apptitle' => 'Clientes',
+       );
+
+    return $data;
+  }
+  
+  public function template($engine, $params)
+  {
+    return $this->template->resolve();
+  }
+
+  public function language($engine, $params)
+  {
+    return $this->language;
+  }
+}
+
+?>

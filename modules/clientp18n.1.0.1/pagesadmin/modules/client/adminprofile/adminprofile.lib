@@ -1,0 +1,147 @@
+<?php
+
+class adminprofile extends \common\WAApplication
+{
+  private $accessEntity;
+  
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->accessEntity = \modules\client\entities\accessEntity::getInstance();
+  }
+
+  public function buildApplication($engine, $params)
+  {
+    $a = new \wajaf\Xapplication('modules/client/adminprofile');
+
+    // main title
+    $e1 = new \wajaf\htmlElement('Admin Profile');
+    $a->add($e1);
+    $a->add($this->getForm());
+    return $a;
+  }
+
+  public function getForm()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, $this);
+    $M->maskid = 'formprofile';
+    $M->mode = \dommask\DomMask::INSERT;
+    $M->key = 'default';
+
+    $M->alertmessage = '##mask.errormessage##';
+    $M->servermessage = '##mask.servermessage##';
+    $M->titles[\dommask\DomMask::INSERT] = '##mask.titleinsert##';
+    $M->titles[\dommask\DomMask::VIEW] = '##mask.titleview##';
+
+    $M->jsonsuccess = <<<EOF
+function()
+{
+  WA.\$N('adminindex|single|menu').reload();
+}
+EOF;
+    $M->jsonfailure = "function(params) { this.icontainer.setMessages(params); }";
+
+    // key
+    $F = new \dommask\DomMaskTextField('key');
+    $F->title = '##key.title##';
+    $F->helpdescription = '##key.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##key.status.notnull##';
+    $F->minlength = 4;
+    $F->maxlength = 80;
+    $F->statustooshort = '##key.status.tooshort##';
+    $F->urlvariable = 'key';
+    $F->default = '';
+    $M->addMaskField($F);
+
+    // name
+    $F = new \dommask\DomMaskMailField('name');
+    $F->title = '##name.title##';
+    $F->helpdescription = '##name.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##name.status.notnull##';
+    $F->maxlength = 200;  // chars
+    $F->urlvariable = 'name';
+    $F->default = '';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submit');
+    $F->action = 'submit';
+    $F->authmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->title = '##form.continue##';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('insert');
+    $F->action = 'insert';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->title = '##form.insert##';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('update');
+    $F->action = 'update';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->title = '##form.update##';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('reset');
+    $F->action = 'reset';
+    $F->authmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->title = '##form.reset##';
+    $M->addMaskField($F);
+
+    return $M->code();
+  }
+
+  public function formaccessgroup($engine, $params)
+  {
+    $key = $this->base->HTTPRequest->getParameter('key');
+    $name = $this->base->HTTPRequest->getParameter('name');
+    $mode = $this->base->HTTPRequest->getParameter('mode');
+
+    $success = true;
+    $messages = array();
+    $messagetext = '';
+    /*
+    if (!$username)
+    {
+      $success = false;
+      $messages['username'] = $this->language->getEntry('error.username.missing');
+      $messagetext .= $this->language->getEntry('error.username.missing');
+    }
+    if ($password)
+    {
+      // change password
+      if ($username && $username == $password)
+      {
+        $success = false;
+        $messages['password'] = $this->language->getEntry('error.password.same');
+        $messagetext .= $this->language->getEntry('error.password.same');
+      }
+    }
+    */
+
+    if ($success)
+    {
+      // transaction to the database, the hand group are managed by 'base'
+      if ($mode == 1)
+      {
+        $this->accessEntity->client_profile->doInsert(array('key' => $key, 'name' => $name, 'module' => 'base'));
+      }
+      elseif ($mode == 2)
+      {
+        $this->accessEntity->client_profile->doUpdate($key, array('name' => $name, 'module' => 'base'));
+      }
+      
+      
+      $messages['text'] = $this->language->getEntry('success');
+    }
+    else
+      $messages['text'] = $messagetext;
+
+    return array('success' => $success, 'messages' => $messages, 'popup' => false);
+  }  
+}
+
+?>

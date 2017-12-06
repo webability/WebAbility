@@ -1,0 +1,82 @@
+<?php
+
+class masterexplorer extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  public function directories($engine, $params)
+  {
+    $Order = $this->base->HTTPRequest->getParameter('Order');
+    if ($Order == 'get')
+    {
+      $full = $this->getTree();
+      return array('row' => $full);
+    }
+    elseif ($Order == 'openclose')
+    {
+      return array('status' => 'OK');
+    }
+    elseif ($Order == 'getchildren')
+    {
+      $full = $this->getsubtree();
+      return array('row' => $full);
+    }
+  }
+  
+
+  private function getTree()
+  {
+    $dir = $this->base->BASEDIR;
+ 
+    $handle=opendir($dir);
+    
+    $full = array();
+    while ($file = readdir($handle))
+    {
+      if ($file == "." || $file == "..")
+        continue;
+
+      if (is_dir($dir . $file))
+      {
+        $full[] = array('id' => '/'.$file, 'title' => $file, 'image' => 'connector-no.png', 'template' => 'directory', 'loadable' => true, 'closeable' => true, 'closed' => true);
+      }
+      else
+      {
+        $full[] = array('id' => '/'.$file, 'title' => $file, 'image' => 'connector-ok.png', 'template' => 'file', 'closeable' => false);
+      }
+    }
+    return $full;
+  }
+  
+  private function getsubtree()
+  {
+    $father = $this->base->HTTPRequest->getParameter('father');
+    $dir = $this->base->BASEDIR;
+ 
+    $handle=opendir($dir . $father);
+    
+    $full = array();
+    while ($file = readdir($handle))
+    {
+      if ($file == "." || $file == "..")
+        continue;
+
+      if (is_dir($dir . $father . '/' . $file))
+      {
+        $full[] = array('id' => $father . '/'.$file, 'title' => $file, 'image' => 'connector-no.png', 'template' => 'directory', 'father' => $father, 'loadable' => true, 'closeable' => true, 'closed' => true);
+      }
+      else
+      {
+        $full[] = array('id' => $father . '/'.$file, 'title' => $file, 'image' => 'connector-ok.png', 'template' => 'file', 'father' => $father, 'closeable' => false);
+      }
+    }
+    return $full;
+  }
+
+
+}
+
+?>

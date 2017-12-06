@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="adminpageslist" lang="es">
+
+  <entry id="stats"><![CDATA[Estadísticas]]></entry>
+  <entry id="stats.summary"><![CDATA[Abrir o cerrar el menú de estadísticas.]]></entry>
+  <entry id="stats.title"><![CDATA[Estadísticas:]]></entry>
+  <entry id="stats.description"><![CDATA[Esta opción permite acceder al módulo de estadísticas.]]></entry>
+
+  <entry id="statsrealtime"><![CDATA[En tiempo real]]></entry>
+  <entry id="statsrealtime.summary"><![CDATA[Click para ver las estadísticas en tiempo real.]]></entry>
+  <entry id="statsrealtime.title"><![CDATA[Estadísticas en tiempo real:]]></entry>
+  <entry id="statsrealtime.description"><![CDATA[Esta opción permite acceder a la pantalla para visualizar las estadísticas de los usuarios conectados y del sitio en tiempo real.]]></entry>
+
+  <entry id="statspages"><![CDATA[Por páginas]]></entry>
+  <entry id="statspages.summary"><![CDATA[Click para ver las estadísticas por páginas.]]></entry>
+  <entry id="statspages.title"><![CDATA[Estadísticas por páginas:]]></entry>
+  <entry id="statspages.description"><![CDATA[Esta opción permite acceder a la pantalla para visualizar las estadísticas concentradas de las páginas visitadas (uso de cada página del sitio).]]></entry>
+
+  <entry id="statshours"><![CDATA[Por horas]]></entry>
+  <entry id="statshours.summary"><![CDATA[Click para ver las estadísticas por horas.]]></entry>
+  <entry id="statshours.title"><![CDATA[Estadísticas por horas:]]></entry>
+  <entry id="statshours.description"><![CDATA[Esta opción permite acceder a la pantalla para visualizar las estadísticas concentradas por cada hora del día (repartición de la carga durante el día).]]></entry>
+
+  <entry id="statsdays"><![CDATA[Por días]]></entry>
+  <entry id="statsdays.summary"><![CDATA[Click para ver las estadísticas por días.]]></entry>
+  <entry id="statsdays.title"><![CDATA[Estadísticas por días:]]></entry>
+  <entry id="statsdays.description"><![CDATA[Esta opción permite acceder a la pantalla para visualizar las estadísticas concentradas por días, semanas y meses (cantidad de páginas vistas por tiempo).]]></entry>
+
+
+</language>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_templatedef_status" lang="es">
+  <entry id="0"><![CDATA[No publicada]]></entry>
+  <entry id="1"><![CDATA[Publicada]]></entry>
+  <entry id="2"><![CDATA[Pendiente de autorización]]></entry>
+</language>

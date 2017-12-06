@@ -1,0 +1,132 @@
+<?php
+
+namespace modules\user\entities;
+
+class userEntity extends \patterns\Singleton
+{
+  public $user_user;
+
+  public function __construct()
+  {
+    parent::__construct();
+
+    require $this->base->getTablePath('user_user');
+    $this->user_user = $user_user;
+    $this->user_user->setDB($this->base->connector['Main']);
+  }
+
+
+  
+  // =====================================================================
+  // USERS RELATED FUNCTIONS
+  public function getUserData($key)
+  {
+    if (!is_numeric($key))
+      return null;
+    return $this->user_user->doSelect($key);
+  }
+
+  public function getUserStatus()
+  {
+    return $this->base->loadLanguage('user_user_status', 'repository');
+  }
+
+  public function getUsersList($father)
+  {
+    return $this->user_user->doSelectCondition(new \dominion\DB_Condition('father', '=', $father), new \dominion\DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+  }
+
+  // Deletes all information relative to the group
+  public function deleteUserInformation($user)
+  {
+   $users = $this->searchUsers($user);
+       // deletes all the registers of security acceses
+  }
+
+  public function transferUserInformation($user, $destination)
+  {
+    $rec = $this->user_user->doSelectCondition(new \dominion\DB_Condition('father','=',$user));
+    $record = array( 'father' => $destination);
+    foreach ($rec as $element)
+    {
+      $this->user_user->doUpdateCondition(new \dominion\DB_Condition('key', '=', $element['key']), $record);
+    }
+    // transfer all the information to another user (normally not the security options ?
+     //$this->user_user->doUpdateCondition(new \dominion\DB_Condition('un', '=', $user), $record);
+  }
+
+  public function searchUsers($user)
+  {
+    $rec = $this->user_user->doSelectCondition(new \dominion\DB_Condition('key','=',$user), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC));
+    if($rec != null)
+    {
+      foreach ($rec as $element) {
+        //echo '-->'.$element['key'];
+         $this->searchSon($element['key']);
+      }
+      //if($this->base->COMPONENT != 'admin')
+        $this->deleteSon($this->id_user);
+    }
+  }
+
+  public function searchSon($user)
+  {
+    $rec = $this->user_user->doSelectCondition(new \dominion\DB_Condition('father','=',$user), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC));
+    if($rec != null){
+      foreach ($rec as $element)
+      {
+         array_push($this->id_user, $element['key']);
+         $this->searchSon($element['key']);
+      }
+    }
+  }
+
+  public function deleteSon($user)
+  {
+    if(count($user)>0)
+    {
+      $in = '(';
+      for($deluser = 0; $deluser <=count($user)-1; $deluser++)
+      {
+        //echo $deluser;
+         if($deluser == count($user)-1)
+          $in.= $user[$deluser];
+         else
+          $in.= $user[$deluser].',';
+      }
+      $in.=')';
+
+      $this->user_user->doDeleteCondition(new \dominion\DB_Condition('key', 'in', $in));
+    }
+  }
+
+  public function getClientsNumberByStatus($status)
+  {
+   //Show only the users that corresponds to register user.
+   if($this->base->COMPONENT == 'admin')
+   {
+      $where  = array();
+      $where[] = new \dominion\DB_Condition('status','=',$status,'and');
+      $records = $this->user_user->doSelectCondition($where,null);
+      $records = $this->user_user->doSelectCondition(new \dominion\DB_Condition('status','=',$status));
+   }
+   else
+   {
+     $records = $this->user_user->doSelectCondition(new \dominion\DB_Condition('status','=',$status));
+   }
+
+    if($records)
+    {
+      $record_num = count($records);
+    }
+    else
+    {
+      $record_num = 0;
+    }
+
+    return $record_num;
+
+  }
+}
+
+?>

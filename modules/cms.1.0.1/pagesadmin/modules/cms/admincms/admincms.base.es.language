@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="admincms" lang="es">
+
+  <entry id="restart"><![CDATA[Empezar de nuevo]]></entry>
+
+  <entry id="typename"><![CDATA[Seleccione el tipo de página que desea fabricar:]]></entry>
+  <entry id="simple"><![CDATA[Página sencilla]]></entry>
+  <entry id="blockpage"><![CDATA[Página de bloques]]></entry>
+  <entry id="php"><![CDATA[Código PHP]]></entry>
+  <entry id="language"><![CDATA[Tabla de idioma]]></entry>
+  <entry id="template"><![CDATA[Plantilla suelta]]></entry>
+  <entry id="stylesheet"><![CDATA[Hoja de estilos]]></entry>
+  <entry id="rss"><![CDATA[Canal RSS]]></entry>
+  <entry id="robots"><![CDATA[robots.txt]]></entry>
+  <entry id="javascript"><![CDATA[Código Javascript]]></entry>
+  <entry id="otherfile"><![CDATA[Otro archivo suelto]]></entry>
+
+  <entry id="pageaslanguage"><![CDATA[Página sensible al idioma]]></entry>
+  <entry id="pageasbrowser"><![CDATA[Página sensible al navegador]]></entry>
+  <entry id="macro"><![CDATA[Macro]]></entry>
+  <entry id="os"><![CDATA[Llamada al sistema operativo]]></entry>
+  <entry id="osencoded"><![CDATA[Llamada al sistema operativo codificada]]></entry>
+  <entry id="directlink"><![CDATA[Liga directa a otra página]]></entry>
+  <entry id="dynamicmenu"><![CDATA[Menú dinámico]]></entry>
+  <entry id="require"><![CDATA[Página HTML directa]]></entry>
+  <entry id="wrapper"><![CDATA[Wrapper de sitio]]></entry>
+  <entry id="workflow"><![CDATA[Tarea del flujo de trabajo]]></entry>
+  <entry id="xmlreport"><![CDATA[Definición de Reporte en XML]]></entry>
+  <entry id="folder"><![CDATA[Carpeta de almacenamiento]]></entry>
+
+  <entry id="statusname"><![CDATA[Seleccione el estatus de la página que desea fabricar:]]></entry>
+  <entry id="notvisible"><![CDATA[No visible]]></entry>
+  <entry id="visible"><![CDATA[Visible y publicada]]></entry>
+  <entry id="visiblenoheader"><![CDATA[Publicada sin encabezados]]></entry>
+  <entry id="datablock"><![CDATA[Bloque de datos]]></entry>
+  <entry id="globaltemplate"><![CDATA[Plantilla global]]></entry>
+  <entry id="internaltemplate"><![CDATA[Plantilla interna]]></entry>
+  <entry id="blocktemplate"><![CDATA[Plantilla de bloques]]></entry>
+
+  <entry id="mask.errormessage"><![CDATA[Los datos aún no son bien capturados. Por favor, verifique los mensajes y los campos en rojo antes de enviar la información.]]></entry>
+  <entry id="mask.servermessage"><![CDATA[Error: Los datos del registro no pudierón ser recuperados del servidor.]]></entry>
+  <entry id="mask.titleinsert"><![CDATA[Capturar los datos de la nueva página:]]></entry>
+  <entry id="mask.titleupdate"><![CDATA[Modifique los datos de la página:]]></entry>
+  <entry id="mask.titleview"><![CDATA[Visualización de los datos de la página:]]></entry>
+
+  <entry id="key.title"><![CDATA[Identificador único:]]></entry>
+  <entry id="key.help.summary"><![CDATA[Capturar el identificador de la página]]></entry>
+  <entry id="key.help.title"><![CDATA[Identificador único de la página]]></entry>
+  <entry id="key.help.description"><![CDATA[El Identificador único de la página es un nombre entre 1 y 50 letras, cifras, guión medio o bajo. Es único en el sistema, es decir que no se puede repetir entre varias páginas. Se recomienda escribir una serie de palabras que describe el contenido de la página, separadas por un guión medio.]]></entry>
+  <entry id="key.status.notnull"><![CDATA[El identificador no puede ser vacio.]]></entry>
+  <entry id="key.status.badformat"><![CDATA[El identificador esta mal escrito. de 1 a 50 letras, cifras, guión medio o bajo.]]></entry>
+
+  <entry id="name.title"><![CDATA[Nombre de la página:]]></entry>
+  <entry id="name.help.summary"><![CDATA[Capturar el nombre de la página]]></entry>
+  <entry id="name.help.title"><![CDATA[Nombre de la página]]></entry>
+  <entry id="name.help.description"><![CDATA[El nombre de la página es visible únicamente al administrador de la herramienta, no es visible a los usuarios del sitio publicado. Puede contener cualquier carácter hasta 250 letras.]]></entry>
+  <entry id="name.status.notnull"><![CDATA[El nombre no puede ser vacio.]]></entry>
+
+  <entry id="descr.title"><![CDATA[Descripción de la página:]]></entry>
+  <entry id="descr.help.summary"><![CDATA[Capturar la descripción de la página]]></entry>
+  <entry id="descr.help.title"><![CDATA[Descripción de la página]]></entry>
+  <entry id="descr.help.description"><![CDATA[La descripción de la página permite hacer comentarios sobre el contenido de la página, su construcción, quién la modificó, porqué, cuando, o cualquier otro tipo de comentarios. Puede contener cualquier carácter hasta 4000 letras.]]></entry>
+
+  <entry id="security.title"><![CDATA[Nivel de acceso:]]></entry>
+  <entry id="security.help.summary"><![CDATA[Capturar el nivel de acceso]]></entry>
+  <entry id="security.help.title"><![CDATA[Nivel de acceso]]></entry>
+  <entry id="security.help.description"><![CDATA[El nivel de acceso define quien puede o no puede ver y usar esta página. El nivel "Público" indica que cualquier usuario puede ver esta página. El nivel "Usuario conectado" indica que solamente un usuario identificado puede ver esta página.El nivel "Usuario no conectado" indica que solamente un usuario no identificado puede acceder a esta página. Finalmente, cualquier otro nivel es sujeto a aprobación manual del administrador para un usuario identificado.]]></entry>
+  <entry id="security.status.notnull"><![CDATA[El nivel de seguridad no puede ser vacio.]]></entry>
+
+  <entry id="template.title"><![CDATA[Plantilla global:]]></entry>
+  <entry id="template.help.summary"><![CDATA[Capturar la plantilla a usar]]></entry>
+  <entry id="template.help.title"><![CDATA[Plantilla global]]></entry>
+  <entry id="template.help.description"><![CDATA[La plantilla global es la plantilla en la cual esta página se va a insertar. La plantilla global en general contiene un encabezado, menu, carril izquierdo/derecho, pié de página. Pueden existir varias plantillas globales a través del sistema según las necesidades.]]></entry>
+
+  <entry id="templateblock.title"><![CDATA[Plantilla de bloques:]]></entry>
+  <entry id="templateblock.help.summary"><![CDATA[Capturar la plantilla de bloques a usar]]></entry>
+  <entry id="templateblock.help.title"><![CDATA[Plantilla de bloques]]></entry>
+  <entry id="templateblock.help.description"><![CDATA[La plantilla de bloques es la plantilla que define la posición y tamaño del contenido de la página. Cada bloque será capturado individualmente al capturar el contenido de la página.]]></entry>
+
+  <entry id="file.title"><![CDATA[Archivo:]]></entry>
+  <entry id="file.help.summary"><![CDATA[Capturar el nombre del archivo]]></entry>
+  <entry id="file.help.title"><![CDATA[Archivo]]></entry>
+  <entry id="file.help.description"><![CDATA[El nombre del archivo puede contener también una ruta con directorios. Para un archivo del sitio, la raíz del archivo es la carpeta pública del sitio. Para una libreria PHP la raíz es la carpeta /scripts del repositorio. No hay necesidad de poner un / al principio.]]></entry>
+
+  <entry id="father.title"><![CDATA[Página padre:]]></entry>
+  <entry id="father.help.summary"><![CDATA[Capturar la página padre]]></entry>
+  <entry id="father.help.title"><![CDATA[Página padre]]></entry>
+  <entry id="father.help.description"><![CDATA[La página padre es la página que contiene esta en la estructura jerárquica del sitio. Es importante que las páginas sean bien ordenadas en el sitio ya que varios módulos de construcción del sitio usan la estructura jerárquica para fabricar los menús, navegación, breadcrumbs, etc.]]></entry>
+
+  <entry id="submit.title"><![CDATA[Enviar los datos y crear la nueva página]]></entry>
+  <entry id="reset.title"><![CDATA[Limpiar la forma]]></entry>
+
+  <entry id="dashboard"><![CDATA[Resumen]]></entry>
+
+  <entry id="resume.father"><![CDATA[Ubicación:]]></entry>
+  <entry id="resume.security"><![CDATA[Nivel de seguridad:]]></entry>
+  <entry id="resume.template"><![CDATA[Plantilla:]]></entry>
+  <entry id="resume.templateblock"><![CDATA[Plantilla de bloques:]]></entry>
+  
+  
+  <entry id="datasee"><![CDATA[Ver los datos completos]]></entry>
+  <entry id="dataupdate"><![CDATA[Modificar el objeto página]]></entry>
+  <entry id="datadelete"><![CDATA[Borrar esta página]]></entry>
+  <entry id="stats"><![CDATA[Estadísticas]]></entry>
+  <entry id="use"><![CDATA[Uso]]></entry>
+  <entry id="code"><![CDATA[Código]]></entry>
+
+
+</language>

@@ -1,0 +1,33 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master main HTML screen to load wajaf
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class master extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  public function getParameters($engine, $params)
+  {
+    $this->base->HTTPResponse->setJSFromRepository('wajaf.js');
+    return array();
+  }
+
+}
+
+?>

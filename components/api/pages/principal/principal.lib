@@ -1,0 +1,41 @@
+<?php
+
+/*
+  Listener para hacer operaciones sobre las colecciones
+  Escrito por: Phil
+  Fecha: Octubre 2014
+
+  Control de cambios:
+  09/10/2014: Phil, Creación
+  31/10/2014: Pablo, Anclar eventos de notificacion
+  02/12/2014: Phil, Agregar 'modificar' y método getModificar
+  02/12/2014: Phil, Desplazado a graph/v5 y adaptado, remover gigya
+  28/09/2016: Phil, cambiar los tipos de kiwi 5: cr, fr, ct, ft, co
+*/
+
+class principal extends \xamboo\XBRESTLibrary
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  public function get($engine, $params)
+  {
+  }  
+
+  public function post($engine, $params)
+  {
+  }  
+
+  public function put($engine, $params)
+  {
+  }  
+
+  public function del($engine, $params)
+  {
+  }  
+
+}
+
+?>

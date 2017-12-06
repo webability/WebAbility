@@ -1,0 +1,45 @@
+<?php
+
+namespace modules\country\entities;
+
+class countryEntity extends \common\entity
+{
+  protected $tables = array(
+      'country' => array('table' => 'country_country')
+    );
+    
+  private $geoIP = false;
+
+  public function __construct()
+  {
+    parent::__construct();
+    
+    if (extension_loaded ('geoip'))
+      $this->geoIP = true;
+  }
+  
+  /* Geo localization by default (PHP) */
+  public function getGeo($IP)
+  {
+    if (!$this->geoIP)
+      return 'XX';
+    
+    $RE = geoip_record_by_name($IP);
+    
+    if ($RE === false || $RE === null)
+      return 'XX';
+    $CO = $RE['country_code'];
+    $REG = $RE['region'];
+    if ($REG)
+    {
+      $rec = $this->readCountry(array(new \dominion\DB_Condition('key', '=', $CO), new \dominion\DB_Condition('geoip', '=', $REG, 'and')));
+      if ($rec)
+        return $rec[0]->key;
+    }
+    return $CO;
+  }
+  
+
+}
+
+?>

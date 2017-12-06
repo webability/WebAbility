@@ -1,0 +1,119 @@
+<?php
+
+class mastermodulesverify extends \common\WAApplication
+{
+  private $baseModuleEntity = null;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
+  }
+
+  // we add our own parameters to cartridge
+  public function getParameters($engine, $params)
+  {
+    return array();
+  }
+  
+  public function status($engine, $params)
+  {
+    $verify = $this->base->HTTPRequest->getParameter('verify');
+    $uptodate = $available = null;
+    $extratext = '';
+    if ($verify == 1)
+    {
+      $uptodate = $this->verify();
+      if ($uptodate)
+      {
+        // keep local cache answer
+        $this->base->writeFastObject('protected/master', 'update', $uptodate);
+      }
+    }
+    elseif ($verify == 2)
+    {
+      $available = $this->available();
+      if ($available)
+      {
+        // keep local cache answer
+        $this->base->writeFastObject('protected/master', 'available', $available);
+      }
+    }
+    if (!$uptodate)
+    {
+      $uptodate = $this->base->readFastObject('protected/master', 'update');
+      $extratext .= ' (Installed cached)';
+    }
+    if (!$available)
+    {
+      $available = $this->base->readFastObject('protected/master', 'available');
+      $extratext .= ' (Available cached)';
+    }
+    
+    // creates HTML and Buttons
+    $codeuptodate = '<table>';
+    foreach($uptodate as $id => $module)
+    {
+      $codeuptodate .= '<tr><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $id . '</td><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $module['id'] . '</td><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $module['version'] . '</td><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $module['date'] . '</td><td style="padding: 5px; border-bottom: 1px dotted #666; cursor: pointer; border: 1px solid black; background-color: #ccc;" onclick="mastermodulesverify_download(\''.$module['id'] . '\', \'' . $module['version'].'\');">[Download]</td></tr>';
+    }
+    $codeuptodate .= '</table>';
+    
+    // creates HTML and Buttons
+    $codeavailable = '<table>';
+    foreach($available as $id => $module)
+    {
+      $codeavailable .= '<tr><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $id . '</td><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $module['id'] . '</td><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $module['version'] . '</td><td style="padding: 5px; border-bottom: 1px dotted #666;">' . $module['date'] . '</td><td  style="padding: 5px; border-bottom: 1px dotted #666; cursor: pointer; border: 1px solid black; background-color: #ccc;" onclick="mastermodulesverify_download(\''.$module['id'] . '\', \'' . $module['version'].'\');">[Download]</td></tr>';
+    }
+    $codeavailable .= '</table>';
+
+    return array('message' => 'Lista de modulos:' . $extratext, 'uptodate' => $codeuptodate, 'available' => $codeavailable);
+  }
+
+  private function verify()
+  {
+    $jsonanswer = $this->base->postAPI('https://version.webability.info', '', array('serial' => '999999', 'version' => '6.0.1'));
+    
+    // keep the answer in local config objects
+    try
+    {
+      $answer = json_decode($jsonanswer, true);
+    }
+    catch (\Exception $e)
+    {
+      $answer = null;
+    }
+    return $answer;
+  }
+  
+  private function available()
+  {
+    $jsonanswer = $this->base->postAPI('https://version.webability.info', '', array('available' => 1));
+    
+    try
+    {
+      $answer = json_decode($jsonanswer, true);
+    }
+    catch (\Exception $e)
+    {
+      $answer = null;
+    }
+    return $answer;
+  }
+  
+  public function download($engine, $params)
+  {
+    $module = $this->base->HTTPRequest->getParameter('module');
+    $version = $this->base->HTTPRequest->getParameter('version');
+    
+    $filedata = $this->base->postAPI('https://version.webability.info', 'download', array('serial' => '999999', 'module' => $module, 'version' => $version));
+    file_put_contents($this->base->config->BASEDIR . 'modules/' . $module . '.' . $version . '.tgz', $filedata);
+    
+    $result = shell_exec('cd '.$this->base->config->BASEDIR . 'modules; tar zxvf ' . $module . '.' . $version . '.tgz');
+    
+    return array('message' => $module . ' ' . $version . ' downloaded. ' . $result);
+  }
+    
+}
+
+?>

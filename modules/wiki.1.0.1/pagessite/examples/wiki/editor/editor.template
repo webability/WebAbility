@@ -1,0 +1,14 @@
+<form>
+  Titulo:<br />
+  <input type="text" id="wikititle" name="wikititle" value="{{title}}" style="width: 100%;" /><br />
+  
+  Código:<br />
+  <textarea id="wikicode" name="wikicode" style="width: 100%; height: 600px;">{{code}}</textarea><br />
+  
+  Describe los cambios:<br />
+  <textarea id="wikichanges" name="wikichanges" style="width: 100%; height: 50px;">{{changes}}</textarea><br />
+
+  <input type="submit" value="Guardar">
+  <input type="hidden" id="order" name="order" value="save" />
+  <input type="hidden" id="order" name="edit" value="1" />
+</form>

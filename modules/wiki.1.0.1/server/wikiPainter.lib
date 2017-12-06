@@ -1,0 +1,628 @@
+<?php
+
+namespace modules\wiki\server;
+
+class wikiPainter extends \core\WAClass
+{
+  protected $wikiEntity;
+
+  protected $template;
+  protected $language;
+  
+  protected $footnotes = array();
+  protected $number = array();
+  protected $titlenumber = array();
+
+  function __construct($temp, $lang, $path = null)
+  {
+    parent::__construct();
+
+    $this->template = $temp;
+    $this->language = $lang;
+
+    $this->wikiEntity = \modules\wiki\entities\wikiEntity::getInstance();
+  }
+
+  public function getCode($wiki)
+  {
+    // transform the code into HTML
+    $code = $this->getNode($wiki);
+    $footnotes = $this->getFootNotes();
+    $this->template->addElement("__CONTENT__", $code);
+    $this->template->addElement("__FOOTNOTES__", $footnotes);
+    return $this->template->resolve();
+  }
+
+  // modified getNode, to support Template class
+  protected function getNode($node)
+  {
+    if (is_string($node))
+      return $node;
+    $code = $node["code"];
+    if ($node["isparsed"])
+    {
+      foreach($node["parsed"] as $id => $parsed)
+      {
+        $content = $this->$parsed["type"]($parsed);
+        if (is_object($content))
+          $content = $content->resolve();
+        $code = str_replace("&&&&&".$id."&&&&&", $content, $code);
+      }
+    }
+    return $code;
+  }
+
+  protected function nowiki($code)
+  {
+    return $code["text"];
+  }
+
+  protected function toc($code)
+  {
+    $tmp = $this->template->getTemplate("toc");
+    $tmp->addElement("__CONTENT__", "Indice de la página");
+    return $tmp;
+  }
+
+  protected function hr($code)
+  {
+    $tmp = $this->template->getTemplate("hr");
+    return $tmp;
+  }
+
+  protected function footnote($code)
+  {
+    $serial = count($this->footnotes) + 1;
+    $this->footnotes[$serial] = $this->getNode($code["text"]);
+
+    $tmp = $this->template->getTemplate("footnoteanchor");
+    $tmp->addElement("__SERIAL__", $serial);
+    return $tmp;
+  }
+
+  protected function getFootNotes()
+  {
+    $notes = "";
+    foreach($this->footnotes as $k => $fn)
+    {
+      $localtmp = $this->template->getTemplate("footnote");
+      $localtmp->addElement("__SERIAL__", $k);
+      $localtmp->addElement("__CONTENT__", $fn);
+      $notes .= $localtmp->resolve();
+    }
+    return $notes;
+  }
+
+  protected function bold($code)
+  {
+    $tmp = $this->template->getTemplate("bold");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function italic($code)
+  {
+    $tmp = $this->template->getTemplate("italic");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function underline($code)
+  {
+    $tmp = $this->template->getTemplate("underline");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function deleted($code)
+  {
+    $tmp = $this->template->getTemplate("deleted");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function superscript($code)
+  {
+    $tmp = $this->template->getTemplate("superscript");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function subscript($code)
+  {
+    $tmp = $this->template->getTemplate("subscript");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function important($code)
+  {
+    $tmp = $this->template->getTemplate("important");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function money($code)
+  {
+    return "$ ".number_format($code["text"], 2, ".", ",");
+  }
+
+  protected function mail($code)
+  {
+    $type = "link.mail";
+    if ($code["name"])
+      $name = $this->getNode($code["name"]);
+    else
+      $name = $code["mail"];
+    $tmp = $this->template->getTemplate($type);
+    $tmp->addElement("__LINK__", "mailto:".$code["mail"]);
+    $tmp->addElement("__TITLE__", $name);
+    return $tmp;
+  }
+
+  protected function center($code)
+  {
+    $tmp = $this->template->getTemplate("center");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function left($code)
+  {
+    $tmp = $this->template->getTemplate("left");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function right($code)
+  {
+    $tmp = $this->template->getTemplate("right");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function justified($code)
+  {
+    $tmp = $this->template->getTemplate("justified");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function box($code)
+  {
+    $tmp = $this->template->getTemplate("box.".$code["number"]);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function specialchars($code)
+  {
+    if ($code["char"] == "(c)")
+      return "&copy;";
+    if ($code["char"] == "(tm)")
+      return "&tm;";
+    if ($code["char"] == "(r)")
+      return "&reg;";
+    if ($code["char"] == "->")
+      return "->";
+    if ($code["char"] == "<<")
+      return "<<";
+    if ($code["char"] == ">>")
+      return ">>";
+    if ($code["char"] == "<-")
+      return "<-";
+    if ($code["char"] == "...")
+      return "...";
+    if ($code["char"] == "<->")
+      return "<->";
+    if ($code["char"] == "=>")
+      return "=>";
+    if ($code["char"] == "<=")
+      return "<=";
+    if ($code["char"] == "<=>")
+      return "<=>";
+    return $code["char"];
+  }
+
+  protected function br($code)
+  {
+    $tmp = $this->template->getTemplate("br");
+    return $tmp;
+  }
+
+  protected function color($code)
+  {
+    $tmp = $this->template->getTemplate("color");
+    $tmp->addElement("__COLOR__", $code["color"]);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    if (isset($code["background"]))
+    {
+      $bg = $this->template->getTemplate("backgroundcolor");
+      $bg->addElement("__BACKGROUND__", $code["background"]);
+      $tmp->addElement("__BACKGROUND__", $bg);
+    }
+    else
+      $tmp->addElement("__BACKGROUND__", "");
+    return $tmp;
+  }
+
+  protected function multimedia($code)
+  {
+    $width = ($code["width"]?" width=\"".$code["width"]."\"":"");
+    $height = ($code["height"]?" height=\"".$code["height"]."\"":"");
+    $leftalign = $code["leftalign"];
+    $rightalign = $code["rightalign"];
+    if ($leftalign) $align = " align=\"left\"";
+    elseif ($rightalign) $align = " align=\"right\"";
+    else $align = "";
+    return "<img src=\"/".$code["multimedia"]."\" alt=\"".$code["title"]."\"$width$height$align />";
+  }
+
+  protected function link($code)
+  {
+    $popup = $code["popup"];
+    if (substr($code["link"], 1, 7) == "http://")
+      $type = "link.http";
+    elseif (substr($code["link"], 1, 8) == "https://")
+      $type = "link.https";
+    elseif (substr($code["link"], 1, 6) == "ftp://")
+      $type = "link.ftp";
+    elseif (substr($code["link"], 1, 7) == "mailto:")
+      $type = "link.mail";
+    elseif (substr($code["link"], 1, 2) == "/?")
+      $type = "link.internal";
+    else
+    {
+      if ($this->wikiEntity->isPage($code['link']))
+        $type = "link.wiki";
+      else
+        $type = "link.wikibroken";
+    }
+    if ($popup)
+    {
+      $pu = " target=\"_blank\"";
+      $puicon = $this->template->getTemplate("icon.popup");
+    }
+    else
+    {
+      $pu = "";
+      $puicon = $this->template->getTemplate("icon.nopopup");
+    }
+    if ($code["title"])
+      $title = $code["title"];
+    else
+      $title = $code["link"];
+
+    $tmp = $this->template->getTemplate($type);
+    $tmp->addElement("__LINK__", $code["link"]);
+    $tmp->addElement("__POPUP__", $pu);
+    $tmp->addElement("__TITLE__", $title);
+    $tmp->addElement("__POPUPICON__", $puicon);
+    return $tmp;
+  }
+
+  protected function autolink($code)
+  {
+    $popup = $code["popup"];
+    if ($code["scheme"] == "http://")
+      $type = "link.http";
+    elseif ($code["scheme"] == "https://")
+      $type = "link.https";
+    else
+      $type = "link.ftp";
+    if ($popup)
+    {
+      $pu = " target=\"_blank\"";
+      $puicon = $this->template->getTemplate("icon.popup");
+    }
+    else
+    {
+      $pu = "";
+      $puicon = $this->template->getTemplate("icon.nopopup");
+    }
+    $title = $code["scheme"].$code["link"];
+
+    $tmp = $this->template->getTemplate($type);
+    $tmp->addElement("__LINK__", $code["scheme"].$code["link"]);
+    $tmp->addElement("__POPUP__", $pu);
+    $tmp->addElement("__TITLE__", $title);
+    $tmp->addElement("__POPUPICON__", $puicon);
+    return $tmp;
+  }
+
+  protected function automail($code)
+  {
+    $type = "link.mail";
+    $title = $code["account"]."@".$code["domain"];
+
+    $tmp = $this->template->getTemplate($type);
+    $tmp->addElement("__LINK__", "mailto:".$code["account"]."@".$code["domain"]);
+    $tmp->addElement("__TITLE__", $title);
+    return $tmp;
+  }
+
+  protected function initTitleNumber($level = null)
+  {
+    if ($level === null)
+    {
+      $this->titlenumber = array();
+    }
+    else
+    {
+      foreach($this->titlenumber as $k => $n)
+      {
+        if ($k >= $level)
+          unset($this->titlenumber[$k]);
+      }
+    }
+  }
+
+  protected function title($code)
+  {
+    // reinit numbering
+    $this->initNumber();
+
+    $level = strlen($code["level"]);
+
+    // get the title number
+    if (!isset( $this->titlenumber[$level] ))
+      $this->titlenumber[$level] = 1;
+    else
+      $this->titlenumber[$level] ++;
+    $this->initTitleNumber($level + 1 );
+    $numberpath = $this->getNumberPath("title", $level);
+    $textnumber = $this->getNumber($numberpath, ($level==1?"I":"1"), ".");
+
+    $tmpname = "h".$level;
+
+    $tmp = $this->template->getTemplate($tmpname);
+    $tmp->addElement("__NUMBER__", $textnumber);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function bullet($code)
+  {
+    $level = strlen($code["level"]);
+    $tmpname = "bullet".$level;
+
+    $tmp = $this->template->getTemplate($tmpname);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function quote($code)
+  {
+    $level = strlen($code["level"]);
+    $tmpname = "quote".$level;
+
+    $tmp = $this->template->getTemplate($tmpname);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function initNumber($namespace = null, $level = null)
+  {
+    if ($namespace === null)
+    {
+      $namespace = "default";
+    }
+    if ($level === null)
+    {
+      $this->number[$namespace] = array();
+    }
+    else
+    {
+      foreach($this->number[$namespace] as $k => $n)
+      {
+        if ($k >= $level)
+          unset($this->number[$namespace][$k]);
+      }
+    }
+  }
+
+  protected function getNumberPath($namespace, $level)
+  {
+    // return the numbers as an array
+    $path = array();
+    for ($i = $level; $i > 0; $i--)
+    {
+      if ($namespace == "title")
+      {
+        if (!isset($this->titlenumber[$i]))
+          $this->titlenumber[$i] = 1;
+        $path[$i] = $this->titlenumber[$i];
+      }
+      else
+      {
+        if (!isset($this->number[$namespace][$i]))
+          $this->number[$namespace][$i] = 1;
+        $path[$i] = $this->number[$namespace][$i];
+      }
+    }
+    return $path;
+  }
+
+  protected function getRoman($n)
+  {
+		$convert = array("M" => 1000, "CM" => 900, "D" => 500, "CD" => 400, "C" => 100, "XC" => 90, "L" => 50, "XL" => 40, "X" => 10, "IX" => 9, "V" => 5, "IV" => 4, "I" => 1);
+		$roman = "";
+		while ($n)
+		{
+			foreach ($convert as $l => $d)
+			{
+				$div = $n / $d;
+				if ($div >= 1)
+				{
+				  if (floor($div) < 4)
+				  {
+            $roman .= str_repeat($l, floor($div));
+				  }
+				  else
+				  {
+				    return "(Numérico demasiado grande)";
+				  }
+					$n -= floor($div) * $d;
+				}
+			}
+		}
+		return $roman;
+  }
+
+  protected function getNumberString($n, $type)
+  {
+    switch ($type)
+    {
+      case "1":
+        return $n;
+      case "A":
+        return chr(64+$n);
+      case "a":
+        return chr(96+$n);
+      case "I":
+        return strtoupper($this->getRoman($n));
+      case "i":
+        return strtolower($this->getRoman($n));
+    }
+    return $n;
+  }
+
+  protected function getNumber($numpath, $type, $point)
+  {
+    // calculate any type of numbering
+    $num = "";
+    if ($point)
+    {
+      foreach($numpath as $n)
+      {
+        $num = $this->getNumberString($n, $type) . ($num?".":"") . $num;
+      }
+    }
+    else
+    {
+      reset($numpath);
+      $n = current($numpath);
+      $num = $this->getNumberString($n, $type);
+    }
+
+    return " ".$num.". ";
+  }
+
+  protected function numbered($code)
+  {
+    $level = strlen($code["level"]);
+
+    $namespace = $code["namespace"];
+    if (!$namespace)
+      $namespace = "default";
+    if (!isset( $this->number[$namespace][$level] ))
+      $this->number[$namespace][$level] = 1;
+    else
+      $this->number[$namespace][$level] ++;
+    $this->initNumber($namespace, $level + 1 );
+    $numberpath = $this->getNumberPath($namespace, $level);
+    $textnumber = $this->getNumber($numberpath, $code["type"], $code["point"]);
+
+    $tmpname = "number".$level;
+
+    $tmp = $this->template->getTemplate($tmpname);
+    $tmp->addElement("__NUMBER__", $textnumber);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function table($code)
+  {
+    if ($code["border"])
+      $tmp = $this->template->getTemplate("tableborder");
+    else
+      $tmp = $this->template->getTemplate("table");
+
+    if ($code["size"])
+    {
+      $tsize = $this->template->getTemplate("tablesize");
+      $tsize->addElement("__WIDTH__", $code["size"]);
+      $tmp->addElement("__SIZE__", $tsize);
+    }
+    else
+      $tmp->addElement("__SIZE__", "");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["content"]));
+    return $tmp;
+  }
+
+  protected function line($code)
+  {
+    $tmp = $this->template->getTemplate("tablerow");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["content"]));
+    return $tmp;
+  }
+
+  protected function cell($code)
+  {
+    $tmp = $this->template->getTemplate("tablecell");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["content"]));
+    return $tmp;
+  }
+
+  protected function cellcontent($code)
+  {
+    $tmp = $this->template->getTemplate("tablecellcontent");
+    if ($code["leftalign"] !== "" && $code["rightalign"] !== "")
+      $style = "center";
+    elseif ($code["leftalign"] !== "")
+      $style = "left";
+    elseif ($code["rightalign"] !== "")
+      $style = "right";
+    else
+      $style = "left";
+    $tmp->addElement("__ALIGN__", $style);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["content"]));
+    return $tmp;
+  }
+
+  protected function _tm($code)
+  {
+    $tmp = $this->template->getTemplate("tm");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function _class($code)
+  {
+    $tmp = $this->template->getTemplate("class");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function _method($code)
+  {
+    $tmp = $this->template->getTemplate("method");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function _attribute($code)
+  {
+    $tmp = $this->template->getTemplate("attribute");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function _constant($code)
+  {
+    $tmp = $this->template->getTemplate("constant");
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+  protected function _var($code)
+  {
+    $tmp = $this->template->getTemplate("var".$code['number']);
+    $tmp->addElement("__CONTENT__", $this->getNode($code["text"]));
+    return $tmp;
+  }
+
+
+}
+
+?>

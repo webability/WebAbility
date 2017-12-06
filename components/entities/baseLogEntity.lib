@@ -1,0 +1,19 @@
+<?php
+
+namespace entities;
+
+class baseLogEntity extends \common\entity
+{
+  protected $tables = array(
+      'syslogtype' => array('table' => 'base_syslogtype'),
+      'syslog' => array('table' => 'base_syslog')
+    );
+
+  public function __construct()
+  {
+    parent::__construct();
+  }
+
+}
+
+?>

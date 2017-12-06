@@ -1,0 +1,4 @@
+<div style="width: 199px; float: left; min-height: 500px; border-left: 1px solid #cccccc; position: relative;">[[BLOCK,system/blocks/leftcolumn]]</div>
+
+<div style="width: 790px; float: right; padding: 5px;">[[CONTENT]]</div>
+

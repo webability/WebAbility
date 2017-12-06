@@ -1,0 +1,47 @@
+<?php
+
+namespace entities;
+
+class baseMenuEntity extends \common\entity
+{
+  public $regexpMenuThemeKey = "/^[A-Za-z0-9-_]{1,30}\$/";
+  public $regexpMenuKey = "/^[A-Za-z0-9-_]{1,30}\$/";
+
+  protected $tables = array(
+      'menutheme' => array('table' => 'base_menutheme'),
+      'menu' => array('table' => 'base_menu')
+    );
+
+  public function __construct()
+  {
+    parent::__construct();
+  }
+
+  // =============================================================
+  // all
+  public function getMenuTree()
+  {
+    $themes = $this->readMenuTheme(new \dominion\DB_Condition('module', '=', 'base'), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
+    if ($themes)
+    {
+      foreach($themes as $k => $theme)
+      {
+        $themes[$k]['children'] = $this->readMenu(new \dominion\DB_Condition('theme', '=', $theme['key']), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
+      }
+    }
+    $themesmod = $this->readMenuTheme(new \dominion\DB_Condition('module', '!=', 'base'), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
+    if ($themesmod)
+    {
+      foreach($themesmod as $k => $theme)
+      {
+        $theme['children'] = $this->readMenu(new \dominion\DB_Condition('theme', '=', $theme['key']), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
+        $themes[] = $theme;
+      }
+    }
+
+    return $themes;
+  }
+
+}
+
+?>

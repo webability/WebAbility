@@ -1,0 +1,393 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master sites installation tool
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class mastersites extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  // we add our own parameters to application
+  public function getParameters($engine, $params)
+  {
+    return array('STATUS' => $this->getStatus(),
+                 'AVAILABLE' => \common\Base::VERSION,
+                 'FORM' => $this->getSitesParams(),
+                 'CODEINSTALLED' => \common\Base::VERSION,
+                 'REPOSITORYINSTALLED' => $this->base->config->version
+                );
+  }
+
+  private function getSitesParams()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, $this);
+    $M->maskid = 'sitesparams';
+    $M->mode = \dommask\DomMask::VIEW;
+    $M->key = 'default';
+    
+    $M->alertmessage = '##mask.errormessage##';
+    $M->servermessage = '##mask.servermessage##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##mask.titleupdate##';
+    $M->titles[\dommask\DomMask::VIEW] = '##mask.titleview##';
+
+    // on success, we show the div with data and put the link to reload the page
+    $M->jsonsuccess = <<<EOF
+function(params)
+{
+}
+EOF;
+
+    // then we create each field
+    // Admin dir
+    $F = new \dommask\DomMaskTextField('admindir');
+    $F->title = '##admindir.title##';
+    $F->helpdescription = '##admindir.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##admindir.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'admindir';
+    $F->default = $this->base->ADMINDIR;
+    $M->addMaskField($F);
+
+    // Admin domain
+    $F = new \dommask\DomMaskTextField('admindomain');
+    $F->title = '##admindomain.title##';
+    $F->helpdescription = '##admindomain.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##admindomain.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'admindomain';
+    $F->default = $this->base->ADMINDOMAIN;
+    $M->addMaskField($F);
+    
+    // site dir
+    $F = new \dommask\DomMaskTextField('sitedir');
+    $F->title = '##sitedir.title##';
+    $F->helpdescription = '##sitedir.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##sitedir.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'sitedir';
+    $F->default = $this->base->SITEDIR;
+    $M->addMaskField($F);
+
+    // site domain
+    $F = new \dommask\DomMaskTextField('sitedomain');
+    $F->title = '##sitedomain.title##';
+    $F->helpdescription = '##sitedomain.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##sitedomain.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'sitedomain';
+    $F->default = $this->base->SITEDOMAIN;
+    $M->addMaskField($F);
+    
+    // api dir
+    $F = new \dommask\DomMaskTextField('apidir');
+    $F->title = '##apidir.title##';
+    $F->helpdescription = '##apidir.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##apidir.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'apidir';
+    $F->default = $this->base->APIDIR;
+    $M->addMaskField($F);
+
+    // api domain
+    $F = new \dommask\DomMaskTextField('apidomain');
+    $F->title = '##apidomain.title##';
+    $F->helpdescription = '##apidomain.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##apidomain.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'apidomain';
+    $F->default = $this->base->APIDOMAIN;
+    $M->addMaskField($F);
+    
+    // cdn dir
+    $F = new \dommask\DomMaskTextField('cdndir');
+    $F->title = '##cdndir.title##';
+    $F->helpdescription = '##cdndir.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##cdndir.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'cdndir';
+    $F->default = $this->base->CDNDIR;
+    $M->addMaskField($F);
+
+    // cdn domain
+    $F = new \dommask\DomMaskTextField('cdndomain');
+    $F->title = '##cdndomain.title##';
+    $F->helpdescription = '##cdndomain.help.description##';
+    $F->notnullmodes = 1;
+    $F->statusnotnull = '##cdndomain.status.notnull##';
+    $F->size = 500;
+    $F->maxlength = 255;
+    $F->urlvariable = 'cdndomain';
+    $F->default = $this->base->CDNDOMAIN;
+    $M->addMaskField($F);
+    
+    $F = new \dommask\DomMaskButtonField('update');
+    $F->action = 'update';
+    $F->title = '##form.update##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submit');
+    $F->action = 'submit';
+    $F->authmodes = \dommask\DomMask::UPDATE;
+    $F->title = '##form.continue##';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('reset');
+    $F->action = 'reset';
+    $F->authmodes = \dommask\DomMask::UPDATE;
+    $F->title = '##form.reset##';
+    $M->addMaskField($F);
+
+    $M->record = array( 
+      'admindir' => $this->base->ADMINDIR,
+      'admindomain' => $this->base->ADMINDOMAIN,
+      'sitedir' => $this->base->SITEDIR,
+      'sitedomain' => $this->base->SITEDOMAIN,
+      'apidir' => $this->base->APIDIR,
+      'apidomain' => $this->base->APIDOMAIN,
+      'cdndir' => $this->base->CDNDIR,
+      'cdndomain' => $this->base->CDNDOMAIN,
+    );
+    
+    return $M->code()->compile();
+  }
+  
+  public function sitesparams()
+  {
+    $admindir = $this->base->HTTPRequest->getParameter('admindir');
+    $admindomain = $this->base->HTTPRequest->getParameter('admindomain');
+    $sitedir = $this->base->HTTPRequest->getParameter('sitedir');
+    $sitedomain = $this->base->HTTPRequest->getParameter('sitedomain');
+    $apidir = $this->base->HTTPRequest->getParameter('apidir');
+    $apidomain = $this->base->HTTPRequest->getParameter('apidomain');
+    $cdndir = $this->base->HTTPRequest->getParameter('cdndir');
+    $cdndomain = $this->base->HTTPRequest->getParameter('cdndomain');
+    
+    // verify directories are ok and r/w and domains good syntax
+
+    $base = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'base.conf'));
+    $base->ADMINDIR = $admindir;
+    $base->ADMINDOMAIN = $admindomain;
+    $base->SITEDIR = $sitedir;
+    $base->SITEDOMAIN = $sitedomain;
+    $base->APIDIR = $apidir;
+    $base->APIDOMAIN = $apidomain;
+    $base->CDNDIR = $cdndir;
+    $base->CDNDOMAIN = $cdndomain;
+    
+    $this->base->writeConfig('base', $base);
+    
+    return array('success' => true, 'messages' => '', 'popup' => false);
+  }
+  
+  private function getStatus()
+  {
+    $res = $this->base->getGlobalStatus();
+
+    // all installed
+    if ($res['fsite'] == 1 && $res['fadmin'] == 1)
+      return 1;
+
+    // something not installed
+    if ($res['fsite'] == 0 || $res['fadmin'] == 0)
+      return 2;
+
+    // something needs to be upgraded
+    return 3;
+  }
+
+  private function answer($status, $message)
+  {
+    return array('status' => $status, 'newstatus' => $this->getStatus(), 'message' => $message, 'available' => \common\Base::VERSION, 'codeinstalled' => \common\Base::VERSION, 'repositoryinstalled' => $this->base->config->version);
+  }
+
+  public function install()
+  {
+    // we install files whatever the status is (we can force a reinstall anytime)
+
+    //  light version: directories are fixed to the unique site
+    $dirs = array(
+      'api' => $this->base->APIDIR,
+      'site' => $this->base->SITEDIR,
+      'admin' => $this->base->ADMINDIR
+    );
+
+    $messages = '';
+    foreach($dirs as $site => $dir)
+    {
+      try
+      {
+        // should throw an exception if there is an error
+        $messages .= $this->language->getEntry('file') . $dir;
+        $res = \core\WAFile::copyFile($this->base->BASEDIR.'components/'.$site.'/site', $dir);
+        $res = \core\WAFile::copyFile($this->base->BASEDIR.'components/'.$site.'/pages', $this->base->BASEDIR.'application/pages'.$site);
+        
+        $messages .= $this->language->getEntry('done');
+
+        $BASEDIR = $this->base->BASEDIR;
+        // windows drive
+        if (substr($BASEDIR, 1, 1) == ':')
+        {
+          $BASEDRIVE = substr($BASEDIR, 0, 2);
+          $BASEDIR = substr($BASEDIR, 2);
+        }
+        else
+          $BASEDRIVE = 'C:';
+
+        $REPOSITORYDIR = $this->base->REPOSITORYDIR;
+        // windows drive
+        if (substr($REPOSITORYDIR, 1, 1) == ':')
+        {
+          $REPOSITORYDRIVE = substr($REPOSITORYDIR, 0, 2);
+          $REPOSITORYDIR = substr($REPOSITORYDIR, 2);
+        }
+        else
+          $REPOSITORYDRIVE = 'C:';
+
+        $SITEDIR = $dirs['site'];
+        // windows drive
+        if (substr($SITEDIR, 1, 1) == ':')
+        {
+          $SITEDRIVE = substr($SITEDIR, 0, 2);
+          $SITEDIR = substr($SITEDIR, 2);
+        }
+        else
+          $SITEDRIVE = 'C:';
+
+        $ADMINDIR = $dirs['admin'];
+        // windows drive
+        if (substr($ADMINDIR, 1, 1) == ':')
+        {
+          $ADMINDRIVE = substr($ADMINDIR, 0, 2);
+          $ADMINDIR = substr($ADMINDIR, 2);
+        }
+        else
+          $ADMINDRIVE = 'C:';
+
+        if ($site == 'site')
+          $filename = 'index';
+        else
+          $filename = $site;
+
+        // we change the .php files
+        $messages .= $this->language->getEntry('php') . $filename . '.php';
+        $code = file_get_contents($dir.$filename.'.php');
+        $code = str_replace('__BASEDRIVE__', $BASEDRIVE, $code);
+        $code = str_replace('__BASEDIR__', $BASEDIR, $code);
+        $code = str_replace('__REPOSITORYDRIVE__', $REPOSITORYDRIVE, $code);
+        $code = str_replace('__REPOSITORYDIR__', $REPOSITORYDIR, $code);
+        file_put_contents($dir.$filename.'.php', $code);
+        $messages .= $this->language->getEntry('done');
+
+        if (is_file($dir.$filename.'.js.php'))
+        {
+          $messages .= $this->language->getEntry('php') . $filename . '.js.php';
+          $code = file_get_contents($dir.$filename.'.js.php');
+          $code = str_replace('__BASEDRIVE__', $BASEDRIVE, $code);
+          $code = str_replace('__BASEDIR__', $BASEDIR, $code);
+          $code = str_replace('__REPOSITORYDRIVE__', $REPOSITORYDRIVE, $code);
+          $code = str_replace('__REPOSITORYDIR__', $REPOSITORYDIR, $code);
+          file_put_contents($dir.$filename.'.js.php', $code);
+          $messages .= $this->language->getEntry('done');
+        }
+
+        // special site files
+        if ($site == 'site')
+        {
+          // preview
+          // wrapper
+        }
+
+        // install tools if not exists
+        // fckeditor
+        // editarea
+
+        // pics
+        // main site icon
+        // robots.txt
+
+        // we have to get the values from the form
+        // freeware serial
+        $locale = 'es_MX.UTF8';
+        $timezone = 'America/Mexico_City';
+
+        // creates the afo
+        $messages .= $this->language->getEntry('afo') . $site;
+        $afo = array(
+          'exception' => 1,
+          'ob' => 1,
+          'debug' => false,
+          'level' => 0,
+          'redirect' => 0,
+          'file' => null,
+          'locale' => $locale,
+          'timezone' => $timezone,
+
+          'defdirmask' => \core\WAFile::getDirMask(),
+          'deffilemask' => \core\WAFile::getFileMask(),
+          'PAGESDIR' => $this->base->PAGESDIR,
+          'PAGESCONTAINER' => 'pages'.$site.'/',
+          'errorpage' => 'error',
+          'errorblock' => 'error/error-block'
+        );
+        if ($site == 'site')
+        {
+          $afo['maintenance'] = false;
+          $afo['maintenancelink'] = null;
+          $afo['timelimit'] = 30;
+        }
+        if ($site == 'admin')
+        {
+          // admin has same default user as master at installation
+          $afo['user'] = $this->base->config->user;
+          $afo['password'] = $this->base->config->password;
+          $afo['mainpage'] = 'admin';
+          $afo['acceptpathparameters'] = 'yes';
+        }
+        $config = new \xconfig\XConfig(array('entries' => $afo));
+        $this->base->writeConfig($site, $config);
+
+        $messages .= $this->language->getEntry('done');
+      }
+      catch (\Exception $t)
+      {
+        return $this->answer(false, $this->language->getEntry('errorduringinstall').'<br />'.$t);
+      }
+
+    }
+
+    return $this->answer(true, $this->language->getEntry('result') . $messages);
+  }
+}
+
+?>

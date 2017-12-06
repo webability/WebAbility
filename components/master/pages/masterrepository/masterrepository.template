@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="masterrepository">
+  <element type="htmlElement" classname="maintitle">
+<![CDATA[##title##]]>
+  </element>
+
+  <element id="loading" type="htmlElement" classname="masterrepository_loading" left="0" top="0" width="max" height="max" display="none"></element>
+
+  <container type="simpleContainer" classname="simplecontent">
+    <zone id="repositorystatus">
+      <element type="textElement">
+<![CDATA[##status##]]>
+      </element>
+      <element id="image" type="imageElement" width="16" height="16" style="margin-left: 10px; margin-right: 10px;">
+<![CDATA[##statusimage##]]>
+      </element>
+      <element id="status_1" type="textElement" display="none">
+<![CDATA[##status.1.text##]]>
+      </element>
+      <element id="status_2" type="textElement" display="none">
+<![CDATA[##status.2.text##]]>
+      </element>
+      <element id="status_3" type="textElement" display="none">
+<![CDATA[##status.3.text##]]>
+      </element>
+      <element id="status_4" type="textElement" display="none">
+<![CDATA[##status.4.text##]]>
+      </element>
+      <element id="status_5" type="textElement" display="none">
+<![CDATA[##status.5.text##]]>
+      </element>
+      <element id="versioninstalled" type="textElement" display="none">
+<![CDATA[<br />##installed.text##]]>
+      </element>
+      <element id="versioninstallednum" type="textElement" display="none" style="font-weight: bold;">
+<![CDATA[__INSTALLED__]]>
+      </element>
+      <element id="versionavailable" type="textElement" display="none">
+<![CDATA[<br />##available.text##]]>
+      </element>
+      <element id="versionavailablenum" type="textElement" display="none" style="font-weight: bold;">
+<![CDATA[__AVAILABLE__]]>
+      </element>
+    </zone>
+  </container>
+
+  <container id="buttons" type="simpleContainer" classname="simplecontent">
+    <zone id="repositorybuttons">
+      <element id="button_install" type="buttonElement" display="none">
+<![CDATA[##install##]]>
+        <event type="click">
+          <code>
+<![CDATA[
+function()
+{
+  startinstallrepository();
+}
+]]>
+          </code>
+        </event>
+      </element>
+      <element id="button_verify" type="buttonElement" display="none">
+<![CDATA[##verify##]]>
+        <event type="click">
+          <code>
+<![CDATA[
+function()
+{
+  startverifyrepository();
+}
+]]>
+          </code>
+        </event>
+      </element>
+      <element id="button_upgrade" type="buttonElement" display="none">
+<![CDATA[##upgrade##]]>
+        <event type="click">
+          <code>
+<![CDATA[
+function()
+{
+  startupgraderepository();
+}
+]]>
+          </code>
+        </event>
+      </element>
+      <element id="button_uninstall" type="buttonElement" display="none">
+<![CDATA[##uninstall##]]>
+        <event type="click">
+          <code>
+<![CDATA[
+function()
+{
+  startuninstallrepository();
+}
+]]>
+          </code>
+        </event>
+      </element>
+    </zone>
+  </container>
+
+  <!-- container to fill with the installation/desinstallation/upgrade log -->
+  <element id="fillme" type="htmlElement" classname="masterrepository_fillme" display="none">
+  </element>
+
+  <element type="codeElement">
+<![CDATA[
+
+// status is 5 = not installed, 1 = ok, 2 = connector not installed, 3 = connector not working, 4 = upgrade needed
+var masterrepositorystatus = __STATUS__;
+var masterrepositoryinstalled = '__INSTALLED__';
+var masterrepositoryavailable = '__AVAILABLE__';
+
+function repositoryinstalled(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  hiderepositorystatus();
+  masterrepositorystatus = data.newstatus;
+  masterrepositoryinstalled = data.installed;
+  masterrepositoryavailable = data.available;
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  showrepositorystatus();
+  if (data.status)
+  {
+    WA.$N('masterindex|single|menu').reload();
+    WA.Managers.wa4gl.destroyApplication('mastercontrol', 'single');
+    WA.Managers.wa4gl.startApplication('masterindex|single|controlcenter', 'mastercontrol', 'single', '', '');
+  }
+  WA.$N('loading').hide();
+}
+
+function repositoryuninstalled(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  hiderepositorystatus();
+  masterrepositorystatus = data.newstatus;
+  masterrepositoryinstalled = data.installed;
+  masterrepositoryavailable = data.available;
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  showrepositorystatus();
+  if (data.status)
+  {
+    WA.$N('masterindex|single|menu').reload();
+    WA.Managers.wa4gl.destroyApplication('mastercontrol', 'single');
+    WA.Managers.wa4gl.startApplication('masterindex|single|controlcenter', 'mastercontrol', 'single', '', '');
+  }
+  WA.$N('loading').hide();
+}
+
+/*
+function repositoryverified(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  $('fillme').innerHTML = data.message;
+  $N('fillme').show();
+  $N('loading').hide();
+}
+*/
+function repositoryupgraded(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  hiderepositorystatus();
+  masterrepositorystatus = data.newstatus;
+  masterrepositoryinstalled = data.installed;
+  masterrepositoryavailable = data.available;
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  showrepositorystatus();
+  if (data.status)
+  {
+    WA.$N('masterindex|single|menu').reload();
+    WA.Managers.wa4gl.destroyApplication('mastercontrol', 'single');
+    WA.Managers.wa4gl.startApplication('masterindex|single|controlcenter', 'mastercontrol', 'single', '', '');
+  }
+  WA.$N('loading').hide();
+}
+
+function startinstallrepository()
+{
+  WA.$N('fillme').hide();
+  WA.$N('buttons').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/__INDEXPHP__/masterrepository/install/json', 'POST', '', repositoryinstalled.withContext(WA.context), true);
+}
+
+function startuninstallrepository()
+{
+  WA.$N('fillme').hide();
+  WA.$N('buttons').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/__INDEXPHP__/masterrepository/uninstall/json', 'POST', '', repositoryuninstalled, true);
+}
+
+function startupgraderepository()
+{
+  WA.$N('fillme').hide();
+  WA.$N('buttons').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/__INDEXPHP__/masterrepository/upgrade/json', 'POST', '', repositoryupgraded, true);
+}
+
+/*
+function startverifyrepository()
+{
+  WA.$N('fillme').hide();
+  WA.$N('buttons').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/__INDEXPHP__/masterrepository/verify/json', 'POST', '', repositoryverified, true);
+}
+*/
+function hiderepositorystatus()
+{
+  switch(masterrepositorystatus)
+  {
+    case 1:
+      WA.$N('status_1').hide();
+      WA.$N('versioninstalled').hide();
+      WA.$N('versioninstallednum').hide();
+      WA.$N('button_uninstall').hide();
+      WA.$N('button_verify').hide();
+      break;
+    case 2:
+      WA.$N('status_2').hide();
+      break;
+    case 3:
+      WA.$N('status_3').hide();
+      break;
+    case 4:
+      WA.$N('status_4').hide();
+      WA.$N('versioninstalled').hide();
+      WA.$N('versioninstallednum').hide();
+      WA.$N('versionavailable').hide();
+      WA.$N('versionavailablenum').hide();
+      WA.$N('button_upgrade').hide();
+      break;
+    case 5:
+      WA.$N('status_5').hide();
+      WA.$N('versionavailable').hide();
+      WA.$N('versionavailablenum').hide();
+      WA.$N('button_install').hide();
+      break;
+  }
+}
+
+function showrepositorystatus()
+{
+  switch(masterrepositorystatus)
+  {
+    case 1:
+      WA.toDOM('repositorystatus').className = 'repositorystatus_1';
+      WA.toDOM('repositorybuttons').className = 'repositorystatus_1';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/repository-ok.png';
+      WA.$N('status_1').show();
+      WA.toDOM('versioninstallednum').innerHTML = masterrepositoryinstalled;
+      WA.$N('versioninstalled').show();
+      WA.$N('versioninstallednum').show();
+      WA.$N('buttons').show();
+      WA.$N('button_uninstall').show();
+//      WA.$N('button_verify').show();
+      break;
+    case 2:
+      WA.toDOM('repositorystatus').className = 'repositorystatus_2';
+      WA.toDOM('repositorybuttons').className = 'repositorystatus_2';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/connector-no.png';
+      WA.$N('status_2').show();
+      WA.$N('buttons').hide();
+      break;
+    case 3:
+      WA.toDOM('repositorystatus').className = 'repositorystatus_3';
+      WA.toDOM('repositorybuttons').className = 'repositorystatus_3';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/connector-error.png';
+      WA.$N('status_3').show();
+      WA.$N('buttons').hide();
+      break;
+    case 4:
+      WA.toDOM('repositorystatus').className = 'repositorystatus_4';
+      WA.toDOM('repositorybuttons').className = 'repositorystatus_4';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/repository-update.png';
+      WA.$N('status_4').show();
+      WA.toDOM('versioninstallednum').innerHTML = masterrepositoryinstalled;
+      WA.toDOM('versionavailablenum').innerHTML = masterrepositoryavailable;
+      WA.$N('versioninstalled').show();
+      WA.$N('versioninstallednum').show();
+      WA.$N('versionavailable').show();
+      WA.$N('versionavailablenum').show();
+      WA.$N('buttons').show();
+      WA.$N('button_upgrade').show();
+      break;
+    case 5:
+      WA.toDOM('repositorystatus').className = 'repositorystatus_5';
+      WA.toDOM('repositorybuttons').className = 'repositorystatus_5';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/repository-no.png';
+      WA.$N('status_5').show();
+      WA.toDOM('versionavailablenum').innerHTML = masterrepositoryavailable;
+      WA.$N('versionavailable').show();
+      WA.$N('versionavailablenum').show();
+      WA.$N('buttons').show();
+      WA.$N('button_install').show();
+      break;
+  }
+}
+]]>
+  </element>
+
+  <event type="start">
+    <code>
+<![CDATA[
+function()
+{
+  showrepositorystatus();
+}
+]]>
+    </code>
+  </event>
+
+</application>

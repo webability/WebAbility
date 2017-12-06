@@ -1,0 +1,133 @@
+<?php
+
+/*
+    WAApplication.lib, Xamboo
+    Contains the basic class to contains a page object instance
+    (c) 2012 Philippe Thomassigny
+
+    This file is part of Xamboo
+
+    Xamboo is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Xamboo is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Xamboo.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* @UML_Box
+|------------------------------------------------------------------|
+| WAApplication: page object                                       |
+|------------------------------------------------------------------|
+| # id: string                                                     |
+| # lang: boolean                                                  |
+| # entries: Array(id => string)                                   |
+|------------------------------------------------------------------|
+| + new WAApplication($template, $language)                        |
+| + __toString(): string                                           |
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace common;
+
+// Class to manage a page object
+class WAApplication extends \xamboo\XBLibrary
+{
+  protected $forcetype = null;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  public function run($engine, $params)
+  {
+    // Get the method from URL
+    // the the data type from URL
+    $method = null;
+    if (isset($params[0]) && $params[0])
+      $method = $params[0];
+    // we should check validity of method in this class known methods
+
+    if (!$method)
+      $code = $this->runApplication($engine, $params);
+    else
+      $code = $this->$method($engine, $params);
+    
+    $type = $this->forcetype?$this->forcetype:(isset($params[1])?$params[1]:null);
+    // we should check validity of type in known types
+    if ($type == 'json')
+    {
+      if (is_string($code))
+        $tree = \tools\xml\xmltoarray::parse($code);
+      elseif (is_array($code))
+        $tree = $code;
+      // we transform the Array into a JSON
+      $code = json_encode($tree);
+      header('Content-type: application/json');
+    }
+    return $code;
+  }
+  
+  protected function getParameters($engine, $params)
+  {
+    return null;
+  }
+
+  protected function getLanguage($engine, $params)
+  {
+    return $this->language;
+  }
+  
+  protected function getApplication($engine, $params)
+  {
+    return $this->template->resolve();
+  }
+
+  protected function buildApplication($engine, $params)
+  {
+    return null;
+  }
+
+  protected function runApplication($engine, $params)
+  {
+    $xml = null;
+
+    $app = $this->buildApplication($engine, $params);
+    if ($app)
+      $xml = $app->compile();
+    else
+      $xml = $this->getApplication($engine, $params);
+
+    $par = $this->getParameters($engine, $params);
+    if ($par)
+    {
+      foreach($par as $p => $v)
+        $xml = str_replace('__'.$p.'__', $v, $xml);
+    }
+
+    // then we integrate languages
+    $language = $this->getLanguage($engine, $params);
+    if ($language)
+    {
+      foreach($language as $k => $l)
+        $xml = str_replace('##'.$k.'##', $l, $xml);
+    }
+
+    return $xml;
+  }
+  
+  protected function code($engine, $params)
+  {
+    return $this->runApplication($engine, $params);
+  }
+
+}
+
+?>

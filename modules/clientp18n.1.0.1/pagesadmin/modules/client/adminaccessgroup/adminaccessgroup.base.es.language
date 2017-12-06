@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="adminaccessgroup" lang="es">
+  <!-- into the xml application -->
+  <entry id="accounttitle"><![CDATA[Edición del grupo de accesos:]]></entry>
+
+  <!-- into the lib php application -->
+  <entry id="mask.errormessage"><![CDATA[Los datos aún no son bien capturados. Por favor, verifique los mensajes y los campos en rojo antes de enviar la información.]]></entry>
+  <entry id="mask.servermessage"><![CDATA[Error: Los datos del registro tienen un error desconocido reportado por el servidor.]]></entry>
+  <entry id="mask.titleinsert"><![CDATA[Capturar los datos del nuevo grupo de accesos:]]></entry>
+  <entry id="mask.titleupdate"><![CDATA[Modificar los datos del grupo de accesos:]]></entry>
+  <entry id="mask.titleview"><![CDATA[Validación de los datos capturados:]]></entry>
+
+  <entry id="key.title"><![CDATA[Clave del grupo:]]></entry>
+  <entry id="key.help.summary"><![CDATA[Capturar la clave del grupo.]]></entry>
+  <entry id="key.help.title"><![CDATA[Clave del grupo]]></entry>
+  <entry id="key.help.description"><![CDATA[Tiene que capturar la clave del grupo. Esta clave contiene cualquier letra o cifra, sublineado y guión, desde 4 hasta 80 letras.]]></entry>
+  <entry id="key.status.notnull"><![CDATA[La clave no puede ser vacia.]]></entry>
+  <entry id="key.status.tooshort"><![CDATA[La clave debe contener un mínimo de 4 carácteres.]]></entry>
+  <entry id="key.status.format"><![CDATA[La clave no debe de contener carácteres no autorizados.]]></entry>
+
+  <entry id="name.title"><![CDATA[Nombre del grupo:]]></entry>
+  <entry id="name.help.summary"><![CDATA[Capturar el nombre del grupo de accesos]]></entry>
+  <entry id="name.help.title"><![CDATA[Contraseña del administrador]]></entry>
+  <entry id="name.help.description"><![CDATA[Tiene que capturar la contraseña para poder conectarse al sitio maestro. Esta contraseña puede contener cualquier carácter, desde 4 hasta 80 letras.]]></entry>
+  <entry id="name.status.notnull"><![CDATA[La contraseña no puede ser vacia.]]></entry>
+  <entry id="name.status.tooshort"><![CDATA[la contraseña debe contener un mínimo de 4 carácteres.]]></entry>
+
+  <entry id="form.continue"><![CDATA[Enviar la información]]></entry>
+  <entry id="form.reset"><![CDATA[Limpiar la forma]]></entry>
+  <entry id="form.insert"><![CDATA[Insertar nuevo grupo]]></entry>
+  <entry id="form.update"><![CDATA[Modificar esta información]]></entry>
+  <entry id="success"><![CDATA[Información grabada con éxito. Por favor conectese para seguir.]]></entry>
+
+  <entry id="error.key.missing"><![CDATA[Falta el nombre de usuario.]]></entry>
+  <entry id="error.name.missing"><![CDATA[Falta la contraseña.]]></entry>
+  <entry id="error.name.different"><![CDATA[La contraseña no esta escrita dos veces igual.]]></entry>
+  <entry id="error.name.same"><![CDATA[La contraseña no puede ser la misma que el usuario.]]></entry>
+</language>

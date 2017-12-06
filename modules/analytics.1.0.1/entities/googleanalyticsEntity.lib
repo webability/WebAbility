@@ -1,0 +1,54 @@
+<?php
+
+/*
+  Entity para enviar hits de eventos a google analytics
+  Escrito por: Phil
+  Fecha: Septiembre 2017
+  
+  Control de cambios:
+    2017-09-20: Phil, creación
+*/
+
+namespace  modules\analytics\entities;
+
+class ooleanalyticsEntity extends \patterns\Singleton
+{
+  private $version = '1';
+  private $ua = null;
+  
+  private $baseUtilEntity;
+
+  public function __construct()
+  {
+    parent::__construct();
+    
+    $this->ua = $this->base->config->UNIVERSALANALYTICS;
+    if (!$this->ua)
+      throw new \Exception('The UNIVERSALANALYTICS entry is missing in the configuration parameters');
+
+    $this->baseUtilEntity = \entityes\baseUtilEntity::getInstance();
+  }
+  
+  // source, category, action, label, value, cid
+  public function sendEvent($source = 'web', $ec, $ea, $el, $ev = null, $cid = null)
+  {
+    // hit Analytics
+    if (!$cid)
+    {
+      $cid = $this->base->HTTPRequest->getCookie('cid');
+      if (!$cid)
+      {
+        $cid = $this->baseUtilEntity->guidv4();
+        SetCookie('cid', $cid, time()+60*60*24*30*24, '/', $this->base->config->COOKIEDOMAIN);
+      }
+    }
+    $ip = $this->baseUtilEntity->extractIP($this->base->HTTPRequest->IP);
+    $ua = isset($_SERVER["HTTP_USER_AGENT"])?$_SERVER["HTTP_USER_AGENT"]:'unknown';
+
+    $url = "http://www.google-analytics.com/collect?v={$this->version}&t=event&tid={$this->ua}&cid={$cid}&dt=Kiwilimon&ds={$source}&uip={$ip}&ec={$ec}&ea={$ea}&el={$el}" . ($ev?"&ev={$ev}":'');
+    return $url . ' ' . file_get_contents($url);
+  }
+
+}
+
+?>

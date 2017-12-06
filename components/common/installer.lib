@@ -1,0 +1,638 @@
+<?php
+
+namespace common;
+
+class installer extends \core\WAClass
+{
+  protected $BASEDIR;
+  protected $MODULE;
+  protected $VERSION;
+  protected $language;
+
+  private $baseModuleEntity = null;
+  private $baseMenuEntity = null;
+
+  protected $script = array();
+  
+  public function __construct($BASEDIR, $MODULE, $VERSION, $language)
+  {
+    parent::__construct();
+    $this->BASEDIR = $BASEDIR;
+    $this->MODULE = $MODULE;
+    $this->VERSION = $VERSION;
+    $this->language = $language;
+    
+    $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
+    $this->baseMenuEntity = \entities\baseMenuEntity::getInstance();
+
+    if (!is_file($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf'))
+      throw new \throwables\masterError('The base directory is not a module compliant directory');
+    if (!is_file($this->base->BASEDIR . $this->BASEDIR . 'install/listoftables.conf'))
+      throw new \throwables\masterError('The base directory is not a module compliant directory');
+  }
+  
+  public function setModule()
+  {
+    if (is_file($this->base->REPOSITORYDIR.'modules.conf'))
+      $modules = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'modules.conf'));
+    else
+      $modules = new \xconfig\XConfig(array());
+    $modules->{$this->MODULE} = $this->MODULE . '.' . $this->VERSION;
+    $this->base->writeConfig('modules', $modules);
+    
+    $this->baseModuleEntity->createModuleLog(array('key' => 0, 'module' => $this->MODULE, 'version' => $this->VERSION, 'date' => 'sysdate', 'action' => $this->language->moduleinsert . $this->MODULE. '.' . $this->VERSION));
+  }
+  
+  public function delModule()
+  {
+    if (is_file($this->base->REPOSITORYDIR.'modules.conf'))
+      $modules = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'modules.conf'));
+    else
+      $modules = new \xconfig\XConfig(array());
+    unset($modules->{$this->MODULE});
+    $this->base->writeConfig('modules', $modules);
+    
+    $this->baseModuleEntity->createModuleLog(array('key' => 0, 'module' => $this->MODULE, 'version' => $this->VERSION, 'date' => 'sysdate', 'action' => $this->language->moduledelete));
+  }
+
+  public function setConfigParam($file, $param, $value)
+  {
+    if (is_file($this->base->REPOSITORYDIR.$file.'.conf'))
+      $config = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.$file.'.conf'));
+    else
+      $config = new \xconfig\XConfig(array());
+    $config->$param = $value;
+    $this->base->writeConfig($file, $config);
+  }
+  
+  public function delConfigParam($file, $param)
+  {
+    if (is_file($this->base->REPOSITORYDIR.$file.'.conf'))
+      $config = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.$file.'.conf'));
+    else
+      $config = new \xconfig\XConfig(array());
+    unset($config->$param);
+    $config->$param = $value;
+    $this->base->writeConfig($file, $config);
+  }
+
+  public function loadListoftables($path)
+  {
+    $listoftables = new \xconfig\XConfig(file_get_contents($path));
+    if (!is_array($listoftables->table))
+      $listoftables->table = $listoftables->table?array($listoftables->table):array();
+    return $listoftables;
+  }
+
+  public function installDatabase()
+  {
+    $messages = '';
+    
+    // load needed files
+    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
+    $listoftables = $this->loadListoftables($this->base->BASEDIR . $this->BASEDIR . 'install/listoftables.conf');
+
+    // create all tables
+    foreach($listoftables->table as $v)
+    {
+      try
+      {
+        $messages .= $this->language->table . $v;
+        require $this->base->BASEDIR . $this->BASEDIR . 'tables/' . $v . '.inc';
+        $$v->setDB($this->base->connector['Main']);
+        $$v->synchronize(false);
+      }
+      catch (\Exception $exception)
+      {
+        $messages .= $exception;
+      }
+      $messages .= $this->language->tabledone;
+    }
+
+    // II. Create the Module entry
+    $messages .= $this->language->modulebase;
+    $rec = $this->baseModuleEntity->readModule($module->id);
+    if (!$rec)
+    {
+      $this->baseModuleEntity->createModule(array('key' => $module->id, 'name' => $module->name, 'version' => $module->version,
+          'versiondate' => strtotime($module->versiondate), 'date' => 'sysdate', 'installed' => 1, 'examples' => 0));
+    }
+    else
+    {
+      $this->baseModuleEntity->updateModule($module->id, array('name' => $module->name, 'version' => $module->version,
+          'versiondate' => strtotime($module->versiondate), 'date' => 'sysdate', 'installed' => 1));
+    }
+
+    // III. Create the tables links
+    // fill all the tables into moduletable
+    $messages .= $this->language->modulereferences;
+    foreach($listoftables->table as $v)
+    {
+      $rec = $this->baseModuleEntity->readModuleTable($v);
+      if (!$rec)
+      {
+        $record = array('key' => $v, 'module' => $module->id);
+        $this->baseModuleEntity->createModuleTable($record);
+      }
+      else
+      {
+        $record = array('module' => $module->id);
+        $this->baseModuleEntity->updateModuleTable($v, $record);
+      }
+    }
+
+    $this->baseModuleEntity->createModuleLog(array('key' => 0, 'module' => $module->id, 'version' => $this->VERSION, 'date' => 'sysdate', 'action' => $this->language->databaseinsert));
+
+    return $messages;
+  }
+
+  // ======================================================
+  // UnLoad DB definition and remove all tables
+  function uninstallDatabase()
+  {
+    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
+
+    $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
+
+    $this->baseModuleEntity->base_moduletable->doDeleteCondition(new \dominion\DB_Condition('module', '=', $module->id));
+    $this->baseModuleEntity->base_module->doUpdate($module->id, array('installed' => 0));
+    
+    $listoftables = $this->loadListoftables($this->base->BASEDIR . $this->BASEDIR . 'install/listoftables.conf');
+
+    $messages = '';
+    foreach($listoftables->table as $v)
+    {
+      $messages .= $this->language->tabledelete . $v;
+      try
+      {
+        require $this->base->BASEDIR.$this->BASEDIR.'tables/'.$v.'.inc';
+        $$v->setDB($this->base->connector['Main']);
+        $$v->deleteTable();
+      }
+      catch (\Exception $exception)
+      {
+        $messages .= $exception;
+      }
+      $messages .= $this->language->tabledeletedone;
+    }
+    
+    // If we uninstall the core, there is no more module log table !
+    if ($module->id != 'base')
+      $this->baseModuleEntity->createModuleLog(array('key' => 0, 'module' => $module->id, 'version' => $this->VERSION, 'date' => 'sysdate', 'action' => $this->language->databasedelete));
+    
+    return $messages;
+  }
+  
+  // ======================================================
+  // Install the components based on script
+  function installScript()
+  {
+    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
+    $this->MODULE = $module->id;
+
+    $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
+    $this->baseMenuEntity = \entities\baseMenuEntity::getInstance();
+    
+    $messages = '';
+
+    foreach($this->script as $k => $s)
+    {
+      $messages .= $this->language->orderexecute . $s['Order'] . ' / ';
+      try
+      {
+        switch($s['Order'])
+        {
+          case 'CreateEngine':
+            $messages .= $this->createEngine($s);
+            break;
+          case 'CreateAccess':
+            $messages .= $this->createAccess($s);
+            break;
+          case 'CreateAccessSite':
+            $messages .= $this->createAccessSite($s);
+            break;
+          case 'CreateMenuTheme':
+            $messages .= $this->createMenuTheme($s);
+            break;
+          case 'CreateMenu':
+            $messages .= $this->createMenu($s);
+            break;
+          case 'CreateConfig':
+            $messages .= $this->createConfig($s);
+            break;
+          case 'CopyFile':
+            $messages .= $this->createFile($s);
+            break;
+          case 'CopyDir':
+            $messages .= $this->createDir($s);
+            break;
+          case 'ExecuteScript':
+            $messages .= $this->executeScript(1, $s);
+            break;
+        }
+      }
+      catch (Exception $e)
+      {
+        $messages .= $this->language->ordererror;
+      }
+      $messages .= $this->language->orderdone;
+    }
+
+    // log the run into modulelog
+    $this->baseModuleEntity->createModuleLog(array('key' => 0, 'module' => $module->id, 'version' => $this->VERSION, 'date' => 'sysdate', 'action' => $this->language->scriptinstall));
+
+    return $messages;
+  }
+
+  // ======================================================
+  // Uninstall the components based on reverse script
+  function uninstallScript()
+  {
+    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
+    $this->MODULE = $module->id;
+
+    $this->baseMenuEntity = \entities\baseMenuEntity::getInstance();
+
+    // reverse the script array
+    $messages = '';
+    $script = array_reverse($this->script);
+    foreach ($script as $k => $s)
+    {
+      try
+      {
+        switch($s['Order'])
+        {
+          case 'CreateEngine':
+            $messages .= $this->destroyEngine($s);
+            break;
+          case 'CreateMenuTheme':
+            $messages .= $this->destroyMenuTheme($s);
+            break;
+          case 'CreateMenu':
+            $messages .= $this->destroyMenu($s);
+            break;
+          case 'CreateAccess':
+            $messages .= $this->destroyAccess($s);
+            break;
+          case 'CreateAccessSite':
+            $messages .= $this->destroyAccessSite($s);
+            break;
+          case 'CreateConfig':
+            $messages .= $this->destroyConfig($s);
+            break;
+          case 'CopyFile':
+            $messages .= $this->destroyFile($s);
+            break;
+          case 'CopyDir':
+            $messages .= $this->destroyDir($s);
+            break;
+          case 'ExecuteScript':
+            $messages .= $this->executeScript(2, $s);
+            break;
+        }
+      }
+      catch (Exception $e)
+      {
+        $messages = 'Error';
+      }
+    }
+    
+    $this->baseModuleEntity->createModuleLog(array('key' => 0, 'module' => $module->id, 'version' => $this->VERSION, 'date' => 'sysdate', 'action' => $this->language->scriptuninstall));
+    
+    return $messages;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  function createEngine($order)
+  {
+    $engines = $this->base->loadEngines();
+    $engines->{$order['id']} = array( 'type' => $order['type'],
+                                            'server' => $order['server'],
+                                            'run' => $order['run'],
+                                            'language' => $order['language'],
+                                            'template' => $order['template']
+                                          );
+    $this->base->writeconfig("engines", $engines);
+    return $order['id'];
+  }
+
+  function destroyEngine($order)
+  {
+    $engines = $this->base->loadEngines();
+    unset($engines->{$order['id']});
+    $this->base->writeconfig("engines", $engines);
+    return $order['id'];
+  }
+
+  // ======================================================================================
+  // CreateAccess
+
+  function createAccess($order)
+  {
+    // insert into the base_access table or base_accessextended if 'queries' has an entry
+    if (isset($order['Queries']))
+    {
+      $r = $this->baseUserSecurityEntity->base_accessextended->doSelect($order['Id']);
+      if ($r)
+      {
+        $record = array(
+          'name' => $order['Name'],
+          'queries' => rawurlencode($order['Queries']),
+          'descr' => $order['Descr']
+        );
+        $this->baseUserSecurityEntity->base_accessextended->doUpdate($order['Id'], $record);
+      }
+      else
+      {
+        $record = array(
+          'key' => $order['Id'],
+          'name' => $order['Name'],
+          'module' => $this->MODULE,
+          'queries' => rawurlencode($order['Queries']),
+          'descr' => $order['Descr']
+        );
+        $this->baseUserSecurityEntity->base_accessextended->doInsert($record);
+      }
+    }
+    else
+    {
+      $r = $this->baseUserSecurityEntity->base_access->doSelect($order['Id']);
+      if ($r)
+      {
+        $record = array(
+          'name' => $order['Name'],
+          'descr' => $order['Descr']
+        );
+        $this->baseUserSecurityEntity->base_access->doUpdate($order['Id'], $record);
+      }
+      else
+      {
+        $record = array(
+          'key' => $order['Id'],
+          'name' => $order['Name'],
+          'module' => $this->MODULE,
+          'descr' => $order['Descr']
+        );
+        $this->baseUserSecurityEntity->base_access->doInsert($record);
+      }
+    }
+    return $order['Id'];
+  }
+
+  function destroyAccess($order)
+  {
+    if (isset($order['Queries']))
+    {
+      $this->baseUserSecurityEntity->base_accessextended->doDelete($order['Id']);
+    }
+    else
+    {
+      $this->baseUserSecurityEntity->base_access->doDelete($order['Id']);
+    }
+  }
+
+  // ======================================================================================
+  // CreateMenuTheme
+
+  function createMenuTheme($order)
+  {
+    $r = $this->baseMenuEntity->readMenuTheme($order['Id']);
+    if ($r)
+    {
+      $record = array(
+        'template' => $order['Template'],
+        'name' => $order['Name'],
+        'icon' => $order['Icon'],
+        'condition' => $order['Cond'],
+        'help' => $order['Help']
+      );
+      $this->baseMenuEntity->updateMenuTheme($order['Id'], $record);
+    }
+    else
+    {
+      // insert into the base_menuadmintheme table
+      $record = array(
+        'key' => $order['Id'],
+        'order' => 0,
+        'template' => $order['Template'],
+        'name' => $order['Name'],
+        'icon' => $order['Icon'],
+        'condition' => $order['Cond'],
+        'module' => $this->MODULE,
+        'help' => $order['Help']
+      );
+      if ($r = $this->baseMenuEntity->createMenuTheme($record))
+      {
+        $max = $this->baseMenuEntity->base_menutheme->getMaxValue('order', null);
+        $this->baseMenuEntity->updateMenuTheme($order['Id'], array('order' => $max+10));
+      }
+    }
+    return $order['Id'];
+  }
+
+  function destroyMenuTheme($order)
+  {
+    $this->baseMenuEntity->deleteMenuTheme($order['Id']);
+  }
+
+  // ======================================================================================
+  // CreateMenu
+
+  function createMenu($order)
+  {
+    $r = $this->baseMenuEntity->readMenu($order['Id']);
+    if (!isset($order['Father']))
+      $order['Father'] = null;
+    if ($r)
+    {
+      $record = array(
+        'theme' => $order['Theme'],
+        'father' => $order['Father'],
+        'template' => $order['Template'],
+        'name' => $order['Name'],
+        'link' => $order['Link'],
+        'params' => $order['Params'],
+        'icon' => $order['Icon'],
+        'access' => $order['Access'],
+        'condition' => $order['Cond'],
+        'help' => $order['Help']
+      );
+      $this->baseMenuEntity->updateMenu($order['Id'], $record);
+    }
+    else
+    {
+      // insert into the base_menuadmin table
+      $record = array(
+        'key' => $order['Id'],
+        'theme' => $order['Theme'],
+        'father' => $order['Father'],
+        'template' => $order['Template'],
+        'order' => 0,
+        'name' => $order['Name'],
+        'link' => $order['Link'],
+        'params' => isset($order['Params'])?$order['Params']:null,
+        'icon' => $order['Icon'],
+        'used' => 0,
+        'datelast' => time(),
+        'access' => isset($order['Access'])?$order['Access']:null,
+        'condition' => $order['Cond'],
+        'module' => $this->MODULE,
+        'help' => $order['Help']
+      );
+      if ($r = $this->baseMenuEntity->createMenu($record))
+      {
+        $max = $this->baseMenuEntity->maxMenu('order');
+        $this->baseMenuEntity->updateMenu($order['Id'], array('order' => $max+1));
+      }
+    }
+    return $order['Id'];
+  }
+
+  function destroyMenu($order)
+  {
+    $this->baseMenuEntity->deleteMenu($order['Id']);
+  }
+
+  // ======================================================================================
+  // CreateConfig
+
+  function createConfig($order)
+  {
+    $r = $this->baseConfigEntity->base_config->doSelect($order['Id']);
+    if ($r)
+    {
+      $record = array(
+        'name' => $order['Name'],
+        'value' => $order['Value'],
+        'type' => $order['Type'],
+        'owner' => 2, // owner is always module (!)
+        'classif' => $order['Classif'],
+        'mandatory' => $order['Mandatory'],
+        'condition' => $order['Condition'],
+        'datasource' => $order['Datasource'],
+        'size' => $order['Size'],
+        'cols' => $order['Cols'],
+        'rows' => $order['Rows'],
+        'maxsize' => $order['Maxsize'],
+        'query' => $order['Query'],
+        'extra' => $order['Extra']
+      );
+      $this->baseConfigEntity->base_config->doUpdate($order['Id'], $record);
+    }
+    else
+    {
+      // insert into the base_config table
+      $record = array(
+        'key' => $order['Id'],
+        'order' => 0,
+        'name' => $order['Name'],
+        'value' => $order['Value'],
+        'type' => $order['Type'],
+        'owner' => 2, // owner is always module (!)
+        'module' => $this->MODULE,
+        'classif' => $order['Classif'],
+        'mandatory' => $order['Mandatory'],
+        'condition' => $order['Condition'],
+        'datasource' => $order['Datasource'],
+        'size' => $order['Size'],
+        'cols' => $order['Cols'],
+        'rows' => $order['Rows'],
+        'maxsize' => $order['Maxsize'],
+        'query' => $order['Query'],
+        'extra' => $order['Extra']
+      );
+      $r = $this->baseConfigEntity->base_config->doInsert($record);
+      if ($r)
+      {
+        $max = $this->baseConfigEntity->base_config->getMaxValue('order', null);
+        $this->baseConfigEntity->base_config->doUpdate($order['Id'], array('order' => $max+1));
+      }
+    }
+    return $order['Id'];
+  }
+
+  function destroyConfig($order)
+  {
+    $this->baseConfigEntity->base_config->doDelete($order['Id']);
+  }
+
+  // ======================================================================================
+  // CreateFile
+
+  function createFile($order)
+  {
+    switch($order['Where'])
+    {
+      case 'Site': $basedir = $this->base->SITEDIR; break;
+      case 'Admin': $basedir = $this->base->ADMINDIR; break;
+      case 'Repository': $basedir = $this->base->REPOSITORYDIR; break;
+    }
+    WAFile::copyFile($this->base->BASEDIR .$this->CONTEXTDIR.'/'.$order['Origin'], $basedir.$order['Destination']);
+    return $order['Destination'];
+  }
+
+  function destroyFile($order)
+  {
+//    return 'Not delete for now';
+  }
+
+  function createDir($order)
+  {
+    switch($order['Where'])
+    {
+      case 'Site': $basedir = $this->base->SITEDIR; break;
+      case 'Admin': $basedir = $this->base->ADMINDIR; break;
+      case 'Repository': $basedir = $this->base->REPOSITORYDIR; break;
+    }
+    WAFile::copyFile($this->base->BASEDIR .$this->CONTEXTDIR.'/'.$order['Origin'], $basedir.$order['Destination']);
+    return $order['Destination'];
+  }
+
+  function destroyDir($order)
+  {
+//    return 'Not deleted for now';
+  }
+
+  function executeScript($type, $order)
+  {
+    // load the library
+    // call the function
+    include_once($this->base->BASEDIR . $this->CONTEXTDIR.'/'.$order['Dir'] . '/' . $order['File']);
+    $aclass = $order['Script'];
+    $cl = new $aclass($order['Params'], $this->language);
+    if ($type == 1)
+      $cl->create();
+    else
+      $cl->destroy();
+    return $order['Script'];
+  }
+
+
+}
+
+?>

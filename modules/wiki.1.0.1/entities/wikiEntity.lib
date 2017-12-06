@@ -1,0 +1,27 @@
+<?php
+
+namespace modules\wiki\entities;
+
+class wikiEntity extends \patterns\Singleton
+{
+  public function __construct()
+  {
+    parent::__construct();
+  }
+  
+  public function isPage($path)
+  {
+    $page = $this->getPage($path);
+    return $page->created;
+  }
+  
+  public function getPage($path)
+  {
+    $page = new \modules\wiki\structures\wikiPage($path);
+    return $page;
+  }
+
+  
+}
+
+?>

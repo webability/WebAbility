@@ -1,0 +1,260 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: Common
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 Common Master Library and object
+2015-05-07: Phil, added config params, entities for conectors.
+2017-02-03: Phil, Version 6 revamp
+
+@End_DESCR */
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| BaseMaster : Master base object                                  |
+|------------------------------------------------------------------|
+  private $parameters = array();
+  private $cookiesize = 24;   // Master cookie 24 positions
+  private $timeout = 600;     // 10 minutes default for Master timeout
+  public $masterSession = null;  // 24 char session number
+  public $connected = false;  // true if well connected
+  public $username = null;    // username (unique user for master)
+  public $User = null;        // no user by default
+  public $UserData;
+|------------------------------------------------------------------|
+  public function __construct($config)
+  public function getLocalLanguages()
+  public function getLocalCountries()
+  public function getDatabases()
+  public function getMethods()
+  public function getPersistency()
+  public function getRepositoryInstalledVersion($module)
+  public function getSiteInstalledVersion()
+  public function getAdminInstalledVersion()
+  public function getGlobalStatus()
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace common;
+
+class BaseMaster extends Base
+{
+  public $security = null;
+  public $user = null;
+  
+  public function __construct($config)
+  {
+    parent::__construct($config, Base::MASTER);
+    
+    // load the security library based on sysconf
+    if ($config->security)
+    {
+      $x = $config->security;
+      $this->security = $x::getInstance();
+    }
+    else
+      $this->security = \entities\baseSecurityEntity::getInstance();
+    
+    $this->security->checkUser();
+  }
+
+  public function writeConfig($name, $data)
+  {
+    \xconfig\XConfig::$NEWLINE = "\n";
+    $fp = fopen($this->REPOSITORYDIR.$name.'.conf', 'wb');
+    fwrite($fp, (string)$data);
+    fclose($fp);
+  }
+  
+  public function getVersionCode()
+  {
+    return new \xconfig\XConfig(file_get_contents($this->BASEDIR.'components/install/version.conf'));
+  }
+
+  public function getLocalLanguages()
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('master/PreBase->getLocalLanguages()', \core\WADebug::SYSTEM);
+
+    $dbase = $this->BASEDIR . 'components/install/languages';
+    $dh = opendir($dbase);
+    $languages = array();
+    while (($df = readdir($dh)) !== false)
+    {
+      if ($df != "." && $df != ".." && is_dir($dbase . '/' . $df) && is_file($dbase . '/' . $df . '/countries.inc'))
+      {
+        $languages[$df] = $df;
+      }
+    }
+    closedir($dh);
+
+    return $languages;
+  }
+
+  public function getLocalCountries()
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug('master/PreBase->getLocalCountries()', WADebug::SYSTEM);
+
+    $languages = $this->getLocalLanguages();
+    $allcountries = array();
+    foreach($languages as $lang)
+    {
+      require $this->BASEDIR . 'components/install/languages/'.$lang.'/countries.inc';
+      $allcountries[$lang] = $countries;
+    }
+    return $allcountries;
+  }
+
+  // Get all known databases for connectors
+  public function getDatabases()
+  {
+    return array(\dominion\DB_Base::MYSQL => 'MySQL', \dominion\DB_Base::MYSQLi => 'MySQLi', \dominion\DB_Base::POSTGRES => 'PostgreSQL');
+  }
+
+  // Get all known methods
+  public function getMethods()
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug("master/Base->getMethods()", WADebug::SYSTEM);
+
+    // Database methods
+    $method = array(0 => "Directo", \dominion\DB_Base::IFODBC => "por ODBC");
+    return $method;
+  }
+
+  // Get the persistency
+  public function getPersistency()
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug("master/Base->getPersistency()", \core\WADebug::SYSTEM);
+
+    // Database persistent
+    $persistent = array( 0 => "No persistente", \dominion\DB_Base::IFPERSISTENT => "Persistente");
+    return $persistent;
+  }
+
+  public function getRepositoryInstalledVersion($module)
+  {
+    if (self::$debug || $this->localdebug)
+      $this->doDebug("common/Base_Common->getInstalledVersion(%)", \core\WADebug::SYSTEM, $module);
+    
+    if (!$this->connector['Main'])
+      return null;
+    $baseModuleEntity = \entities\baseModuleEntity::getInstance();
+
+    $w[] = new \dominion\DB_Condition('key', '=', $module);
+    $w[] = new \dominion\DB_Condition('installed', '=', 1, 'and');
+    try
+    {
+      $r = $baseModuleEntity->readModule($w);
+      if ($r)
+        return $r->shift()->version;
+    }
+    catch (\Exception $t)
+    {
+
+    }
+    return null;
+  }
+
+  // =======================================================
+  // GLOBAL MASTER INSTALLATION STATUS
+  // =======================================================
+  public function getGlobalStatus()
+  {
+    // get the system state array
+    // array( 'fconnector' => 0: not set, 1: working, 2: not working
+    //        'frepository' => 0: no valid connector, 1:installed, 2: not installed, 3: need synchro
+    //        'fadmin' => 0: no directory, 1: installed ok, 2: not installed or error, 3: need synchro
+    //        'fsite' => 0: no directory, 1: installed ok, 2: not installed or error, 3: need synchro
+    //        'fglobal' => true: all ok, false: anything wrong
+    // );
+
+    // first the main connector
+    // check si el repositorio esta instalado y fija imagen
+    $fconnector = $frepository = 0;
+    if (isset($this->connector['Main']))
+    {
+      try
+      {
+        $c = $this->connector['Main']->checkLogon();
+        // we check if the repository is working
+        if ($c)
+        {
+          $fconnector = 1;
+          try
+          {
+            require $this->BASEDIR . '/components/tables/base_module.inc';
+            $base_module->setDB($this->connector['Main']);
+            $res = $base_module->doSelect('base');
+            if ($res)
+            {
+              if ($res->version == $this->getVersion())
+                $frepository = 1;
+              else
+                $frepository = 3;
+            }
+            else
+              $frepository = 2;
+          }
+          catch (\Exception $t)
+          {
+            $frepository = 2;
+          }
+        }
+        else
+          $fconnector = 2;
+      }
+      catch (\Exception $t)
+      {
+        $fconnector = 2;
+      }
+      catch (\Error $t)
+      {
+        $fconnector = 2;
+      }
+    }
+    
+    $version = $this->getVersionCode();
+    
+    $fadmin = $fsite = 0;
+    // we base on admin.afo, site.afo in the repository to know if they are up and ready
+    // then we check the files .php are in right places.
+    if ($version->version == $this->config->version)
+    {
+      if (is_file($this->REPOSITORYDIR . 'admin.conf'))
+        $fadmin = 1;
+      if (is_file($this->REPOSITORYDIR . 'site.conf'))
+        $fsite = 1;
+    }
+    else
+      $fadmin = $fsite = 2;
+
+    return array('fconnector' => $fconnector, 'frepository' => $frepository, 'fadmin' => $fadmin, 'fsite' => $fsite, 'fglobal' => ($fconnector==1&&$frepository==1&&$fadmin==1&&$fsite==1));
+  }
+
+  public function postAPI($api, $order, $data)
+  {
+    $url = $api . '/' . $order;
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+//    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    $result = curl_exec($ch);
+    return $result;
+  }
+  
+  
+}
+
+?>

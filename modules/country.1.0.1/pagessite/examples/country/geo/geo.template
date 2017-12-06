@@ -1,0 +1,6 @@
+##yourip##: {{IP}}<br />
+##yourisocode##: {{geo}}<br />
+##yourcountry##: {{country>name}}<br />
+
+
+

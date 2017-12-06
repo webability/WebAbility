@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_processalertclient_ack" lang="es">
+
+  <entry id="1"><![CDATA[Alerta aún revisada]]></entry>
+  <entry id="2"><![CDATA[Alerta revisada y pendiente]]></entry>
+  <entry id="3"><![CDATA[Alerta revisada y cerrada]]></entry>
+
+</language>

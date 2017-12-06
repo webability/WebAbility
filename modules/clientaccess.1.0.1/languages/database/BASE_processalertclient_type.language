@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_processalertclient_type" lang="es">
+
+  <entry id="1"><![CDATA[Error bloqueador]]></entry>
+  <entry id="2"><![CDATA[Error que no bloquea]]></entry>
+  <entry id="3"><![CDATA[Notificación]]></entry>
+  <entry id="4"><![CDATA[Nada]]></entry>
+
+</language>

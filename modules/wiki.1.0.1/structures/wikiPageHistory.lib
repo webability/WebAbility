@@ -1,0 +1,56 @@
+<?php
+
+namespace modules\wiki\structures;
+
+class wikiPageHistory extends \dominion\DB_Record
+{
+  function __construct($path, $lang = null)
+  {
+    parent::__construct();
+
+    $this->path = $path;
+    $this->loadHistory();
+  }
+
+  public function getNextEntry()
+  {
+    if (!$this->history)
+      return 0;
+    $num = count($this->history);
+    return $num;
+  }
+
+  public function insertHistory($serial, $type, $filename, $description)
+  {
+    $a = array("type" => $type, "date" => time(), "client" => $this->base->Client, "ip" => $_SERVER["REMOTE_ADDR"], "host" => isset($_SERVER["REMOTE_HOST"])?$_SERVER["REMOTE_HOST"]:"n/a", "file" => $filename, "description" => $description);
+    $this->history[$serial] = $a;
+    $this->saveHistory();
+  }
+
+  public function getData()
+  {
+    return $this->history;
+  }
+
+
+  // ===================================================
+  // PRIVATE FCTS
+
+  private function loadHistory()
+  {
+    $filesource = new FileSource($this->basepath, $this->id.$this->realpath, "history.".$this->lang.".afo");
+    $afo = new AFO($filesource, null);
+    $this->history = $afo->getData();
+  }
+
+  private function saveHistory()
+  {
+    $filesource = new FileSource($this->basepath, $this->id.$this->realpath, "history.".$this->lang.".afo");
+    $filesource->setCreateDir(true);
+    $afo = new AFO($filesource, null);
+    $afo->setData($this->history);
+  }
+
+}
+
+?>

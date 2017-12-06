@@ -1,0 +1,48 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 3
+Module: Common
+Language: >= PHP5 only
+Creation: 09/Mar/2006
+Copyright: Ing. Philippe Thomassigny (c) 2002-2008
+
+-
+
+WebAbility v5 Common Library and object
+2015-05-07: Phil, added config params, entities for conectors.
+
+@End_DESCR */
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| Base_Common : Common part for 'Base' objects                     |
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace common;
+
+class BaseSite extends Base
+{
+  public $security = null;
+  public $client = null;
+
+  public function __construct($config)
+  {
+    parent::__construct($config, Base::SITE);
+
+    // load the security library based on sysconf
+    if ($config->security)
+    {
+      $x = $config->security;
+      $this->security = $x::getInstance();
+      $this->security->checkClient();
+    }
+  }
+  
+}
+
+?>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="mastercontrol" lang="es">
+
+  <entry id="install.title"><![CDATA[Necesita configurar el repositorio de datos y los sitios para hacer funcionar WebAbility&reg; v5]]></entry>
+
+  <entry id="connector.title"><![CDATA[Conector:]]></entry>
+  <entry id="connector.repository.missing"><![CDATA[Faltante: El conector principal del repositorio es ausente. Necesita crearlo.]]></entry>
+  <entry id="connector.button.title.create"><![CDATA[Crear]]></entry>
+  <entry id="connector.repository.ok"><![CDATA[Listo: El conector del repositorio de datos funciona bien.]]></entry>
+  <entry id="connector.button.title.modify"><![CDATA[Modificar]]></entry>
+  <entry id="connector.repository.error"><![CDATA[Error: El conector del repositorio no funciona. Necesita modificarlo.]]></entry>
+  <entry id="connector.button.title.correction"><![CDATA[Corregir]]></entry>
+
+  <entry id="connector.tab.title"><![CDATA[Conector:]]></entry>
+
+  <entry id="repository.title"><![CDATA[Repositorio:]]></entry>
+  <entry id="repository.noconnector"><![CDATA[Faltante: Configurar primero el conector principal para poder crear el repositorio.]]></entry>
+  <entry id="repository.ok"><![CDATA[Listo: El repositorio esta instalado y funciona bien.]]></entry>
+  <entry id="repository.button.title.desinstall"><![CDATA[Desinstalar]]></entry>
+  <entry id="repository.no"><![CDATA[Faltante: El repositorio aún no esta creado.]]></entry>
+  <entry id="repository.button.title.install"><![CDATA[Instalar]]></entry>
+  <entry id="repository.update"><![CDATA[Acción: El repositorio necesita ser actualizado.]]></entry>
+  <entry id="repository.button.title.update"><![CDATA[Actualizar]]></entry>
+
+  <entry id="repository.tab.title"><![CDATA[Repositorio Base de datos]]></entry>
+
+  <entry id="sites.title"><![CDATA[Sitios:]]></entry>
+  <entry id="sites.ok"><![CDATA[Listo: Los sitios estan instalados y funcionan bien.]]></entry>
+  <entry id="sites.button.title.reinstall"><![CDATA[Reinstalar]]></entry>
+  <entry id="sites.no"><![CDATA[Faltante: Los sitios no estan instalados.]]></entry>
+  <entry id="sites.button.title.install"><![CDATA[Instalar]]></entry>
+  <entry id="sites.update"><![CDATA[Acción: Los sitios requieren atención para actualización.]]></entry>
+  <entry id="sites.button.title.update"><![CDATA[Actualizar]]></entry>
+
+  <entry id="sites.tab.title"><![CDATA[Mantenimiento de Sitios]]></entry>
+
+  <entry id="application.title"><![CDATA[Aplicación:]]></entry>
+  <entry id="application.noready"><![CDATA[Faltante: Configurar primero el WebAbility para poder instalar la aplicación.]]></entry>
+  <entry id="application.ok"><![CDATA[Listo: La aplicación esta instalada y funciona bien.]]></entry>
+  <entry id="application.button.title.reinstall"><![CDATA[Reinstalar]]></entry>
+  <entry id="application.no"><![CDATA[Faltante: La aplicación no esta instalada.]]></entry>
+  <entry id="application.button.title.install"><![CDATA[Instalar]]></entry>
+  <entry id="application.update"><![CDATA[Acción: La aplicación requiere atención para actualización.]]></entry>
+  <entry id="application.button.title.update"><![CDATA[Actualizar]]></entry>
+
+  <entry id="application.tab.title"><![CDATA[Mantenimiento de la Aplicación]]></entry>
+
+</language>

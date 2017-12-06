@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="mastermodulesverify">
+  <element type="htmlElement" classname="maintitle"><![CDATA[##title##]]></element>
+  <element type="buttonElement"><![CDATA[Buscar Actualizaciones]]>
+    <event type="click">
+      <code>
+<![CDATA[
+function()
+{
+  console.log('clicked');
+  mastermodulesverify_startverify(1);
+}
+]]>
+      </code>
+    </event>
+  </element>
+
+  <element type="buttonElement"><![CDATA[Buscar Módulos Disponibles]]>
+    <event type="click">
+      <code>
+<![CDATA[
+function()
+{
+  console.log('clicked');
+  mastermodulesverify_startverify(2);
+}
+]]>
+      </code>
+    </event>
+  </element>
+
+  <element id="loading" type="htmlElement" classname="mastermodule_loading" left="0" top="0" width="max" height="max" display="none"></element>
+
+  <container type="simpleContainer" classname="simplecontent">
+    <zone id="modulestatus">
+      <element type="textElement" id="status">
+      </element>
+    </zone>
+  </container>
+
+  <container type="simpleContainer" classname="simplecontent">
+    <zone id="modulenew">
+      <element type="textElement" id="new">
+      </element>
+    </zone>
+  </container>
+
+  <element type="codeElement">
+<![CDATA[
+
+function mastermodulesverify_start()
+{
+  WA.Managers.ajax.createRequest('/master/mastermodulesverify/status/json', 'POST', null, mastermodulesverify_getstatus, true);
+}
+
+function mastermodulesverify_startverify(verify)
+{
+  WA.Managers.ajax.createRequest('/master/mastermodulesverify/status/json', 'POST', 'verify='+verify, mastermodulesverify_getstatus, true);
+}
+
+function mastermodulesverify_getstatus(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  WA.toDOM('mastermodulesverify|single|status').innerHTML = data.message + '<br />';
+  WA.toDOM('mastermodulesverify|single|status').innerHTML += 'Installed:<br />' + data.uptodate + '<br />Available:<br />' + data.available;
+}
+
+function mastermodulesverify_download(module, version)
+{
+  WA.Managers.ajax.createRequest('/master/mastermodulesverify/download/json', 'POST', 'module='+module+'&version='+version, mastermodulesverify_getdownload, true);
+}
+
+function mastermodulesverify_getdownload(r)
+{
+  alert(r.responseText);
+//  var data = WA.JSON.decode(r.responseText);
+}
+
+]]>
+  </element>
+
+  <event type="start">
+    <code>
+<![CDATA[
+function()
+{
+  mastermodulesverify_start();
+}
+]]>
+    </code>
+  </event>
+
+</application>

@@ -1,0 +1,138 @@
+<?php
+
+class adminindex extends \common\WAApplication
+{
+  private $baseMenuEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->baseMenuEntity = \entities\baseMenuEntity::getInstance();
+  }
+
+  protected function getParameters($engine, $params)
+  {
+    return array(
+      'TEMPLATES' => $this->getTemplates($engine)
+    );
+  }
+  
+  protected function getLanguage($engine, $params)
+  {
+    // get the menu from the table with users rights
+    $themes = $this->baseMenuEntity->getMenuTree();
+    $templates = '';
+    if ($themes)
+    {
+      foreach($themes as $theme)
+      {
+        foreach($theme['children'] as $option)
+        {
+          if (substr($option['link'], 0, 1) == '@')
+          {
+            // load the library to get the pages
+            $lib = substr($option['link'], 1);
+            $language = $engine->run('system/' . $lib, 1, array('language'));
+            // fusion the language
+            if ($language && $language instanceof Iterator)
+            {
+              foreach ($language as $k => $l)
+                $this->language->$k = $l;
+            }
+          }
+        }
+      }
+    }
+    return $this->language;
+  }
+  
+  private function getTree($engine, $params)
+  {
+    // Load the language for each installed module
+    $this->getLanguage($engine, $params);
+    
+    // get the menu from the table with users rights
+    $themes = $this->baseMenuEntity->getMenuTree();
+    $tree = array();
+    if ($themes)
+    {
+      foreach($themes as $theme)
+      {
+        // 1rst time: the themes are opened
+        $closed = $this->base->user->getParameter('indextree', $theme['key'])?true:false;
+
+        $tree[] = array('id' => $theme['key'], 'template' => $theme['template']?$theme['template']:'theme', 'loadable' => false, 'closeable' => true, 'closed' => $closed,
+        'name' => $this->language->getEntry($theme['name']), 'icon' => $theme['icon'], 'help.summary' => $this->language->getEntry($theme['help'].'.summary'), 'help.title' => $this->language->getEntry($theme['help'].'.title'), 'help.description' => $this->language->getEntry($theme['help'].'.description') );
+
+        foreach($theme['children'] as $option)
+        {
+          if (substr($option['link'], 0, 1) == '@')
+          {
+            // load the library to get the pages
+            $lib = substr($option['link'], 1);
+            $opt = $engine->run('system/' . $lib, 1, null);
+//            $opt = $olib->getData($option['father']?$option['father']:$theme['key']);
+            if ($opt)
+              $tree = array_merge($tree, $opt);
+          }
+          else
+          {
+            // 1rst time: the options are opened
+            $closed = $this->base->user->getParameter('indextree', $option['key'])?true:false;
+
+            // we should load the language if the options are not BASE option
+
+
+            $tree[] = array('id' => $option['key'], 'template' => $option['template']?$option['template']:'option', 'father' => $option['father']?$option['father']:$theme['key'], 'loadable' => false, 'closeable' => $option['condition']=='+'?true:false, 'closed' => $closed,
+            'name' => $this->language->getEntry($option['name']), 'link' => $option['link'], 'icon' => $option['icon'], 'help.summary' => $this->language->getEntry($option['help'].'.summary'), 'help.title' => $this->language->getEntry($option['help'].'.title'), 'help.description' => $this->language->getEntry($option['help'].'.description') );
+          }
+        }
+      }
+    }
+    return array('row' => $tree);
+  }
+  
+  private function getTemplates($engine)
+  {
+    // get the menu from the table with users rights
+    $themes = $this->baseMenuEntity->getMenuTree();
+    $templates = '';
+    if ($themes)
+    {
+      foreach($themes as $theme)
+      {
+        foreach($theme['children'] as $option)
+        {
+          if (substr($option['link'], 0, 1) == '@')
+          {
+            // load the library to get the pages
+            $lib = substr($option['link'], 1);
+            $templates .= $engine->run('system/' . $lib, 1, array('template'));
+          }
+        }
+      }
+    }
+    return $templates;
+  }
+
+  // open/close listener
+  public function menu($engine, $params)
+  {
+    $Order = $this->base->HTTPRequest->getParameter('Order');
+    if ($Order == 'get')
+    {
+      return $this->getTree($engine, $params);
+    }
+    elseif ($Order == 'openclose')
+    {
+      $id = $this->base->HTTPRequest->getParameter('id');
+      $status = $this->base->HTTPRequest->getParameter('status');
+      $this->base->user->setParameter('indextree', $id, $status=='true'?1:0);
+      return array('status' => 'OK');
+    }
+  }
+
+}
+
+?>

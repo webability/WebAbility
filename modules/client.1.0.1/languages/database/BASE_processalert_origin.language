@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_processalert_origin" lang="es">
+
+  <entry id="1"><![CDATA[Durante la captura de una tarea]]></entry>
+  <entry id="2"><![CDATA[Después de cerrar la tarea]]></entry>
+  <entry id="3"><![CDATA[Alerta externa]]></entry>
+
+</language>

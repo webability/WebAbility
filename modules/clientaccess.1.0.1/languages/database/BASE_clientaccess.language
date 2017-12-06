@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_clientaccess" lang="es">
+
+  <entry id="name.all"><![CDATA[Acceso público]]></entry>
+  <entry id="name.unconnect"><![CDATA[Solamente si no esta conectado]]></entry>
+  <entry id="name.base"><![CDATA[Usuario conectado]]></entry>
+  <entry id="descr.all"><![CDATA[Este nivel es para las páginas que se pueden ver públicamente sin distincción.]]></entry>
+  <entry id="descr.unconnect"><![CDATA[Este nivel indica las páginas visibles unicamente si el usuario NO esta conectado.]]></entry>
+  <entry id="descr.base"><![CDATA[Este nivel es para las páginas que se pueden ver únicamente después que el usuario se haya conectado.]]></entry>
+
+</language>

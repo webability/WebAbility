@@ -1,0 +1,547 @@
+<?php
+
+class adminaccessgrouplist extends \common\WAApplication
+{
+  private $accessEntity;
+  
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->accessEntity = \modules\client\entities\accessEntity::getInstance();
+  }
+  
+  protected function getParameters($engine, $params)
+  {
+    return array(
+      'TITLE' => 'Lista de grupos, accesos y perfiles correspondientes'
+    );
+  }
+  
+  private function getTree($father = null)
+  {
+    $tree = array();
+    
+    if ($father)
+    {
+      $fatherkey = substr($father, strpos($father,'=')+1);
+      if (substr($father, 0, 17) == 'clientaccessgroup')
+      {
+        $accesses = $this->accessEntity->getAccessesByGroup($fatherkey);
+        if ($accesses)
+        {
+          foreach($accesses as $access)
+          {
+            $tree[] = array('id' => 'clientaccess='.$access->key, 'template' => 'clientaccess', 'father' => 'clientaccessgroup='.$fatherkey, 'loadable' => true, 'closeable' => true, 'closed' => true, 'name' => $access->name, 'icon' => '/skins/__SKIN__/modules/client/accesses.png' );
+          }
+        }
+      }
+      else
+      {
+        $profiles = $this->accessEntity->getProfilesByAccess($fatherkey);
+        if ($profiles)
+        {
+          foreach($profiles as $profile)
+          {
+            $tree[] = array('id' => 'clientprofile='.$profile->key, 'template' => 'clientaccessgroup', 'father' => null, 'loadable' => true, 'closeable' => true, 'closed' => true, 'name' => $profile->name, 'icon' => '/skins/__SKIN__/modules/client/accesses.png' );
+          }
+        }
+      }
+    }
+    else
+    {
+      $groups = $this->accessEntity->getGroups();
+      if ($groups)
+      {
+        foreach($groups as $group)
+        {
+          $tree[] = array('id' => 'clientaccessgroup='.$group->key, 'template' => 'clientaccessgroup', 'father' => null, 'loadable' => true, 'closeable' => true, 'closed' => true, 'name' => $group->name, 'icon' => '/skins/__SKIN__/modules/client/accesses.png' );
+        }
+      }
+    }
+    return $tree;
+  }
+  
+  public function accesslist($engine, $params)
+  {
+    $Order = $this->base->HTTPRequest->getParameter('Order');
+    if ($Order == 'get')
+    {
+      return array('row' => $this->getTree(null));
+    }
+    if ($Order == 'getchildren')
+    {
+      $father = $this->base->HTTPRequest->getParameter('father');
+      return array('row' => $this->getTree($father));
+    }
+    elseif ($Order == 'openclose')
+    {
+      $id = $this->base->HTTPRequest->getParameter('id');
+      $status = $this->base->HTTPRequest->getParameter('status');
+//      $this->base->user->setParameter('indextree', $id, $status=='true'?1:0);
+      return array('status' => 'OK');
+    }
+  }
+  
+  
+/*
+  public function buildApplication($engine, $params)
+  {
+    $a = new \wajaf\Xapplication('modules/client/adminaccessgrouplist');
+
+    // main title
+    $e1 = new \wajaf\htmlElement('Administration of Client Security Accesses');
+    $a->add($e1);
+    $a->add($this->getList());
+    return $a;
+  }
+
+  public function getList()
+  {
+    // Se crea la definicion de la plantilla
+    $LD = new \domlist\DB_ListDef(null);
+    $LD->FormMain = $this->P;
+    $LD->FreeTreeFields = true;
+    $LD->NumRecPage = 5000;
+    $LD->MaxRec = 5000;
+
+    // Se crea la lista
+    $L = new \domlist\DB_List($LD, $this);
+
+    // Se crea la tabla 
+    $LT = new \domlist\DB_ListTable($this->accessEntity->client_accessgroup);
+    $LT->PrimKey = "clave";
+
+    //arbol padre  
+    $LT->TableOrderBy = new \domlist\DB_OrderBy("orden", \domlist\DB_OrderBy::ASC);
+    $LT->IfTree = true;
+    $LT->TreeOpenCloseTable = $this->usuarioEntity->kl_usuarioparam;
+    $LT->TreeOpenCloseFieldUser = "usuario";
+    $LT->TreeOpenCloseFieldId = "id";
+    $LT->TreeOpenCloseFieldValue = "valor";
+    $LT->TreeOpenCloseUser = $this->base->usuario;
+    $LT->TreeOpenCloseIdPrefix = "TREEFAMILIA_";
+    $LT->FatherTreeField = "clave";//relacion con la tabla hijo por campo
+    $LT->IfAlternate = true;
+    $LT->IfDisplayed = "getDisplayed";
+    $LT->IfModifOrder = true;
+    $LT->IfCut = true;
+    $LT->ModifField = "orden";
+    $L->AddListTable($LT, 0);
+    
+    //arbol hijo
+    $LT = new \domlist\DB_ListTable($this->recetaEntity->kl_clasificacion, $TempLTLevel2);
+    $LT->PrimKey = "clave";
+    
+    $where = array(new \domlist\DB_Condition("padre", "=", null));
+    if ($this->FILTROCLAVE)
+    {
+      $where[] = new \domlist\DB_Condition('clave', '=', $this->FILTROCLAVE, 'and');
+    }
+    if ($this->FILTRONOMBRE)
+    {
+      $where[] = new \domlist\DB_Condition('nombre', 'like', $this->FILTRONOMBRE, 'and');
+       // $where[] = new \domlist\DB_Condition('nombre', 'in', '(select kl_cla_clave from kl_clasificacion where kl_cla_nombre like \'%'.$this->FILTRONOMBRE.'%\')', 'and');
+    }
+    
+    $LT->TableWhereObject = $where;
+    $LT->TableOrderBy = new \domlist\DB_OrderBy("orden", \domlist\DB_OrderBy::ASC);
+    $LT->IfModifOrder = true;
+    $LT->IfCut = true;
+    $LT->ModifField = "orden";
+    $LT->IfSelfTree = true;
+    $LT->IfTree = true;
+    $LT->TreeOpenCloseTable = $this->usuarioEntity->kl_usuarioparam;
+    $LT->TreeOpenCloseFieldUser = "usuario";
+    $LT->TreeOpenCloseFieldId = "id";
+    $LT->TreeOpenCloseFieldValue = "valor";
+    $LT->TreeOpenCloseUser = $this->base->usuario;
+    $LT->TreeOpenCloseIdPrefix = "TREECLASIFICACION_";
+    $LT->IfAlternate = true;
+    $LT->ChildTreeField = "familia";//relacion con la tabla padre por campo
+    $LT->SelfTreeField = "padre";
+    $L->AddListTable($LT, 1);
+    
+
+    // establece un objeto condicion o un array de ellos, solo si se presenta el caso
+//     $wh = array();
+//     if ($this->FILTERGROUP)
+//       $wh[] = new \domlist\DB_Condition("clave", "=", $this->FILTERGROUP);
+// //    if (!$this->FILTERSTATUS)
+// //      $wh[] = new \domlist\DB_Condition("estatus", "=", 1, ($this->FILTERGROUP?"and":null));
+
+//     $LT->TableWhereObject = $wh;
+//     $LT->TableOrderBy = new \domlist\DB_OrderBy("orden", \domlist\DB_OrderBy::ASC);
+//     $LT->IfCut = true;
+//     $LT->IfModifOrder = true;
+//     $LT->ModifField = "orden";
+//     $LT->IfTree = true;
+//     $LT->TreeOpenCloseTable = $this->usuarioEntity->kl_usuarioparam;
+//     $LT->TreeOpenCloseFieldUser = "usuario";
+//     $LT->TreeOpenCloseFieldId = "id";
+//     $LT->TreeOpenCloseFieldValue = "valor";
+//     $LT->TreeOpenCloseUser = $this->base->usuario;
+//     $LT->TreeOpenCloseIdPrefix = "TREEFAMILIA_";
+//     $LT->FatherTreeField = "clave";
+//     $LT->IfAlternate = true;
+//     $LT->IfDisplayed = "getDisplayed";
+//     $L->AddListTable($LT, 0);
+
+//     // las preguntas contenidas en los temas
+//     $LT = new \domlist\DB_ListTable($this->recetaEntity->kl_clasificacion, $TempLTLevel2);
+//     $LT->PrimKey = "clave";
+//     $LT->TableWhereObject = new \domlist\DB_Condition("padre", "=", null);
+//     $LT->TableOrderBy = new \domlist\DB_OrderBy("orden", \domlist\DB_OrderBy::ASC);
+//     $LT->IfModifOrder = true;
+//     $LT->IfCut = true;
+//     $LT->ModifField = "orden";
+//     $LT->IfSelfTree = true;
+//     $LT->TreeOpenCloseTable = $this->usuarioEntity->kl_usuarioparam;
+//     $LT->TreeOpenCloseFieldUser = "usuario";
+//     $LT->TreeOpenCloseFieldId = "id";
+//     $LT->TreeOpenCloseFieldValue = "valor";
+//     $LT->TreeOpenCloseUser = $this->base->usuario;
+//     $LT->TreeOpenCloseIdPrefix = "TREECLASIFICACION_";
+//     $LT->IfAlternate = true;
+//     $LT->ChildTreeField = "familia";
+//     $LT->SelfTreeField = "padre";
+//     $L->AddListTable($LT, 1);
+
+
+    // Botones de orden
+    //Order Up
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("order.title"), $TempLCDCenter);
+    $LCD->TitlePre = "<td class=\"titlelist\" colspan=\"2\" style=\"text-align: center;\">";
+    $L->AddListColumnDef($LCD);
+    // un boton de ordenacion
+    $LCF = new \domlist\DB_ListColumnFieldOrderUp($TempLCFCenter);
+    $LCF->Button = $bup;
+    // un campo vacio
+    $LCFE = new \domlist\DB_ListColumnFieldEmpty($TempLCFCenter);
+    // para el caso del boton de ordenacion para grupos
+    if($this->base->ifAccess("clasificaciongroupall"))
+      $L->AddListColumnField($LCF, 0);
+    else
+      $L->AddListColumnField($LCFE, 0);
+    // el boton de ordenacion del resto de registros
+
+    $LCF = new \domlist\DB_ListColumnFieldOrderUp($TempLCFCenter2);
+    $LCF->Button = $bup;
+    $L->AddListColumnField($LCF, 1);
+
+    //Order Down
+    $LCD = new \domlist\DB_ListColumnDef(null, $TempLCDCenter);
+    $LCD->TitlePre = null;
+    $LCD->TitlePost = null;
+    $L->AddListColumnDef($LCD);
+    // un boton de ordenacion
+    $LCF = new \domlist\DB_ListColumnFieldOrderDown($TempLCFCenter);
+    $LCF->Button = $bdown;
+    $LCFE = new \domlist\DB_ListColumnFieldEmpty($TempLCFCenter);
+    // para el caso del boton de ordenacion para los grupos
+    if($this->base->ifAccess("clasificaciongroupall"))
+       $L->AddListColumnField($LCF, 0);
+    else
+       $L->AddListColumnField($LCFE, 0);
+    
+    $LCF = new \domlist\DB_ListColumnFieldOrderDown($TempLCFCenter2);
+    $LCF->Button = $bdown;
+    $L->AddListColumnField($LCF, 1);
+
+    // Cut/Paste
+    $LCD = new \domlist\DB_ListColumnDef(null, $TempLCDCenter);
+    $LCD->TitlePre = null;
+    $LCD->TitlePost = null;
+    $L->AddListColumnDef($LCD);
+/*
+    $LCF = new \domlist\DB_ListColumnFieldOrderCutPaste($TempLCFCenter);
+    $LCF->ButtonCut = $bcut;
+    $LCF->ButtonPaste = $bpaste;
+    $LCFE = new \domlist\DB_ListColumnFieldEmpty($TempLCFCenter);
+    if($this->base->ifAccess("clasificaciongroupall"))
+       $L->AddListColumnField($LCF, 0);
+    else
+       $L->AddListColumnField($LCFE, 0);
+
+    $LCF = new \domlist\DB_ListColumnFieldOrderCutPaste($TempLCFCenter2);
+    $LCF->ButtonCut = $bcut; 
+    $LCF->ButtonPaste = $bpaste;
+    $L->AddListColumnField($LCF, 1);
+*/
+/*
+    // Se definien los campos
+    //1. Key
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("key.title"), $TempLCDCenter);
+    $L->AddListColumnDef($LCD);
+
+    $LCF = new \domlist\DB_ListColumnFieldSimple($TempLCFCenter);
+    $LCF->Name = "clave";
+    $L->AddListColumnField($LCF, 0);
+    $LCF = new \domlist\DB_ListColumnFieldSimple($TempLCFCenter2);
+    $LCF->Name = "clave";
+    $L->AddListColumnField($LCF, 1);
+
+    //2. Name
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("name.title"), $TempLCDLeft);
+    $L->AddListColumnDef($LCD);
+
+    $LCF = new \domlist\DB_ListColumnFieldSimple($TempLCFLeft);
+    $LCF->Name = "nombre";
+    $LCF->TreeType = \domlist\DB_ListColumnField::TREEOPENCLOSE;
+    $LCF->TreeBlank = $tblank;
+    $LCF->TreeLine = $tline;
+    $LCF->TreeCross = $tcross;
+    $LCF->TreeEnd = $tend;
+    $LCF->TreeCrossClose = $tcrossclose;
+    $LCF->TreeEndClose = $tendclose;
+    $LCF->TreeCrossOpen = $tcrossopen;
+    $LCF->TreeEndOpen = $tendopen;
+    $L->AddListColumnField($LCF, 0);
+
+    $LCF = new \domlist\DB_ListColumnFieldSimple($TempLCFLeft2);
+    $LCF->Name = "nombre";
+    $LCF->TreeType = \domlist\DB_ListColumnField::TREEOPENCLOSE;
+    $LCF->TreeBlank = $tblank;
+    $LCF->TreeLine = $tline;
+    $LCF->TreeCross = $tcross;
+    $LCF->TreeEnd = $tend;
+    $LCF->TreeCrossClose = $tcrossclose;
+    $LCF->TreeEndClose = $tendclose;
+    $LCF->TreeCrossOpen = $tcrossopen;
+    $LCF->TreeEndOpen = $tendopen;
+    $L->AddListColumnField($LCF, 1);
+
+    //2. Title
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("title.title"), $TempLCDLeft);
+    $L->AddListColumnDef($LCD);
+
+    $LCF = new \domlist\DB_ListColumnFieldEmpty($TempLCFLeft);
+    $L->AddListColumnField($LCF, 0);
+
+    $LCF = new \domlist\DB_ListColumnFieldSimple($TempLCFLeft2);
+    $LCF->Name = "titulo";
+    $L->AddListColumnField($LCF, 1);
+
+    //2. link
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("link.title"), $TempLCDLeft);
+    $L->AddListColumnDef($LCD);
+
+    $LCF = new \domlist\DB_ListColumnFieldFunction($TempLCFLeft);
+    $LCF->Name = "link";
+    $LCF->IsFunction = "linkEditFamilia";
+    $L->AddListColumnField($LCF, 0);
+
+    $LCF = new \domlist\DB_ListColumnFieldFunction($TempLCFLeft2);
+    $LCF->Name = "link";
+    $LCF->IsFunction = "linkEdit";
+    $L->AddListColumnField($LCF, 1);
+
+    //2. Status
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("status.title"), $TempLCDCenter);
+    $L->AddListColumnDef($LCD);
+
+    $LCF = new \domlist\DB_ListColumnFieldFunction($TempLCFCenter);
+    $LCF->Name = "estatus";
+    $LCF->IsFunction = "familiaEstatus";
+    $L->AddListColumnField($LCF, 0);
+    
+    $LCF = new \domlist\DB_ListColumnFieldFunction($TempLCFCenter2);
+    $LCF->Name = "estatus";
+    $LCF->IsFunction = "clasificacionEstatus";
+    $L->AddListColumnField($LCF, 1);
+
+    //2. imagen
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("image.title"), $TempLCDCenter);
+    $L->AddListColumnDef($LCD);
+
+    $LCF = new \domlist\DB_ListColumnFieldFunction($TempLCFCenter);
+    $LCF->Name = "imagen";
+    $LCF->IsFunction = "familiaImagen";
+    $L->AddListColumnField($LCF, 0);
+    
+    $LCF = new \domlist\DB_ListColumnFieldFunction($TempLCFCenter2);
+    $LCF->Name = "imagen";
+    $LCF->IsFunction = "clasificacionImagen";
+    $L->AddListColumnField($LCF, 1);
+
+    // Comandos
+
+    // Insertar Tema, Pregunta
+    $LCD = new \domlist\DB_ListColumnDef($this->getEntry("command.title"), $TempLCDCenter);
+    $LCD->TitlePre = "<td class=\"titlelist\" colspan=\"5\" style=\"text-align: center;\">";
+    $L->AddListColumnDef($LCD);
+
+    $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter);
+    $LCF->Name = "clave";
+    $LCF->CommandForm = "adminclasificacion";
+    $LCF->CommandVariables = array("ADMOrder" => "Insert", "P" => "adminclasificacion");
+    $LCF->CommandKeyVariable = "FAMILIACLAVE";
+    $LCF->CommandButton = $binsertinto;
+    $L->AddListColumnField($LCF, 0);
+
+    $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter2);
+    $LCF->Name = "clave";
+    $LCF->CommandForm = "adminclasificacion";
+    $LCF->CommandVariables = array("ADMOrder" => "Insert", "P" => "adminclasificacion");
+    $LCF->CommandKeyVariable = "PADRE";
+    $LCF->CommandButton = $binsertinto;
+    $L->AddListColumnField($LCF, 1);
+
+    // Modificar Grupo, Tema, Pregunta
+    $LCD = new \domlist\DB_ListColumnDef(null, $TempLCDCenter);
+    $LCD->TitlePre = null;
+    $LCD->TitlePost = null;
+    $L->AddListColumnDef($LCD);
+
+    if ($this->base->ifAccess("clasificaciongroupall"))
+    {
+      $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter);
+      $LCF->Name = "clave";
+      $LCF->CommandForm = "adminfamilia";
+      $LCF->CommandVariables = array("ADMOrder" => "Update", "P" => "adminfamilia");
+      $LCF->CommandKeyVariable = "FAMILIACLAVE";
+      $LCF->CommandButton = $bupdate;
+      $L->AddListColumnField($LCF, 0);
+    }
+    else
+    {
+      $LCF = new \domlist\DB_ListColumnFieldEmpty($TempLCFCenter);
+      $L->AddListColumnField($LCF, 0);
+    }
+
+    $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter2);
+    $LCF->Name = "clave";
+    $LCF->CommandForm = "adminclasificacion";
+    $LCF->CommandVariables = array("ADMOrder" => "Update", "P" => "adminclasificacion");
+    $LCF->CommandKeyVariable = "CLASIFICACIONCLAVE";
+    $LCF->CommandButton = $bupdate;
+    $L->AddListColumnField($LCF, 1);
+
+    // Borrar Grupo, Tema, Pregunta
+    $LCD = new \domlist\DB_ListColumnDef(null, $TempLCDCenter);
+    $LCD->TitlePre = null;
+    $LCD->TitlePos = null;
+    $L->AddListColumnDef($LCD);
+    
+    if ($this->base->ifAccess("clasificaciongroupall"))
+    {
+      $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter);
+      $LCF->Name = "clave";
+      $LCF->CommandForm = "adminfamilia";
+      $LCF->CommandVariables = array("ADMOrder" => "Delete", "P" => "adminfamilia");
+      $LCF->CommandKeyVariable = "FAMILIACLAVE";
+      $LCF->CommandButton = $bdelete;
+      $L->AddListColumnField($LCF, 0);
+    }
+    else
+    {
+      $LCF = new \domlist\DB_ListColumnFieldEmpty($TempLCFCenter);
+      $L->AddListColumnField($LCF, 0);
+    }
+
+    $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter2);
+    $LCF->Name = "clave";
+    $LCF->CommandForm = "adminclasificacion";
+    $LCF->CommandVariables = array("ADMOrder" => "Delete", "P" => "adminclasificacion");
+    $LCF->CommandKeyVariable = "CLASIFICACIONCLAVE";
+    $LCF->CommandButton = $bdelete;
+    $L->AddListColumnField($LCF, 1);
+
+    // Ver Grupo, Tema, Pregunta
+    $LCD = new \domlist\DB_ListColumnDef(null, $TempLCDCenter);
+    $LCD->TitlePre = null;
+    $LCD->TitlePos = null;
+    $L->AddListColumnDef($LCD);
+    
+    $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter);
+    $LCF->Name = "clave";
+    $LCF->CommandForm = "adminfamilia";
+    $LCF->CommandVariables = array("ADMOrder" => "See", "P" => "adminfamilia");
+    $LCF->CommandKeyVariable = "FAMILIACLAVE";
+    $LCF->CommandButton = $bsee;
+    $L->AddListColumnField($LCF, 0);
+
+    $LCF = new \domlist\DB_ListColumnFieldCommand($TempLCFCenter2);
+    $LCF->Name = "clave";
+    $LCF->CommandForm = "adminclasificacion";
+    $LCF->CommandVariables = array("ADMOrder" => "See", "P" => "adminclasificacion");
+    $LCF->CommandKeyVariable = "CLASIFICACIONCLAVE";
+    $LCF->CommandButton = $bsee;
+    $L->AddListColumnField($LCF, 1);
+
+    // editar pagina
+    $LCD = new \domlist\DB_ListColumnDef(null, $TempLCDCenter);
+    $LCD->TitlePre = null;
+    $LCD->TitlePos = null;
+    $L->AddListColumnDef($LCD);
+    
+    $LCF = new \domlist\DB_ListColumnFieldEmpty($TempLCFCenter);
+    $L->AddListColumnField($LCF, 0);
+
+    $LCF = new \domlist\DB_ListColumnFieldFunction($TempLCFCenter2);
+    $LCF->Name = "clave";
+    $LCF->IsFunction = "editorLink";
+    $L->AddListColumnField($LCF, 1);
+
+    $data = $L->createList(false);
+    $data = $this->ins(). $data . $this->ins();
+
+    $data .= $this->AJAXONCLICKESTATUS->getInit('estatus', '/clasificacion?ajax=1&Tipo=familia', 'clave', $this->getEntry("working"));
+    $data .= $this->AJAXONCLICKESTATUSCLASIF->getInit('estatus', '/clasificacion?ajax=1&Tipo=clasif', 'clave', $this->getEntry("working"));
+
+    return $data;
+    return $M->code();
+  }
+
+  public function formaccessgroup($engine, $params)
+  {
+    $key = $this->base->HTTPRequest->getParameter('key');
+    $name = $this->base->HTTPRequest->getParameter('name');
+    $mode = $this->base->HTTPRequest->getParameter('mode');
+
+    $success = true;
+    $messages = array();
+    $messagetext = '';
+    /*
+    if (!$username)
+    {
+      $success = false;
+      $messages['username'] = $this->language->getEntry('error.username.missing');
+      $messagetext .= $this->language->getEntry('error.username.missing');
+    }
+    if ($password)
+    {
+      // change password
+      if ($username && $username == $password)
+      {
+        $success = false;
+        $messages['password'] = $this->language->getEntry('error.password.same');
+        $messagetext .= $this->language->getEntry('error.password.same');
+      }
+    }
+    */
+/*
+    if ($success)
+    {
+      // transaction to the database, the hand group are managed by 'base'
+      if ($mode == 1)
+      {
+        $this->accessEntity->client_accessgroup->doInsert(array('key' => $key, 'name' => $name, 'module' => 'base'));
+      }
+      elseif ($mode == 2)
+      {
+        $this->accessEntity->client_accessgroup->doUpdate($key, array('name' => $name, 'module' => 'base'));
+      }
+      
+      
+      $messages['text'] = $this->language->getEntry('success');
+    }
+    else
+      $messages['text'] = $messagetext;
+
+    return array('success' => $success, 'messages' => $messages, 'popup' => false);
+  }  
+  */
+}
+
+?>

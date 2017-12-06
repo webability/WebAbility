@@ -1,0 +1,149 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master main repository installation
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class masterrepository extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  // we add our own parameters to application
+  public function getParameters($engine, $params)
+  {
+    return array('STATUS' => $this->getStatus(),
+                 'INSTALLED' => $this->getInstalledVersion(),
+                 'AVAILABLE' => $this->getAvailableVersion()
+                );
+  }
+
+  private function getStatus()
+  {
+    $res = $this->base->getGlobalStatus();
+
+    // no conector installed
+    if ($res['fconnector'] == 0)
+      return 2;
+
+    // connector is failing
+    if ($res['fconnector'] == 2)
+      return 3;
+
+    // not installed
+    if ($res['frepository'] == 2)
+      return 5;
+
+    // need upgrade
+    if ($res['frepository'] == 3)
+      return 4;
+
+    // all ok, $res['frepository'] == 1
+    return 1;
+  }
+
+  private function getInstalledVersion()
+  {
+    return $this->base->getRepositoryInstalledVersion('BASE');
+  }
+
+  private function getAvailableVersion()
+  {
+    return $this->base->getVersion();
+  }
+
+  private function answer($status, $message)
+  {
+    return array('status' => $status, 'newstatus' => $this->getStatus(), 'message' => $message, 'installed' => $this->getInstalledVersion(), 'available' => $this->getAvailableVersion());
+  }
+
+  public function install($engine, $params)
+  {
+    // 1. we check if the repository is not already installed !
+    $res = $this->base->getGlobalStatus();
+    if ($res['frepository'] == 1)
+      return $this->answer(false, $this->language->getEntry('alreadyinstalled'));
+
+    if ($res['fconnector'] == 0)
+      return $this->answer(false, $this->language->getEntry('noconnector'));
+
+    if ($res['fconnector'] == 2)
+      return $this->answer(false, $this->language->getEntry('connectorfail'));
+
+    $messages = '';
+    try
+    {
+      $inst = new \install\installer($this->language);
+      $messages .= $inst->install();
+    }
+    catch (\core\WAException $t)
+    {
+      return $this->answer(false, $this->language->getEntry('errorduringinstall').'<br />'.$t);
+    }
+
+    return $this->answer(true, $this->language->getEntry('result') . $messages);
+  }
+
+  public function uninstall()
+  {
+    // 1. we check if the repository is not already installed !
+    $res = $this->base->getGlobalStatus();
+    if ($res['frepository'] != 1)
+      return $this->answer(false, $this->language->getEntry('notinstalled'));
+
+    $messages = '';
+    try
+    {
+      $inst = new \install\installer($this->language);
+      $messages .= $inst->uninstall();
+    }
+    catch (\core\WAException $t)
+    {
+      return $this->answer(false, $this->language->getEntry('errorduringuninstall').'<br />'.$t);
+    }
+
+    return $this->answer(true, $this->language->getEntry('result') . $messages);
+  }
+
+  public function upgrade()
+  {
+    // 1. we check if the repository is not already installed !
+    $res = $this->base->getGlobalStatus();
+    if ($res['frepository'] != 3)
+      return $this->answer(false, $this->language->getEntry('donotneedupgrade'));
+
+    $messages = '';
+    try
+    {
+      $uSite = new \common\upgradeSite();
+      $messages .= $uSite->upgrade(array('table' => $this->language->getEntry('table'), 'done' => $this->language->getEntry('done')));
+    }
+    catch (\core\WAException $t)
+    {
+      return $this->answer(false, $this->language->getEntry('errorduringupgrade').'<br />'.$t);
+    }
+
+    return $this->answer(true, $this->language->getEntry('result') . $messages);
+  }
+
+  public function verify()
+  {
+
+  }
+
+}
+
+?>

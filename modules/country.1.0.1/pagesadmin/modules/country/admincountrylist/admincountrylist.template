@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="modules/country/admincountrylist">
+  <container type="gridContainer" id="countries" width="max" height="max" haslistener="yes">
+    <zone type="column" size="50" field="key" title="Clave">
+    </zone>
+    <zone type="column" size="50" field="flag" title="Bandera">
+    </zone>
+    <zone type="column" size="80" field="iso3" title="ISO">
+    </zone>
+    <zone type="column" size="80" field="geoip" title="Región GeoIP">
+    </zone>
+    <zone type="column" size="200" field="name" title="Nombre">
+    </zone>
+  </container>
+  
+  
+</application>

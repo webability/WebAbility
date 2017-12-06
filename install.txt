@@ -1,0 +1,13 @@
+@UTF-8
+
+WebAbility v6-Free is free software under LGPL v3
+If you need an enterprise licence for comercial use or resell, please contact us.
+
+Installation:
+
+link your web site domain (you.web.site) main directory into your web server to <webability root dir>/site
+call http://your.web.site/install.php from browser
+Have PHP 5.3+ or 7 available
+
+Please refer to the Webability 6 installation section in the documentation of http://www.webability.info
+

@@ -1,0 +1,170 @@
+<?php
+
+namespace modules\wiki\structures;
+
+class wikiPage extends \dominion\DB_Record
+{
+  public function __construct($path, $lang = null)
+  {
+    parent::__construct();
+    
+    $this->path = $path;
+    $this->lang = $lang;
+    $this->created = $this->isPage();
+  }
+  
+  public function isPage()
+  {
+    $xpath = explode('/', $this->path);
+    $this->name = array_pop($xpath);
+    
+    $realpath = $this->base->PAGESDIR . $this->base->PAGESCONTAINER . $this->path;
+    if (!is_Dir($realpath))
+      return false;
+    
+    if (!is_File($realpath . '/' . $this->name . '.page'))
+      return false;
+    if (!is_File($realpath . '/' . $this->name . '.instance'))
+      return false;
+    if (!is_File($realpath . '/' . $this->name . '.wiki'))
+      return false;
+
+    // load the .page to be sure it's a wiki
+    
+    
+    return true;
+  }
+
+  public function getBreadcrumbs()
+  {
+    $xpath = explode('/', $this->path);
+    $buildpath = '';
+    $bc = array();
+    foreach($xpath as $part)
+    {
+      if (!$part)
+        continue;
+      $buildpath .= ($buildpath?'/':'') . $part;
+      $partpage = new wikiPage($buildpath);
+      if ($partpage->isPage())
+      {
+        $bc[] = array('path' => $buildpath, 'name' => $partpage->getTitle(), 'created' => true);
+      }
+      else
+      {
+        $bc[] = array('path' => $buildpath, 'name' => $part, 'created' => false);
+      }
+    }
+    return $bc;
+  }
+  
+  public function getTitle()
+  {
+    if (!$this->created)
+      return '';
+      
+    $instance = $this->base->PAGESDIR.$this->base->PAGESCONTAINER.$this->path.'/'.$this->name.'.instance';    
+    if (is_file($instance))
+      $instancedata = new \xconfig\XConfig(file_get_contents($instance));
+    else
+      $instancedata = new \xconfig\XConfig(array());
+    return $instancedata->title;
+  }
+  
+  public function getCode()
+  {
+    if (!$this->created)
+      return '';
+      
+    $wiki = $this->base->PAGESDIR.$this->base->PAGESCONTAINER.$this->path.'/'.$this->name.'.wiki';
+    $fp = fopen($wiki, 'rb');
+    $code = fread($fp, filesize($wiki));
+    fclose($fp);
+    return $code;
+  }
+  
+  public function saveCode($title, $code, $changes)
+  {
+    if (!$this->created)
+    {
+      \core\WAFile::createDirectory($this->base->PAGESDIR.$this->base->PAGESCONTAINER, $this->path);
+      
+      $page = $this->base->PAGESDIR.$this->base->PAGESCONTAINER.$this->path.'/'.$this->name.'.page';
+      $pagedata = "type=wiki\nstatus=published\nacceptpathparameters=yes\n";
+      if ($this->base->config->wikidefaulttemplate)
+        $pagedata .= "template=".$this->base->config->wikidefaulttemplate."\n";
+      $fp = fopen($page, 'wb');
+      fwrite($fp, $pagedata);
+      fclose($fp);
+    }
+
+    // title goes into .instance
+    $instance = $this->base->PAGESDIR.$this->base->PAGESCONTAINER.$this->path.'/'.$this->name.'.instance';    
+    if (is_file($instance))
+      $instancedata = new \xconfig\XConfig(file_get_contents($instance));
+    else
+      $instancedata = new \xconfig\XConfig(array());
+    $instancedata->title = $title;
+    
+    \xconfig\XConfig::$NEWLINE = "\n";
+    $fp = fopen($instance, 'wb');
+    fwrite($fp, (string)$instancedata);
+    fclose($fp);
+
+    // code goes into .wiki
+    $wiki = $this->base->PAGESDIR.$this->base->PAGESCONTAINER.$this->path.'/'.$this->name.'.wiki';
+    $fp = fopen($wiki, 'wb');
+    fwrite($fp, $code);
+    fclose($fp);
+    
+    
+    // changes goes into history
+/*
+      
+    $filename = "current.$this->lang.wiki";
+    $titlename = "current.$this->lang.title";
+    $dir = $this->basepath.$this->id.$this->realpath."/";
+    $path = $dir.$filename;
+    $pathtitle = $dir.$titlename;
+
+    $this->loadHistory();
+    // 1. we get serial number for old code
+    $serial = $this->history->getNextEntry();
+
+    $oldfilename = "n/a";
+    if (is_file($path))
+    {
+      // 2. we move old code
+      $oldfilename = "old.$serial.$this->lang.wiki";
+      $oldtitlename = "old.$serial.$this->lang.title";
+      rename($path, $dir.$oldfilename);
+      rename($pathtitle, $dir.$oldtitlename);
+    }
+
+    // 3. we log into history
+    $this->history->insertHistory($serial, "code", $oldfilename, $description);
+
+    // 4. we save new file
+    $f = fopen($path, "wb");
+    fwrite($f, $this->code);
+    fclose($f);
+
+    $f = fopen($pathtitle, "wb");
+    fwrite($f, $this->title);
+    fclose($f);
+*/
+    return true;
+  }
+  
+  private function loadHistory()
+  {
+    if (!$this->history)
+      $this->history = new wikiPageHistory($this->path, $this->lang);
+  }
+
+  
+  
+  
+}
+
+?>

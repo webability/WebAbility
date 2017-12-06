@@ -1,0 +1,107 @@
+<?php
+
+class adminusersecuritylist extends \common\WAApplication
+{
+  private $userEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->userEntity = \modules\user\entities\userEntity::getInstance();
+  }
+
+  public function runApplication($engine, $params)
+  {
+    if (isset($params['templates']) && $params['templates'])
+    {
+      return $this->template->resolve();
+    }
+    
+    $data = array();
+
+    // acceses
+    $data[] = array('id' => 'user_accessgrouplist', 'template' => 'option2icons', 'father' => 'usersecurity', 'loadable' => false, 'closeable' => false, 'closed' => true,
+
+        'name' => $this->language->accessgroup, 'icon' => '/skins/admin/modules/user/accesses.png', 'help.summary' => $this->language->accessgrouphelpsum, 'help.title' => $this->language->accessgrouphelptitle, 'help.description' => $this->language->accessgrouphelpdesc,
+        'icon1' => '/skins/admin/modules/user/access-new.png',
+        'icon2' => '/skins/admin/modules/user/accesses-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1, 
+        'name1' => 'Nuevo grupo de acceso',
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newuseraccessgroup', 'na1_appid' => 'modules/user/adminaccessgroup', 'na1_apptitle' => 'Nuevo grupo de acceso',
+        'help1.summary' => 'Nuevo grupo de acceso', 'help1.title' => '', 'help1.description' => '',        
+        'name2' => 'Lista de Grupos y Accesos',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 2, 'na2_zid' => 'zapp_useraccessgrouplist', 'na2_appid' => 'modules/user/adminaccessgrouplist', 'na2_apptitle' => 'Lista de Grupos y Accesos',
+        'help2.summary' => 'Lista de Grupos y Accesos', 'help2.title' => '', 'help2.description' => '',
+       );
+       
+       // get the groups of accesses
+
+
+    // profiles
+    $data[] = array('id' => 'user_profilelist', 'template' => 'option2icons', 'father' => 'usersecurity', 'loadable' => false, 'closeable' => true, 'closed' => true,
+
+        'name' => $this->language->getEntry('profiles'), 'icon' => '/skins/admin/modules/user/profiles.png', 'help.summary' => '123', 'help.title' => '123', 'help.description' => '123',
+        'icon1' => '/skins/admin/modules/user/profile-new.png',
+        'icon2' => '/skins/admin/modules/user/profiles-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1,
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newuserprofile', 'na1_appid' => 'modules/user/adminprofile', 'na1_apptitle' => 'Nuevo perfil',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 2, 'na1_zid' => 'zapp_userprofilelist', 'na1_appid' => 'modules/user/adminprofilelist', 'na1_apptitle' => 'Perfiles',
+       );
+
+    // users
+    $data[] = array('id' => 'user_list', 'template' => 'option2icons', 'father' => 'usersecurity', 'loadable' => false, 'closeable' => true, 'closed' => true,
+
+        'name' => $this->language->getEntry('users'), 'icon' => '/skins/admin/modules/user/users.png', 'help.summary' => '123', 'help.title' => '123', 'help.description' => '123',
+        'icon1' => '/skins/admin/modules/user/user-new.png',
+        'icon2' => '/skins/admin/modules/user/users-tree.png',
+
+        'ct_mode' => 0, 'sh_mode' => 0, 'na_mode' => 1, 'na_zid' => 's_users',
+        'ct1_mode' => 0, 'sh1_mode' => 0, 'na1_mode' => 2, 'na1_zid' => 'zapp_newuser', 'na1_appid' => 'modules/user/adminuser', 'na1_apptitle' => 'Nuevo usere',
+        'ct2_mode' => 0, 'sh2_mode' => 0, 'na2_mode' => 2, 'na2_zid' => 'zapp_userlist', 'na2_appid' => 'modules/user/adminuserlist', 'na1_apptitle' => 'Clientes',
+       );
+
+
+    $users = $this->userEntity->getUsersList(null);
+    if ($users)
+    {
+      foreach($users as $c)
+      {
+        $children = false; //$this->getData($c['key']);
+
+        if ($c['key'] == $this->base->user->key)
+          $sex = 'me';
+        else
+          $sex = $c['sex'] == 'F'?'female':'male';
+        $name = $c['name']; // . ($c['status']=='S'?' <img classname="imagemenu" style="width:16px; height:16px;" src="/skins/admin/icons/user-superadmin.png" alt="" title="" />':'');
+        $father = 'user_list';
+
+        // users are closed by default
+        $closed = $this->base->user->getParameter('indextree', 'user_'.$c['key'])?false:true;
+
+        $data[] = array('id' => 'user_'.$c['key'], 'uid' => $c['key'], 'template' => 'option', 'father' => $father, 'name' => $name, 'icon' => '/skins/admin/modules/user/user-'.$sex.'.png', 'help' => '123', 'loadable' => false, 'closeable' => ($children?true:false), 'closed' => $closed);
+
+        if ($children)
+          $data = array_merge($data, $children);
+      }
+    }
+
+
+    return $data;
+  }
+  
+  public function template($engine, $params)
+  {
+    return $this->template->resolve();
+  }
+
+  public function language($engine, $params)
+  {
+    return $this->language;
+  }
+
+}
+
+?>

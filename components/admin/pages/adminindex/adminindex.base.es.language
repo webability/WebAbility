@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="adminindex" lang="es">
+
+  <entry id="tools"><![CDATA[Herramientas]]></entry>
+  <entry id="tools.summary"><![CDATA[Abrir o cerrar las lista de herramientas.]]></entry>
+  <entry id="tools.title"><![CDATA[Herramientas:]]></entry>
+  <entry id="tools.description"><![CDATA[Esta opción permite visualizar las lista de las herramientas de administración disponibles.]]></entry>
+
+  <entry id="SITELINKMENU"><![CDATA[Ir al sitio]]></entry>
+  <entry id="sitelink.summary"><![CDATA[Abrir el sitio en una otra ventana.]]></entry>
+  <entry id="sitelink.title"><![CDATA[Sitio:]]></entry>
+  <entry id="sitelink.description"><![CDATA[Puede hacer click en esta opción para abrir el sitio en otra ventana.]]></entry>
+
+  <entry id="explorer"><![CDATA[Explorador]]></entry>
+  <entry id="explorer.summary"><![CDATA[Explorador de archivos para administrar las carpetas y contenidos.]]></entry>
+  <entry id="explorer.title"><![CDATA[Explorador:]]></entry>
+  <entry id="explorer.description"><![CDATA[El explorador permite navegar todos los archivos de la aplicación, modificarlos, abrirlos, renombrarlos y borrarlos.]]></entry>
+
+  <entry id="config"><![CDATA[Configuración]]></entry>
+  <entry id="config.summary"><![CDATA[Acceso a los parámetros de configuración.]]></entry>
+  <entry id="config.title"><![CDATA[Parámetros de configuración:]]></entry>
+  <entry id="config.description"><![CDATA[Esta opción permite acceder a los parámetros de configuración del administrador y del sitio, incluyendo skins, pais, idiomas, el manejo de errores, entre otros.]]></entry>
+
+  <entry id="mypage"><![CDATA[Mi página]]></entry>
+  <entry id="mypage.summary"><![CDATA[Ir a la página personal de actividad y datos.]]></entry>
+  <entry id="mypage.title"><![CDATA[Mi página:]]></entry>
+  <entry id="mypage.description"><![CDATA[Esta opción permite acceder a la pantalla donde podrá modificar su nombre de usuario, contraseña, y ver su bitácora de actividades.]]></entry>
+
+  <entry id="CONSOLEMENU"><![CDATA[Consola]]></entry>
+  <entry id="console.summary"><![CDATA[Abrir la consola de mensajes sistema.]]></entry>
+  <entry id="console.title"><![CDATA[Consola:]]></entry>
+  <entry id="console.description"><![CDATA[Esta opción permite acceder a la consola para visualizar los mensajes de administración, sistema y depuración del codigo de la aplicación.]]></entry>
+
+  <entry id="CONTROLNAME"><![CDATA[ &lt;img src=&quot;/skins/__SKIN__/icons/controlcenter.png&quot; alt=&quot;&quot; style=&quot;width: 16px; vertical-align: middle;&quot; /&gt; &lt;u&gt;C&lt;/u&gt;entro de control]]></entry>
+  <entry id="CONTROLSHORTCUT"><![CDATA[alt+c]]></entry>
+
+
+</language>

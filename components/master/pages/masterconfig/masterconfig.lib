@@ -1,0 +1,21 @@
+<?php
+
+class masterconfig extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  public function buildApplication($engine, $params)
+  {
+    $a = new \wajaf\Xapplication('masterconfig');
+
+    // main title
+    $e1 = new \wajaf\htmlElement('Config');
+    $a->add($e1);
+    return $a;
+  }
+}
+
+?>

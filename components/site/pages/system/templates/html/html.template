@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{language}}">
+  <head>
+    <meta charset="{{charset}}">
+%-- SEO --%
+    <title>{{title}}</title>
+    <meta name="description" content="{{description}}" />
+    <meta name="keywords" content="{{keywords}}" />
+%-- (c) y otros --%
+    <meta name="generator" content="{{generator}}" />
+    <meta name="Component" content="{{component}}" />
+
+%-- default css --%
+    <link rel="stylesheet" href="__CDN__/css/reset.css">
+    <link rel="stylesheet" href="__CDN__/css/rwd.css">
+    <link rel="stylesheet" href="__CDN__/css/style.css">
+%-- site construction files --%
+{{extracss}}
+{{extrajs}}
+{{extra}}
+  </head>
+
+[[CONTENT]]
+  
+</html>

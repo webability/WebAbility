@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_templatedef_inmenu" lang="es">
+  <entry id="0"><![CDATA[No aparece en el menú]]></entry>
+  <entry id="1"><![CDATA[Aparece en el menú]]></entry>
+</language>

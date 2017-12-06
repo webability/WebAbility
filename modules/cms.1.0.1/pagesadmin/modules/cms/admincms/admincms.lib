@@ -1,0 +1,1220 @@
+<?php
+
+class admincms extends \common\WAApplication
+{
+  private $cmsEntity;
+//  private $baseUserEntity;
+//  private $baseUserSecurityEntity;
+
+  private $order;     // mode set to insert/modif/del/view
+
+  private $father;    // father page ID for insert mode
+
+  private $pageid;    // page ID on modif/view/delete modes
+  private $pagedata;  // data of the pagedef record
+
+  private $type;                     // the type of our page in all modes
+  private $engineproperties = null;  // the engine properties of our page type
+  private $status;                   // the status of our page in all modes
+  private $numblocktemplates = 0;    // number of existing block templates in the system
+
+  // Buttons presentation for type selection
+  private $presentationtypes = array( array(1, 13, 4),
+                                      array(21, 22),
+                                      array(23, 28, 24, 26, 27),
+                                      array(41)
+                                    );
+  private $stringtypes = array(1 => '##simple##', 13 => '##blockpage##', 4 => '##php##',
+                               21 => '##language##', 22 => '##template##',
+                               23 => '##stylesheet##', 28 => '##rss##', 24 => '##robots##', 26 => '##javascript##', 27 => '##otherfile##',
+                               41 => '##folder##'
+                              );
+  private $icontypes = array(1 => 'page-simple.png', 13 => 'page-block.png', 4 => 'page-php.png',
+                             21 => 'page-translation.png', 22 => 'page-template.png',
+                             23 => 'page-css.png', 28 => 'page-rss.png', 24 => 'page-robot.png', 26 => 'page-js.png', 27 => 'page-other.png',
+                             2 => 'page-aslanguage.png', 3 => 'page-asbrowser.png',
+                             6 => 'page-macro.png', 7 => 'page-os.png',
+                             8 => 'page-osencoded.png', 9 => 'page-directlink.png',
+                             14 => 'page-dynamicmenu.png',
+                             10 => 'page-wrapper.png', 11 => 'page-workflow.png',
+                             12 => 'page-xmlreport.png', 32 => 'page-require.png',
+                             41 => 'page-folder.png'
+                            );
+
+  // Buttons presentation for status selection
+  private $presentationstatus = array( array(0, 1, 6),
+                                      array(3),
+                                      array(2, 4, 5)
+                                    );
+  private $stringstatus = array(0 => '##notvisible##', 1 => '##visible##', 6 => '##visiblenoheader##',
+                               3 => '##datablock##', 2 => '##globaltemplate##',
+                               4 => '##internaltemplate##', 5 => '##blocktemplate##'
+                              );
+  private $iconstatus = array(0 => 'page-notvisible.png', 1 => 'page-visible.png', 6 => 'page-noheader.png',
+                             3 => 'page-datablock.png', 2 => 'page-globaltemplate.png',
+                             4 => 'page-internaltemplate.png', 5 => 'page-blocktemplate.png'
+                            );
+
+  private $knowntypes = null;      // got from the available engines
+  private $knownstatus = array(0, 1, 2, 3, 4, 5, 6);
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->cmsEntity = \modules\cms\entities\cmsEntity::getInstance();
+//    $this->baseUserEntity = \entities\baseUserEntity::getInstance();
+//    $this->baseUserSecurityEntity = \entities\baseUserSecurityEntity::getInstance();
+
+    // we get the engines types
+//    $this->knowntypes = $this->ENGINE->getTypes();
+    $this->knowntypes = array(1, 13, 4, 21, 22, 23, 28, 24, 26, 27, 41);
+    // we check if we can create block pages
+//    $this->numblocktemplates = $this->cmsEntity->base_pagedef->getNumberOfRecords(new DB_Condition('status', '=', 5));
+
+    // we need the URL order to know what we are doing
+    $this->order = $this->base->HTTPRequest->getParameter('order', \xamboo\Validator::SETOFVALUES, array('insert', 'show', 'dashboard', 'data', 'stats', 'use', 'code'));
+    if (!$this->order)
+      $this->order = 'insert';
+
+    if ($this->order == 'insert')
+    {
+      // we need the type & status of page for insert mode
+      $this->type = $this->base->HTTPRequest->getParameter('type', \xamboo\Validator::SETOFVALUES, $this->knowntypes);
+      if ($this->type)
+      {
+        // we get the engine properties
+//        $this->engineproperties = $this->ENGINE->getPageProperties($this->type);
+      }
+      $this->status = $this->base->HTTPRequest->getParameter('status', \xamboo\Validator::SETOFVALUES, $this->knownstatus);
+      $this->father = $this->base->HTTPRequest->getParameter('father', \xamboo\Validator::REGEXP, $this->cmsEntity->regexpPageDefKey);
+      if ($this->father)
+      {
+        $this->father = $this->cmsEntity->getPageDefData($this->father, true);
+      }
+    }
+    else // any other order means there is an id mandatory
+    {
+      $this->pageid = $this->base->HTTPRequest->getParameter('id', \xamboo\Validator::REGEXP, $this->cmsEntity->regexpPageDefKey);
+      $this->pagedata = $this->cmsEntity->getPageDefData($this->pageid, false);
+      if (!$this->pagedata)
+        throw new \throwables\adminError('Error: no tiene acceso a esta página');
+      $this->type = $this->pagedata['type'];
+      $this->status = $this->pagedata['status'];
+//      $this->engineproperties = $this->ENGINE->getPageProperties($this->type);
+    }
+  }
+
+  public function buildApplication($engine, $params)
+  {
+    $a = new \wajaf\Xapplication('modules/cms/admincms');
+    switch($this->order)
+    {
+      case 'insert':
+        if ($this->type !== null && $this->status !== null)
+        {
+          $mask = $this->createDefinitionForm();
+          $a->add($mask);
+        }
+        else
+        {
+          $this->createViewport($a);
+        }
+        break;
+      case 'show':
+        $tc = new \wajaf\tabContainer('page');
+        $tc->size('max', 'max')->setMode('top');
+
+        $z1 = new \wajaf\tabZone('dashboard');
+        $z1->setTitle('##dashboard##');
+        $z1->setApplication('modules/cms/admincms|dashboard_'.$this->pageid)->setParams('id='.$this->pageid.'&amp;order=dashboard');
+        $tc->add($z1);
+        $a->add($tc);
+        break;
+      case 'dashboard':
+        $this->createDashboard($a);
+        break;
+      case 'data':
+        $this->createData($a);
+        break;
+      case 'stats':
+        $this->createStats($a);
+        break;
+      case 'use':
+        $this->createUse($a);
+        break;
+      case 'code':
+        $this->createCode($a);
+        break;
+    }
+    return $a;
+  }
+
+  // create page viewport: DEFINITION, PUBLICATION, CODE
+  function createViewport($app)
+  {
+    $vp = new \wajaf\separatorContainer('page');
+    $app->add($vp);
+    $vp->setMode('vertical')->size('max', 'max')->setAuto('yes')->setClassname('separatorinvisiblevertical');
+
+    $z1 = new \wajaf\separatorZone('selection');
+    $z1->setSize(60)->setClassname('newpageselector');
+    $vp->add($z1);
+    $z1->add($this->createRestartButton()->position(0,0,null, null));
+
+    $z2 = new \wajaf\separatorZone('data');
+    $z2->setSize('*')->setStyle('overflow: auto;');
+    $vp->add($z2);
+    $z2->add($this->createPageSelect());
+
+    $js = <<<EOF
+
+function setPageType(app, id)
+{
+  if (app.localpagetype)
+    return;
+  // we save the selected value
+  app.localpagetype = id;
+
+  var bt = WA.toDOM('type_'+id);
+  var xinit = WA.browser.getNodeNodeLeft(bt, WA.toDOM('data'));
+  var yinit = WA.browser.getNodeNodeTop(bt, WA.toDOM('data'));
+  app.localtypeinit = [xinit, yinit];
+  WA.toDOM('selection').appendChild(bt);
+  bt.style.top = (yinit + 60) + 'px';
+  bt.style.zIndex = 999;  // 1000+ is reserved for modals
+
+  // we move the clicked to the top
+  WA.Managers.anim.createSprite('type_'+id, bt, WA.Function.buildCompact(endanimtype, id).withContext(WA.context), {autostart:true,loop:false,chain:[{type:'move',xinit:xinit,xend:110,yinit:yinit+60,yend:0, time:300}]});
+  // we fade out the 'type' zone
+  WA.Managers.anim.fadeout(WA.toDOM('type'), 300, null);
+}
+
+function endanimtype(id)
+{
+  // we adjust the new position
+  WA.\$N('type_'+id).setPosition(110, 0);
+  // we show the 2nd selection
+  WA.\$N('selector').showZone('status');
+
+  // show and hide status we need
+  for (var i = 0; i < 7; i++)  // the 7 types 0 to 6
+  {
+    if (typestatus[id].indexOf(''+i) != -1)
+      WA.\$N('status_'+i).show();
+    else
+      WA.\$N('status_'+i).hide();
+  }
+}
+
+function setPageStatus(app, id)
+{
+  if (app.localpagestatus)
+    return;
+  // we save the selected value
+  app.localpagestatus = id;
+
+  var bt = WA.toDOM('status_'+id);
+  var xinit = WA.browser.getNodeNodeLeft(bt, WA.toDOM('data'));
+  var yinit = WA.browser.getNodeNodeTop(bt, WA.toDOM('data'));
+  app.localstatusinit = [xinit, yinit];
+  WA.toDOM('selection').appendChild(bt);
+  bt.style.top = (yinit + 60) + 'px';
+  bt.style.zIndex = 999;
+
+  // we move the clicked to the top
+  WA.Managers.anim.createSprite('status_'+id, WA.toDOM('status_'+id), WA.Function.buildCompact(endanimstatus, id).withContext(WA.context), {autostart:true,loop:false,chain:[{type:'move',xinit:xinit,xend:220,yinit:yinit+60,yend:0, time:300}]});
+  // we fade out the 'status' zone
+  WA.Managers.anim.fadeout(WA.toDOM('status'), 300, null);
+
+  // we (re)launch the form loading
+//  WA.Managers.wa4gl.destroyApplication('admincms', app.instanceID+'_form');
+  WA.Managers.wa4gl.startApplication('form', 'modules/cms/admincms', app.instanceID+'_form', 'type='+app.localpagetype+'&status='+id, '');
+}
+
+function endanimstatus(id)
+{
+  // we reattach the node to the other zone (html only, it's temporal)
+  WA.\$N('status_'+id).setPosition(220, 0);
+  // we show the 3nd selection
+  WA.\$N('selector').showZone('form');
+}
+
+var typestatus = {
+EOF;
+
+    // We need to create the array of status vs types based on engines rules
+    $item = 0;
+    foreach($this->knowntypes as $type)
+    {
+      if ($type == 13 && $this->numblocktemplates == 0)
+        continue;
+//      $ep = $this->ENGINE->getPageProperties($type);  // engine properties
+//      $xt = implode('', $ep['status']);
+      $xt = implode('', $this->knownstatus);
+      $js .= ($item++?',':'') . $type . ":'" . $xt . "'";
+    }
+    $js .= "};\n\n";
+
+    $code = new \wajaf\codeElement($js);
+    $app->add($code);
+  }
+
+  function createRestartButton()
+  {
+    $b = new \wajaf\htmlElement('##restart##<br /><img src="/skins/admin/modules/cms/page-restart.png" class="icon" />', 'restart');
+    $b->setClassname('pagerestart')->size(100,50);
+    $code = <<<EOF
+function(e)
+{
+  // put the elements in order
+  if (this._4gl.app.localpagetype)
+  {
+    WA.toDOM('type').appendChild(WA.toDOM('type_'+this._4gl.app.localpagetype));
+    WA.toDOM('type_'+this._4gl.app.localpagetype).style.zIndex = '';
+    // set original position
+    WA.\$N('type_'+this._4gl.app.localpagetype).setPosition(this._4gl.app.localtypeinit[0], this._4gl.app.localtypeinit[1]);
+    // transparency to 0% to all buttons
+    WA.Managers.anim.fadein(WA.toDOM('type'), 100, null);
+    this._4gl.app.localpagetype = null;
+  }
+  if (this._4gl.app.localpagestatus)
+  {
+    WA.toDOM('status').appendChild(WA.toDOM('status_'+this._4gl.app.localpagestatus));
+    WA.toDOM('status_'+this._4gl.app.localpagestatus).style.zIndex = '';
+    // set original position
+    WA.\$N('status_'+this._4gl.app.localpagestatus).setPosition(this._4gl.app.localstatusinit[0], this._4gl.app.localstatusinit[1], null, null);
+    // transparency to 0% to all buttons
+    WA.Managers.anim.fadein(WA.toDOM('status'), 100, null);
+    this._4gl.app.localpagestatus = null;
+  }
+  WA.\$N('selector').showZone('type');
+}
+EOF;
+    $b->setEvent('onclick', $code);
+
+    return $b;
+  }
+
+  function createTypeButton($id, $text, $icon)
+  {
+    $b = new \wajaf\htmlElement($text . '<br /><img id="type_'.$id.'_image" src="/skins/admin/modules/cms/'.$icon.'" class="icon" />', 'type_'.$id);
+    $b->setClassname('pagetype')->size(100,50);
+    $code = <<<EOF
+function(e)
+{
+  setPageType(this._4gl.app, '$id');
+}
+EOF;
+    $b->setEvent('onclick', $code);
+
+    return $b;
+  }
+
+  function createStatusButton($id, $text, $icon)
+  {
+    $b = new \wajaf\htmlElement($text . '<br /><img src="/skins/admin/modules/cms/'.$icon.'" class="icon" />', 'status_'.$id);
+    $b->setClassname('pagestatus')->size(100,50);
+    $code = <<<EOF
+function(e)
+{
+  setPageStatus(this._4gl.app, '$id');
+}
+EOF;
+    $b->setEvent('onclick', $code);
+
+    return $b;
+  }
+
+  function createPageSelect()
+  {
+    $sc = new \wajaf\simpleContainer('selector');
+    $sc->size('max','max');
+    $z1 = new \wajaf\simpleZone('type');
+    $z1->setClassname('');
+    $sc->add($z1);
+
+    $z1->add(new \wajaf\htmlElement('##typename##', 'typename'));
+    $line = 0;
+    foreach($this->presentationtypes as $l => $pt)
+    {
+      $column = 0;
+      foreach($pt as $k => $type)
+      {
+        if (!in_array($type, $this->knowntypes))
+          continue;
+        if ($type == 13 && $this->numblocktemplates == 0)
+          continue;
+
+        $z1->add($this->createTypeButton($type, $this->stringtypes[$type], $this->icontypes[$type])->position(10 + $column*110, 50 + $l*70, null, null));
+        $column ++;
+      }
+      if ($column > 0)
+        $line ++;
+    }
+    $z2 = new \wajaf\simpleZone('status');
+    $z2->setClassname('');
+    $sc->add($z2);
+
+    $z2->add(new \wajaf\htmlElement('##statusname##', 'statusname'));
+    foreach($this->presentationstatus as $l => $pt)
+    {
+      foreach($pt as $k => $status)
+      {
+        $z2->add($this->createStatusButton($status, $this->stringstatus[$status], $this->iconstatus[$status])->position(10 + $k*110, 50 + $l*70, null, null));
+      }
+    }
+
+    $z3 = new \wajaf\simpleZone('form');
+    $sc->add($z3);
+
+    return $sc;
+  }
+
+  function createDefinitionForm()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, $this);
+    $M->maskid = 'formpage';
+    $M->variables = array('order' => $this->order);
+    if ($this->order == 'insert')
+      $M->mode = 1;
+    else
+    {
+      $M->mode = 4;
+      $M->key = $this->pageid;
+      $M->variables['id'] = $this->pageid;
+    }
+//    $M->select = 'selectPageDefinition';
+//    $M->preinsert = 'adjustFields';
+//    $M->postinsert = 'insertPage';
+    $M->alertmessage = '##mask.errormessage##';
+    $M->servermessage = '##mask.servermessage##';
+    $M->titles[\dommask\DomMask::INSERT] = '##mask.titleinsert##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##mask.titleinsert##';
+    $M->titles[\dommask\DomMask::DELETE] = '##mask.titledelete##';
+    $M->titles[\dommask\DomMask::VIEW] = '##mask.titleview##';
+
+    $M->jsonsuccess = <<<EOF
+function(data)
+{
+  // we reload the page app, and we reload or adjust the menu/list of pages
+
+  // change the title
+  var id = WA.\$N('key').getValues();
+  var type = WA.\$N('type').getValues();
+  var icon = WA.toDOM('type_'+type+'_image').src;
+
+  callindex.call(WA.toDOM('adminindex|single|application'), 2, 'app_page_'+id, ' <img src="'+icon+'" alt="" style="width: 16px; vertical-align: middle;" /> '+id, 'modules/cms/admincms|'+id, 'id='+id+'&order=show');
+
+  // we insert the new page into the menu left or list of pages in center
+  WA.\$N('adminindex|single|menu').reload();
+
+  // we restart this form
+  WA.\$N('adminindex|single|application').activateZone('app_cmsnewpage');
+  WA.toDOM('modules/cms/admincms|single|restart').click();
+}
+EOF;
+//    $M->JSonFailure = 'function(params) { this.icontainer.setMessages(params); }';
+
+    // then we create each field
+    $ti = 1;
+
+    // key
+    $F = new \dommask\DomMaskTextField('key', true);
+    $F->title = '##key.title##';
+    $F->helpdescription = '##key.help.description##';
+    $F->notnullmodes = 1;
+    $F->viewmodes = 14;
+    $F->helpmodes = 7;
+    $F->statusnotnull = '##key.status.notnull##';
+    $F->size = 400;
+    $F->maxlength = 50;
+    $F->urlvariable = 'key';
+    $F->format = $this->cmsEntity->regexpPageDefKey;
+    $F->formatjs = $this->cmsEntity->JSregexpPageDefKey;
+    $F->statusbadformat = '##key.status.badformat##';
+    $M->addMaskField($F);
+
+    // name
+    $F = new \dommask\DomMaskTextField('name', true);
+    $F->title = '##name.title##';
+    $F->helpdescription = '##name.help.description##';
+    $F->notnullmodes = 3;
+    $F->helpmodes = 7;
+    $F->statusnotnull = '##name.status.notnull##';
+    $F->size = 400;
+    $F->maxlength = 250;
+    $F->urlvariable = 'name';
+    $M->addMaskField($F);
+
+    // descr
+    $F = new \dommask\DomMaskTextAreaField('descr', true);
+    $F->title = '##descr.title##';
+    $F->helpdescription = '##descr.help.description##';
+    $F->helpmodes = 7;
+    $F->maxlength = 4000;
+    $F->cols = 50;
+    $F->lines = 3;
+    $F->maxlength = 250;
+    $F->nullonempty = true;
+    $F->urlvariable = 'descr';
+    $M->addMaskField($F);
+
+    // security: only for pages that need it:
+/*
+    if ($this->engineproperties['security'])
+    {
+      // get the possible security levels
+      $sec = $this->baseUserSecurityEntity->BASE_clientaccess->doSelectCondition(new \dominion\DB_Condition('type', '=', 1), new DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+      // we create the array based on
+      // there are for sure minimum the 3 basic accesses
+      $security = array();
+      foreach ($sec as $k => $r)
+      {
+        if ($this->base->ifAccess($r['key'], 'adminauthaccess'))
+          $security[$r['key']] = $r['name'];
+      }
+
+      // Security
+      $F = new \dommask\DomMaskLOOField('security', true);
+      $F->title = '##security.title##';
+      $F->helpdescription = '##security.help.description##';
+      $F->notnullmodes = 3;
+      $F->urlvariable = 'security';
+      $F->options = $security;
+      $F->default = '&all';
+      $M->addMaskField($F);
+    }
+*/
+
+    if ($this->engineproperties['template'])
+    {
+      // get the possible existing templates
+      $template = array();
+//      $temp = $this->cmsEntity->BASE_pagedef->doSelectCondition(new \dominion\DB_Condition('status', '=', 2), null);
+$temp = null;
+      if ($temp)
+      {
+        foreach($temp as $k => $r)
+        {
+          if ($this->base->ifAccess($r['key'], 'adminauthtemplates'))
+            $template[$r['key']] = $r['name'];
+        }
+
+        // template
+        $F = new \dommask\DomMaskLOOField('template', true);
+        $F->title = '##template.title##';
+        $F->helpdescription = '##template.help.description##';
+        $F->urlvariable = 'template';
+        $F->nullonempty = true;
+        $F->options = $template;
+        $M->addMaskField($F);
+      }
+    }
+
+    if ($this->engineproperties['templateblock'])
+    {
+      // get the possible existing templates blocks
+//      $temp = $this->cmsEntity->BASE_pagedef->doSelectCondition(new DB_Condition('status', '=', 5), null);
+$temp = null;
+      $templateblock = array();
+      if ($temp)
+      {
+        foreach($temp as $k => $r)
+        {
+          if ($this->base->ifAccess($r['key'], 'adminauthtemplatesblock'))
+            $templateblock[$r['key']] = $r['name'];
+        }
+
+        // template block
+        $F = new \dommask\DomMaskLOOField('templateblock', true);
+        $F->title = '##templateblock.title##';
+        $F->helpdescription = '##templateblock.help.description##';
+        $F->notnullmodes = 3;
+        $F->urlvariable = 'templateblock';
+        $F->options = $templateblock;
+        $M->addMaskField($F);
+      }
+    }
+
+    if ($this->engineproperties['file'])
+    {
+      // file
+      $F = new \dommask\DomMaskTextField('file', true);
+      $F->title = '##file.title##';
+      $F->helpdescription = '##file.help.description##';
+      $F->notnullmodes = 3;
+      $F->helpmodes = 7;
+      $F->statusnotnull = '##file.status.notnull##';
+      $F->size = 400;
+      $F->maxlength = 250;
+      $F->urlvariable = 'file';
+      $M->addMaskField($F);
+    }
+
+    // father
+    $fathers = array();
+//    $fat = $this->cmsEntity->BASE_pagedef->doSelectCondition(null, new DB_OrderBy('order', DB_OrderBy::ASC));
+$fat = null;
+    if ($fat)
+    {
+      foreach($fat as $k => $r)
+      {
+        $fathers[$r['key']] = $r['key'] . ' / ' . $r['name'];
+      }
+
+      $F = new \dommask\DomMaskLOOField('father', true);
+      $F->title = '##father.title##';
+      $F->helpdescription = '##father.help.description##';
+      $F->urlvariable = 'father';
+      $F->options = $fathers;
+      $F->nullonempty = true;
+      $M->addMaskField($F);
+    }
+
+    // TYPE
+    $F = new \dommask\DomMaskHiddenField('type', true);
+    $F->urlvariable = 'type';
+    $F->default = $this->type;
+    $M->addMaskField($F);
+
+    // STATUS
+    $F = new \dommask\DomMaskHiddenField('status', true);
+    $F->urlvariable = 'status';
+    $F->emptyonnull = true;
+    $F->default = $this->status;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submit');
+    $F->action = 'submit';
+    $F->authmodes = 7;
+    $F->title = '##submit.title##';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('reset');
+    $F->action = 'reset';
+    $F->authmodes = 7;
+    $F->title = '##reset.title##';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('update');
+    $F->action = 'update';
+    $F->authmodes = 8;
+    $F->title = '##update.title##';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('view');
+    $F->action = 'view';
+    $F->authmodes = 6;
+    $F->title = '##view.title##';
+    $M->addMaskField($F);
+
+    $X = $M->code();
+    return $X;
+  }
+
+  public function formpage()
+  {
+    $X = $this->createDefinitionForm();
+    return $X; // ->run();
+  }
+
+  // domMask wrapper
+  public function preInsert($rec)
+  {
+    $newrec = $this->adjustFields($rec);
+    return $newrec;
+  }
+
+  public function adjustFields($rec)
+  {
+    $rec['type'] = $this->type;
+    $rec['status'] = $this->status;
+    $rec['cacherule'] = 'N';
+    $rec['defaultversion'] = 'base';
+// ******
+// We should insert by default the SYSTEM Skin ?
+    $rec['defaultskin'] = 'clean';
+    $rec['whichskin'] = 1;
+    $rec['order'] = $this->cmsEntity->BASE_pagedef->getMaxValue('order', null) + 1;
+    $rec['user'] = $this->base->User;
+    $rec['usermodif'] = $this->base->User;
+    $rec['date'] = 'sysdate';
+    $rec['datemodif'] = 'sysdate';
+
+    // if we do not use security, we force to 'all' since it is a mandatory field
+    if (!$this->engineproperties['security'])
+      $rec['security'] = '&all';
+    if (!$this->engineproperties['template'])
+      $rec['template'] = null;
+    if (!$this->engineproperties['templateblock'])
+      $rec['templateblock'] = null;
+    if (!$this->engineproperties['file'])
+      $rec['file'] = null;
+
+    return $rec;
+  }
+
+  // domMask wrapper
+  public function postInsert($key, $rec)
+  {
+    return $this->insertPage($key, $rec);
+  }
+  
+  public function insertPage($key, $rec)
+  {
+    // We insert the templatedef if needed, and we put a default page into it based on the type
+    if ($this->engineproperties['Instance'])
+    {
+      // We need to create an instance in templatedef and the file itself
+
+      // we insert template
+      // status = 2 = pending of authorization.
+// ******
+// skin should be system default skin AND clean skin if default is different
+      $rec = array('key' => 0, 'page' => $key, 'language' => $this->base->getConfig('site.language'),
+        'browserfamily' => 'generic', 'skin' => 'clean', 'version' => 'base',
+        'status' => $this->cmsEntity->defaultinstancestatus, 'title' => null, 'inmenu' => 1, 'menutitle' => null, 'menuprefont' => null, 'menupostfont' => null,
+        'inmap' => 1, 'maptitle' => null, 'mapprefont' => null, 'mappostfont' => null, 'cacherule' => null,
+        'descr' => null, 'date' => 'sysdate', 'datein' => null, 'dateout' => null, 'user' => $this->base->User,
+        'usermodif' => $this->base->User, 'keywords' => null, 'header' => null, 'js' => null, 'jsrepository' => null, 'css' => null,
+        'datemodif' => 'sysdate');
+      $this->cmsEntity->BASE_templatedef->doInsert($rec);
+
+      // we link the file
+      $dirbase = 'pages/'.$key;
+      $def = $this->base->BASEDIR.'/components/site/templates/clean/base/generic/placeholder.template';
+      $f = $this->base->REPOSITORYDIR.$dirbase.'/clean.base.'.$this->base->getConfig('site.language').'.generic.page';
+      \core\WAFile::createDirectory($this->base->REPOSITORYDIR, $dirbase);
+      \core\WAFile::copyFile($def, $f);
+    }
+
+
+
+  }
+
+  public function selectPageDefinition($key)
+  {
+    $Record = $this->cmsEntity->BASE_pagedef->doSelect($key);
+    return $Record;
+  }
+
+  /* DASHBOARD */
+
+  private function createDashBox($a)
+  {
+    $box = new \wajaf\simpleContainer();
+    $box->setClassname('simplecontent');
+    $z = new \wajaf\simpleZone();
+    $z->setClassname('boxdashboard');
+    $box->add($z);
+    $a->add($box);
+    return $z;
+  }
+
+  private function createDashButton($id, $text, $action, $extra, $status, $apptitle, $appid, $order, $params)
+  {
+    $b = new \wajaf\buttonElement($text, $id);
+    $b->setAction($action);
+    $b->setExtra($extra);
+    $code = <<<EOF
+function(e)
+{
+  var node = WA.\$N('modules/cms/admincms|{$this->pageid}|{$appid}');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'{$appid}',title:'{$apptitle}',closeable:'yes',application:'modules/cms/admincms|{$appid}_{$this->pageid}',params:'id={$this->pageid}&order={$order}{$params}'}};
+    this.app.createTree('modules/cms/admincms|{$this->pageid}|page', tree);
+  }
+  this.app.getNode('modules/cms/admincms|{$this->pageid}|page').activateZone('{$appid}');
+}
+EOF;
+    $b->setEvent('click', $code);
+
+    return $b;
+  }
+
+  private function createDashBoard($a)
+  {
+    // the page data
+    $this->getResume($a);
+
+    $b2 = $this->createDashBox($a);
+    $h = new \wajaf\htmlElement('DOS BARRAS DE ESTADISTICAS USO ACCESO ULTIMO DIA, ACCESO ULTIMOS SIETE DIAS, PARAMETRIZABLE ?');
+    $b2->add($h);
+
+    $b2->add($this->createDashButton(null, '##stats##', '', '', null, '##stats.title##', 'stats', 'stats', ''));
+
+    $b3 = $this->createDashBox($a);
+    $h = new \wajaf\htmlElement('ESTADISTICAS DE ACCESO DEL ADMINISTRADOR, ULTIMAS MODIFICACIONES');
+    $b3->add($h);
+    $b3->add($this->createDashButton(null, '##use##', '', '', null, '##use.title##', 'use', 'use', ''));
+
+    // the templates data
+    $this->getTemplates($a);
+  }
+
+  private function getResume($a)
+  {
+    $b1 = $this->createDashBox($a);
+
+    if ($this->pagedata['father'])
+    {
+      $path = $this->getPath($this->pageid);
+      $pathdata = '<span class="cmskeyword">##resume.father##</span> ';
+      foreach($path as $p)
+      {
+        $pdata = $this->cmsEntity->getPageDefData($p, false);
+        $icon = $this->icontypes[$pdata['type']];
+        $pathdata .= <<<EOF
+<span class="cmspagelink" onclick="callindex.call(WA.toDOM('adminindex|single|application'), 2, 'app_page_{$p}', ' &lt;img src=&quot;/skins/admin/modules/cms/{$icon}&quot; alt=&quot;&quot; style=&quot;width: 16px; vertical-align: middle;&quot; /&gt; {$p}', 'modules/cms/admincms|{$p}', 'id={$p}&order=show');"><b>{$p}</b></span> :: 
+EOF;
+      }
+    }
+    else
+      $pathdata = '';
+
+    $type = $this->stringtypes[$this->type];
+    $status = $this->stringstatus[$this->status];
+
+    /*
+    if ($this->engineproperties['security'])
+    {
+      $secdata = $this->baseUserSecurityEntity->getClientAccessData($this->pagedata['security']);
+      $security = <<<EOF
+, <span class="cmskeyword">##resume.security##</span> <b>{$this->pagedata['security']}</b> / {$secdata['name']}
+EOF;
+    }
+    else
+      */
+      $security = '';
+
+    if ($this->engineproperties['template'] && $this->pagedata['template'])
+    {
+      $p = $this->pagedata['template'];
+      $tempdata = $this->cmsEntity->getPageDefData($p, false);
+      $icon = $this->icontypes[$tempdata['type']];
+      $template = <<<EOF
+<span class="cmskeyword">##resume.template##</span>
+ <span class="cmspagelink" onclick="callindex.call(WA.toDOM('adminindex|single|application'), 2, 'app_page_{$p}', ' <img src=&quot;/skins/admin/modules/cms/$icon&quot; alt=&quot;&quot; style=&quot;width: 16px; vertical-align: middle;&quot; /&gt; {$p}', 'modules/cms/admincms|{$p}', 'id={$p}&order=show');"><b>{$p}</b> / {$tempdata['name']}</span><br />
+EOF;
+    }
+    else
+      $template = '';
+
+    if ($this->engineproperties['templateblock'])
+    {
+      $p = $this->pagedata['templateblock'];
+      $tempdata = $this->cmsEntity->getPageDefData($p, false);
+      $icon = $this->icontypes[$tempdata['type']];
+      $templateblock = <<<EOF
+<span class="cmskeyword">##resume.templateblock##</span>
+ <span class="cmspagelink" onclick="callindex.call(WA.toDOM('adminindex|single|application'), 2, 'app_page_{$p}', ' <img src=&quot;/skins/admin/modules/cms/$icon&quot; alt=&quot;&quot; style=&quot;width: 16px; vertical-align: middle;&quot; /&gt; {$p}', 'modules/cms/admincms|{$p}', 'id={$p}&order=show');"><b>{$p}</b> / {$tempdata['name']}</span><br />
+EOF;
+    }
+    else
+      $templateblock = '';
+      
+    if ($this->engineproperties['file'])
+      $file = <<<EOF
+<span class="cmskeyword">##resume.file##</span> {$this->pagedata['file']}<br />
+EOF;
+    else
+      $file = '';
+      
+/*
+    if ($this->pagedata['userlock'])
+    {
+      $user = $this->baseUserEntity->getUserData($this->pagedata['userlock']);
+      $lock = <<<EOF
+<div style="float: right;">##resume.userlock## {$this->pagedata['userlock']} / {$user['name']}<br />##resume.datelock## {$this->pagedata['datelock']}</div>
+EOF;
+    }
+    else
+      $lock = '';
+*/
+
+    $data = <<<EOF
+<img src="/skins/admin/modules/cms/{$this->icontypes[$this->type]}" class="imagemenu" /> $pathdata<b>{$this->pageid}</b> / {$this->pagedata['name']}<br />
+<div class="cmsblockindent">
+$lock<b>$type</b>, <b>$status</b>$security<br />
+{$template}{$templateblock}{$file}
+</div>
+EOF;
+
+    $h = new htmlElement($data);
+    // add the status of the page with a color
+    $b1->add($h);
+
+    $b1->add($this->createDashButton(null, '##datasee##', 'view', 'success', null, '##data.title##', 'data', 'data', ''));
+    $b1->add($this->createDashButton(null, '##dataupdate##', 'update', '', null, '##data.title##', 'data', 'data', ''));
+    $b1->add($this->createDashButton(null, '##datadelete##', 'delete', 'danger', null, '##data.title##', 'data', 'data', ''));
+  }
+
+  private function getPath($page)
+  {
+    $path = array();
+    $mypage = $this->cmsEntity->BASE_pagedef->doSelect($page);
+    while ($mypage["father"])
+    {
+      $path[] = $mypage["father"];
+      $fpage = $this->cmsEntity->BASE_pagedef->doSelect($mypage["father"]);
+      $mypage = $fpage;
+    }
+    return array_reverse($path);
+  }
+
+  private function getTemplates($a)
+  {
+    if (!$this->engineproperties['Instance'])
+      return;
+
+    // each skin/version ordered by skin/version/browser/language
+    $templates = $this->cmsEntity->getPageTemplates($this->pageid);
+    // If no templates, nothing to show
+    if ($templates)
+    {
+      $bx = $this->createDashBox($a);
+      $bx->add($this->createDashButton(null, '##newinstance##', '', '', null, '##newinstance.title##', 'code_'.$template['key'], 'code', ''));
+      foreach($templates as $template)
+      {
+        // The template is based on 3 parameters: LANG, BROW, VERSION
+        // and based on page type
+        $skin = $template['skin'];
+        $lang = $brow = $version = '';
+        if ($this->engineproperties['InstanceLanguages'])
+        {
+          $lang = $template['language'];
+        }
+        if ($this->engineproperties['InstanceBrowsers'])
+        {
+          $browser = $template['browserfamily'];
+        }
+        if ($this->engineproperties['InstanceVersions'])
+        {
+          $version = $template['version'];
+        }
+
+        $data = <<<EOF
+$skin :: $version :: $lang :: $browser  {$template['status']} .... LOCK ?<br />
+EOF;
+        $h = new \wajaf\htmlElement($data);
+        $bx->add($h);
+        $bx->add($this->createDashButton(null, '##instance##', '', '', null, '##instance.title##', 'code_'.$template['key'], 'code', '&templateid='.$template['key']));
+        if ($this->engineproperties['InstanceCode'])
+        {
+          $bx->add($this->createDashButton(null, '##code##', '', '', null, '##code.title##', 'code_'.$template['key'], 'code', '&templateid='.$template['key']));
+        }
+      }
+    }
+  }
+
+
+
+
+
+  
+  private function createData($a)
+  {
+    // the page data view/edit
+    $mask = $this->createDefinitionForm();
+    $a->add($mask); //->create());
+  }
+
+  private function createStats($a)
+  {
+    // the page statistics
+  }
+
+  private function createUse($a)
+  {
+    // the page history
+  }
+
+  private function createCode($a)
+  {
+    // we check the submod, insert or update template
+
+    $templateid = $this->base->HTTPRequest->getParameter('templateid', Validator::INTEGER);
+    $templatedata = $this->cmsEntity->getTemplateDefData($templateid, false);
+
+    // we check if we can do this, based on the engine type and the user auth
+
+
+    // create the 2 tabs and forms
+    $tc = new \wajaf\tabContainer('instancecode');
+    $tc->size('max', 'max')->setMode('top');
+
+    $z1 = new \wajaf\tabZone('instance');
+    $z1->setTitle('##instance##');
+    $mask = $this->createTemplateForm($templateid);
+    $z1->add($mask);
+    $tc->add($z1);
+
+    $z2 = new \wajaf\tabZone('code');
+    $z2->setTitle('##code##');
+    $mask = $this->createCodeForm($templateid);
+    $z2->add($mask);
+    $tc->add($z2);
+
+    $a->add($tc);
+
+  }
+
+  function createCodeForm()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, null, $this);
+    $M->maskid = 'formcode';
+    $M->variables = array('ordercode' => $this->order);
+    $M->mode = 2;
+ //   $M->key = $this->templateid;
+    $M->variables['idcode'] = $this->pageid;
+
+    $M->alertmessage = '##mask.errormessage##';
+    $M->servermessage = '##mask.servermessage##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##mask.titleinsert##';
+
+    $M->jsonsuccess = <<<EOF
+function(data)
+{
+  alert('success');
+}
+EOF;
+
+    // then we create each field
+    $ti = 1;
+
+    // descr
+    $F = new \dommask\DomMaskTextAreaField('file');
+    $F->title = '##descr.title##';
+    $F->helpdescription = '##descr.help.description##';
+    $F->helpmodes = 7;
+    $F->cols = 50;
+    $F->lines = 50;
+    $F->urlvariable = 'file';
+    $F->default = 'prueba de un codigo ya puesto, aqui va el codigo del archivo/pagina';
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submit1');
+    $F->action = 'submit';
+    $F->authmodes = 7;
+    $F->title = '##submit.title##';
+    $M->addMaskField($F);
+
+    $X = $M->run(DomMask::_4GL);
+    return $X;
+  }
+
+  function createTemplateForm($templateid)
+  {
+    if (!$templateid)
+      $mode = 1;
+    else
+      $mode = 4;
+
+//    $M->Select = 'selectTemplateDefinition';
+//    $M->Variables = array('order' => $this->order, 'id' => $this->pageid, 'templateid' => $templateid);
+//    $M->Key = $templateid;
+//    $M->PreInsert = 'adjustFields';
+//    $M->PostInsert = 'insert';
+
+    $M = new \dommask\DomMask($this->cmsEntity->BASE_templatedef, null, null, $this);
+    $M->maskid = 'forminstance';
+    $M->mode = $mode;
+    $M->variables = array('ordertemplate' => $this->order, 'id' => $this->pageid, 'templateid' => $templateid);
+    $M->key = $templateid;
+
+    $M->alertmessage = '##mask.errormessage##';
+    $M->servermessage = '##mask.servermessage##';
+    $M->titles[\dommask\DomMask::INSERT] = '##mask.titleinsert##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##mask.titleinsert##';
+    $M->titles[\dommask\DomMask::DELETE] = '##mask.titledelete##';
+    $M->titles[\dommask\DomMask::VIEW] = '##mask.titleview##';
+
+    $M->jsonsuccess = <<<EOF
+function(data)
+{
+  alert('success');
+  // we reload the page app, and we reload or adjust the menu/list of pages
+
+  WA.\$N('application').setTitle('mytab', data);
+
+  // we insert the new page into the menu left or list of pages in center
+
+//  app.startApplication('mytab', 'modules/cms/admincms', id, 'id='+id+'&order=show', '');
+
+}
+EOF;
+
+    // key
+    $F = new \dommask\DomMaskHiddenField('key', true);
+    $F->urlvariable = 'key';
+    $F->default = $this->type;
+    $M->addMaskField($F);
+
+    // title
+    $F = new \dommask\DomMaskTextField('title', true);
+    $F->title = '##title.title##';
+    $F->helpdescription = '##title.help.description##';
+    $F->viewmodes = 14;
+    $F->helpmodes = 7;
+    $F->size = 400;
+    $F->maxlength = 255;
+    $F->urlvariable = 'title';
+    $M->addMaskField($F);
+
+/*
+    // inmenu
+    $F = new DomMaskLOOField('inmenu');
+    $F->IfTable = true;
+    $F->Title = '##inmenu.title##';
+    $F->HelpSummary = '##inmenu.help.summary##';
+    $F->HelpTitle = '##inmenu.help.title##';
+    $F->HelpDescription = '##inmenu.help.description##';
+    $F->NotNull = '12';
+    $F->Options = array(1 => '##inmenu.yes##', 2 => '##inmenu.no##');
+    $F->Default = 1;
+    $F->ClassSelected = "select1";
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'inmenu';
+    $M->addMaskField($F);
+
+    // menutitle
+    $F = new DomMaskTextField('menutitle');
+    $F->IfTable = true;
+    $F->Title = '##menutitle.title##';
+    $F->HelpSummary = '##menutitle.help.summary##';
+    $F->HelpTitle = '##menutitle.help.title##';
+    $F->HelpDescription = '##menutitle.help.description##';
+    $F->NotNull = '';
+    $F->StatusNotNull = '##menutitle.status.notnull##';
+    $F->Size = 350;
+    $F->MaxLength = 255;
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'menutitle';
+    $M->addMaskField($F);
+
+    // menuprefont
+    $F = new DomMaskTextField('menuprefont');
+    $F->IfTable = true;
+    $F->Title = '##menuprefont.title##';
+    $F->HelpSummary = '##menuprefont.help.summary##';
+    $F->HelpTitle = '##menuprefont.help.title##';
+    $F->HelpDescription = '##menuprefont.help.description##';
+    $F->NotNull = '';
+    $F->StatusNotNull = '##menuprefont.status.notnull##';
+    $F->Size = 350;
+    $F->MaxLength = 255;
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'menuprefont';
+    $M->addMaskField($F);
+
+    // menupostfont
+    $F = new DomMaskTextField('menupostfont');
+    $F->IfTable = true;
+    $F->Title = '##menupostfont.title##';
+    $F->HelpSummary = '##menupostfont.help.summary##';
+    $F->HelpTitle = '##menupostfont.help.title##';
+    $F->HelpDescription = '##menupostfont.help.description##';
+    $F->NotNull = '';
+    $F->StatusNotNull = '##menupostfont.status.notnull##';
+    $F->Size = 350;
+    $F->MaxLength = 255;
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'menupostfont';
+    $M->addMaskField($F);
+
+    // inmap
+    $F = new DomMaskLOOField('inmap');
+    $F->IfTable = true;
+    $F->Title = '##inmap.title##';
+    $F->HelpSummary = '##inmap.help.summary##';
+    $F->HelpTitle = '##inmap.help.title##';
+    $F->HelpDescription = '##inmap.help.description##';
+    $F->NotNull = '12';
+    $F->Options = array(1 => '##inmap.yes##', 2 => '##inmap.no##');
+    $F->Default = 1;
+    $F->ClassSelected = "select1";
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'inmap';
+    $M->addMaskField($F);
+
+    // maptitle
+    $F = new DomMaskTextField('maptitle');
+    $F->IfTable = true;
+    $F->Title = '##maptitle.title##';
+    $F->HelpSummary = '##maptitle.help.summary##';
+    $F->HelpTitle = '##maptitle.help.title##';
+    $F->HelpDescription = '##maptitle.help.description##';
+    $F->NotNull = '';
+    $F->StatusNotNull = '##maptitle.status.notnull##';
+    $F->Size = 350;
+    $F->MaxLength = 255;
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'maptitle';
+    $M->addMaskField($F);
+
+    // mapprefont
+    $F = new DomMaskTextField('mapprefont');
+    $F->IfTable = true;
+    $F->Title = '##mapprefont.title##';
+    $F->HelpSummary = '##mapprefont.help.summary##';
+    $F->HelpTitle = '##mapprefont.help.title##';
+    $F->HelpDescription = '##mapprefont.help.description##';
+    $F->NotNull = '';
+    $F->StatusNotNull = '##mapprefont.status.notnull##';
+    $F->Size = 350;
+    $F->MaxLength = 255;
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'mapprefont';
+    $M->addMaskField($F);
+
+    // mappostfont
+    $F = new DomMaskTextField('mappostfont');
+    $F->IfTable = true;
+    $F->Title = '##mappostfont.title##';
+    $F->HelpSummary = '##mappostfont.help.summary##';
+    $F->HelpTitle = '##mappostfont.help.title##';
+    $F->HelpDescription = '##mappostfont.help.description##';
+    $F->NotNull = '';
+    $F->StatusNotNull = '##mappostfont.status.notnull##';
+    $F->Size = 350;
+    $F->MaxLength = 255;
+    $F->TabIndex = $ti++;
+    $F->URLVariable = 'mappostfont';
+    $M->addMaskField($F);
+*/
+
+    $F = new \dommask\DomMaskButtonField('submit2');
+    $F->action = 'submit';
+    $F->authmodes = 7;
+    $F->title = '##submit.title##';
+    $M->addMaskField($F);
+
+    $X = $M->run(\dommask\DomMask::_4GL);
+    return $X;
+  }
+
+  public function selectTemplateDefinition($key)
+  {
+    $Record = $this->cmsEntity->BASE_templatedef->doSelect($key);
+    return $Record;
+  }
+
+  public function forminstance()
+  {
+    return array();
+  }
+
+  public function formcode()
+  {
+    return array();
+  }
+
+
+
+}
+
+?>

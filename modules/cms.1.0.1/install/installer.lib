@@ -1,0 +1,72 @@
+<?php
+
+namespace modules\cms\install;
+
+class installer extends \common\installer
+{
+  const ID = 'cms';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateMenuTheme',
+           'Id' => 'cms',
+           'Template' => 'cms',
+           'Name' => 'cms',
+           'Icon' => '/skins/admin/modules/cms/cms.png',
+           'Cond' => null,
+           'Help' => 'cms' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'cms_',
+           'Theme' => 'cms',
+           'Father' => null,
+           'Template' => null,
+           'Access' => null,
+           'Name' => 'cmslist',
+           'Link' => '@admincmslist',
+           'Params' => null,
+           'Icon' => null,
+           'Cond' => null,
+           'Help' => 'cmslist' ),
+    );  
+  
+  public function __construct()
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/');
+  }  
+  
+  public function install($language)
+  {
+    $messages = $this->installDatabase($language);
+
+    $this->setModule(self::ID, $this->BASEDIR);
+    
+    // we insert the default data values in the database
+    // we load the language
+    $messages .= $language->getEntry('records');
+
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+
+    $messages .= $language->getEntry('pagesadmin') . "<br />\n";;
+    // run the scripter
+    $messages .= $this->installScript($language);
+    
+    return $messages;
+  }
+  
+  public function uninstall($language)
+  {
+    // run the scripter
+    $messages = $this->uninstallScript($language);
+
+    $this->delModule(self::ID);
+
+    $messages .= $this->uninstallDatabase($language);
+    return $messages;
+  }
+  
+};
+
+?>

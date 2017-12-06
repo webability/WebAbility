@@ -1,0 +1,87 @@
+<?php
+
+class admincmslist extends \common\WAApplication
+{
+  private $cmsEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->cmsEntity = \modules\cms\entities\cmsEntity::getInstance();
+  }
+
+  public function runApplication($engine, $params)
+  {
+    $father = 'cms';
+    $fatherkey = ($father=='cms'?null:$father);
+    $data = array();
+
+    $pages = $this->cmsEntity->getPagesList($fatherkey);
+    $pages = null;
+    if ($pages)
+    {
+      foreach($pages as $p)
+      {
+        // do we add apart recenlty modified pages ? pending of auth ?
+        $children = $this->getData($p['key']);
+
+        switch ($p['type'])
+        {
+          case 1: $icon = 'page-simple.png'; break;
+          case 10: $icon = 'page-wrapper.png'; break;
+          case 11: $icon = 'page-workflow.png'; break;
+          case 12: $icon = 'page-xmlreport.png'; break;
+          case 13: $icon = 'page-block.png'; break;
+          case 14: $icon = 'page-dynamicmenu.png'; break;
+          case 2: $icon = 'page-aslanguage.png'; break;
+          case 21: $icon = 'page-translation.png'; break;
+          case 22: $icon = 'page-template.png'; break;
+          case 23: $icon = 'page-css.png'; break;
+          case 24: $icon = 'page-robot.png'; break;
+          case 26: $icon = 'page-js.png'; break;
+          case 27: $icon = 'page-simple.png'; break;   // any other page
+          case 28: $icon = 'page-rss.png'; break;   // any other page
+          case 3: $icon = 'page-asbrowser.png'; break;
+          case 32: $icon = 'page-require.png'; break;
+          case 4: $icon = 'page-php.png'; break;
+          case 41: $icon = 'page-folder.png'; break;
+          case 6: $icon = 'page-macro.png'; break;
+          case 7: $icon = 'page-os.png'; break;
+          case 8: $icon = 'page-osencoded.png'; break;
+          case 9: $icon = 'page-directlink.png'; break;
+
+          default: $icon = 'page-simple.png'; break;
+        }
+        // all the pages are closed by default
+        $closed = $this->base->getParameter('indextree', 'page_'.$p['key'])?false:true;
+
+        $data[] = array('id' => 'page_'.$p['key'], 'template' => 'option', 'father' => ($father=='cms'?$father:'page_'.$father), 'loadable' => false, 'closeable' => ($children?true:false), 'closed' => true,
+
+        'name' => $p['key'], 'icon' => $icon, 'help.summary' => $p['name'], 'help.title' => $p['key'], 'help.description' => $p['name'] . '<br />' . $p['descr'],
+        'ct_mode' => 3, 'ct_zid' => 'app_cmsnewpage_', 'ct_apptitle' => $lang->getEntry('newpage'), 'ct_appid' => 'admincms|', 'ct_params' => 'father='.$p['key'],
+        'sh_mode' => 1, 'sh_zid' => 'page_'.$p['key'],
+        'na_mode' => 2, 'na_zid' => 'app_page_'.$p['key'], 'na_apptitle' => ' <img src="/skins/__SKIN__/icons/'.$icon.'" alt="" style="width: 16px; vertical-align: middle;" /> ' . $p['key'], 'na_appid' => 'admincms|'.$p['key'], 'na_params' => 'id='.$p['key'].'&order=show'
+         );
+
+        if ($children)
+          $data = array_merge($data, $children);
+      }
+    }
+
+    return $data;
+  }
+
+  public function template($engine, $params)
+  {
+    return $this->template->resolve();
+  }
+
+  public function language($engine, $params)
+  {
+    return $this->language;
+  }
+  
+}
+
+?>

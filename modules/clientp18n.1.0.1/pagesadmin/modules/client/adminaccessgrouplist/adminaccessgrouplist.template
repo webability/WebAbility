@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="modules/client/adminaccessgrouplist">
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone id="title" size="20">
+      <element type="htmlElement" classname="title" style="font-weight: bold;"><![CDATA[__TITLE__]]></element>
+    </zone>
+    <zone size="*">
+      <container id="accesslist" type="treeContainer" haslistener="yes">
+        <!-- GROUP of accesses -->
+        <template name="clientaccessgroup">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink" style="font-weight: bold;"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  WA.$N('menu').switchzone('{id}');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+        <!-- ACCESS of the group -->
+        <template name="clientaccess">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct_mode})
+    callindex.call(this, {ct_mode}, '{ct_zid}', '{ct_apptitle}', '{ct_appid}', '{ct_params}');
+  else if (sh && {sh_mode})
+    callindex.call(this, {sh_mode}, '{sh_zid}', '{sh_apptitle}', '{sh_appid}', '{sh_params}');
+  else if ({na_mode})
+    callindex.call(this, {na_mode}, '{na_zid}', '{na_apptitle}', '{na_appid}', '{na_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+
+        <!-- PROFILES with that access -->
+        <template name="option1icon">
+          <element type="imageElement" classname="imagemenu" width="16" height="16" src="{icon}"><![CDATA[{name}]]></element>
+          <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+            <help>
+              <summary><![CDATA[{help.summary}]]></summary>
+              <title><![CDATA[{help.title}]]></title>
+              <description><![CDATA[{help.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct_mode})
+    callindex.call(this, {ct_mode}, '{ct_zid}', '{ct_apptitle}', '{ct_appid}', '{ct_params}');
+  else if (sh && {sh_mode})
+    callindex.call(this, {sh_mode}, '{sh_zid}', '{sh_apptitle}', '{sh_appid}', '{sh_params}');
+  else if ({na_mode})
+    callindex.call(this, {na_mode}, '{na_zid}', '{na_apptitle}', '{na_appid}', '{na_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+          <element type="imageElement" classname="buttonmenu" width="16" height="16" src="{icon1}"><![CDATA[{name1}]]>
+            <help>
+              <summary><![CDATA[{help1.summary}]]></summary>
+              <title><![CDATA[{help1.title}]]></title>
+              <description><![CDATA[{help1.description}]]></description>
+            </help>
+            <event type="onclick">
+              <code><![CDATA[
+function(e)
+{
+  var sh = WA.browser.ifShift(e);
+  var ct = WA.browser.ifCtrl(e);
+
+  if (ct && {ct1_mode})
+    callindex.call(this, {ct1_mode}, '{ct1_zid}', '{ct1_apptitle}', '{ct1_appid}', '{ct1_params}');
+  else if (sh && {sh1_mode})
+    callindex.call(this, {sh1_mode}, '{sh1_zid}', '{sh1_apptitle}', '{sh1_appid}', '{sh1_params}');
+  else if ({na1_mode})
+    callindex.call(this, {na1_mode}, '{na1_zid}', '{na1_apptitle}', '{na1_appid}', '{na1_params}');
+}
+              ]]></code>
+            </event>
+          </element>
+        </template>
+      </container>
+
+    </zone>
+  </container>
+
+</application>

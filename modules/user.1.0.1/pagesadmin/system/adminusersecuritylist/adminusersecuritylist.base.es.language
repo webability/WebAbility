@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="adminusersecuritylist" lang="es">
+
+  <entry id="usersecurity"><![CDATA[Administradores y seguridad]]></entry>
+  <entry id="usersecurity.summary"><![CDATA[Abrir o cerrar las opciones de seguridad.]]></entry>
+  <entry id="usersecurity.title"><![CDATA[Seguridad:]]></entry>
+  <entry id="usersecurity.description"><![CDATA[Este tema permite visualizar las opciones disponibles de seguridad.]]></entry>
+
+  <entry id="users"><![CDATA[Usuarios]]></entry>
+  <entry id="users.summary"><![CDATA[Abrir o cerrar las lista de usuarios.]]></entry>
+  <entry id="users.title"><![CDATA[Usuarios:]]></entry>
+  <entry id="users.description"><![CDATA[Esta opción permite visualizar las lista de todos los usuarios dados de alta en el sistema, y administrarlos.]]></entry>
+
+  <entry id="useraccesses"><![CDATA[Accesos]]></entry>
+  <entry id="useraccesses.summary"><![CDATA[Abrir o cerrar las lista de accesos.]]></entry>
+  <entry id="useraccesses.title"><![CDATA[Accesos:]]></entry>
+  <entry id="useraccesses.description"><![CDATA[Esta opción permite visualizar las lista de todos los accesos del sistema, y administrarlos.]]></entry>
+
+  <entry id="useraccessgroup"><![CDATA[Accesos]]></entry>
+  <entry id="useraccessgrouphelpsum"><![CDATA[Grupos de derechos de acceso]]></entry>
+  <entry id="useraccessgrouphelptitle"><![CDATA[Herramientas de administración de los grupos de derechos de accesos]]></entry>
+  <entry id="useraccessgrouphelpdesc"><![CDATA[Permite administrar los grupos de derechos de acceso, los derechos de acceso, los perfiles afiliados y los usuarios que tienen estos derechos.]]></entry>
+  
+  <entry id="userprofiles"><![CDATA[Perfiles]]></entry>
+
+</language>

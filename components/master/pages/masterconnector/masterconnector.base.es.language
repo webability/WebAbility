@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="masterconnector" lang="es">
+  <entry id="mask.errormessage"><![CDATA[Los datos aún no son bien capturados. Por favor, verifique los mensajes y los campos en rojo antes de enviar la información.]]></entry>
+  <entry id="mask.servermessage"><![CDATA[Error: Los datos del registro no pudierón ser recuperados del servidor.]]></entry>
+  <entry id="mask.titleupdate"><![CDATA[Modificar el conector:]]></entry>
+  <entry id="mask.titleview"><![CDATA[Datos del conector:]]></entry>
+
+  <entry id="id.title"><![CDATA[Id:]]></entry>
+  <entry id="id.help.description"><![CDATA[El ID del connector es un nombre entre 1 y 8 letras o cifras o guión bajo. Es único en el sistema, es decir que no se puede repetir entre varios conectores.]]></entry>
+  <entry id="id.status.notnull"><![CDATA[El id no puede ser vacio.]]></entry>
+  <entry id="id.status.badformat"><![CDATA[El id esta mal escrito. 1 a 8 letras o cifras.]]></entry>
+
+  <entry id="type.title"><![CDATA[Tipo de base de datos:]]></entry>
+  <entry id="type.help.description"><![CDATA[Tiene que seleccionar la marca de la base de datos deseada para este conector.]]></entry>
+
+  <entry id="method.title"><![CDATA[Método de conexión:]]></entry>
+  <entry id="method.help.description"><![CDATA[Tiene que seleccionar el método de conexión a la base de datos. Necesita que el sistema acepte este tipo de conexión para poder usarla.]]></entry>
+
+  <entry id="persistent.title"><![CDATA[Persistencia:]]></entry>
+  <entry id="persistent.help.description"><![CDATA[Tiene que seleccionar la persistencia del conector a la base de datos.]]></entry>
+
+  <entry id="database.title"><![CDATA[Nombre de la base de datos:]]></entry>
+  <entry id="database.help.description"><![CDATA[Tiene que capturar el nombre de la base de datos a la cual se quiere conectar con este conector. Esta base de datos tiene que ya existir en su manejador de bases de datos.]]></entry>
+  <entry id="database.status.notnull"><![CDATA[El nombre de base de datos no puede ser vacio.]]></entry>
+
+  <entry id="username.title"><![CDATA[Usuario de la base de datos:]]></entry>
+  <entry id="username.help.description"><![CDATA[Tiene que capturar el usuario para poder conectarse a la base de datos. Este usuario tiene que ser ya dado de alta y funcionando en el manejador de la base de datos.]]></entry>
+  <entry id="username.status.notnull"><![CDATA[El nombre no puede ser vacio.]]></entry>
+
+  <entry id="password.title"><![CDATA[Contraseña de la base de datos:]]></entry>
+  <entry id="password.help.description"><![CDATA[Tiene que capturar la contraseña para poder conectarse a la base de datos. El usuario correpondiente tiene que ser ya dado de alta y funcionando en el manejador de la base de datos.]]></entry>
+  <entry id="password.help.descriptionoptional"><![CDATA[Si desea cambiar la contraseña, entonces tiene que capturar la nueva contraseña. Capturar una nueva contraseña NO cambiara la contraseña de la base de datos, pero sirve para ajustarla en caso de que ya se haya cambiado en la base de datos.]]></entry>
+  <entry id="password.status.notnull"><![CDATA[La contraseña no puede ser vacia.]]></entry>
+
+  <entry id="extra.title"><![CDATA[Otros parámetros extras:]]></entry>
+  <entry id="extra.help.description"><![CDATA[Tiene que capturar los demás parámetros que puede necesitar para conectarse a la base de datos. Favor de referir al manual de la base de datos y de PHP para conocer la lista de parámetros disponibles (puertos, métodos de conexión, encriptación, etc.).]]></entry>
+
+  <entry id="form.insert"><![CDATA[Insertar un nuevo conector]]></entry>
+  <entry id="form.update"><![CDATA[Modificar este conector]]></entry>
+  <entry id="form.cancel"><![CDATA[Cancelar la edición]]></entry>
+  <entry id="form.delete"><![CDATA[Borrar este conector]]></entry>
+  <entry id="form.submit"><![CDATA[Aplicar los cambios realizados]]></entry>
+  <entry id="form.reset"><![CDATA[Vaciar los campos]]></entry>
+  <entry id="form.view"><![CDATA[Cancelar la edición]]></entry>
+
+</language>

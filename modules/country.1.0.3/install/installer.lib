@@ -1,0 +1,84 @@
+<?php
+
+namespace modules\country\install;
+
+class installer extends \common\installer
+{
+  const ID = 'country';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateMenuTheme',
+           'Id' => 'country',
+           'Template' => null,
+           'Name' => 'country',
+           'Icon' => '/skins/admin/modules/country/country.png',
+           'Cond' => null,
+           'Help' => 'country' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'country_',
+           'Theme' => 'country',
+           'Father' => null,
+           'Template' => null,
+           'Access' => 'country',
+           'Name' => 'country',
+           'Link' => '/admincountrylist',
+           'Params' => null,
+           'Icon' => null,
+           'Cond' => null,
+           'Help' => 'country' ),
+    );  
+  
+  public function __construct()
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/');
+  }  
+  
+  public function install($language)
+  {
+    $messages = $this->installDatabase($language);
+    
+    $this->setModule(self::ID, $this->BASEDIR);
+
+    // we insert the default data values in the database
+    // we load the language
+    $countries = \core\WASimpleXML::tags(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/database/country_country.xml'));
+    $countrynames = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/country_country.'.$this->base->Language.'.xml'));
+    require $this->base->getTablePath('country_country');
+    $country_country->setDB($this->base->connector['Main']);
+
+    $messages .= $language->getEntry('records');
+    // loop to insert all the countries
+    foreach($countries['record'] as $country)
+    {
+      $data = array('key' => $country['key'], 'name' => $countrynames->{$country['key']}, 'father' => $country['father'], 'iso3' => $country['iso3']);
+      $country_country->doInsert( $data );
+    }
+
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+
+    $messages .= $language->getEntry('pagesadmin') . "<br />\n";
+
+    // run the scripter
+    $messages .= $this->installScript($language);
+    
+    return $messages;
+  }
+  
+  public function uninstall($language)
+  {
+    // run the scripter
+    $messages = $this->uninstallScript($language);
+
+    $this->delModule(self::ID);
+
+    $messages .= $this->uninstallDatabase($language);
+    return $messages;
+  }
+  
+};
+
+?>

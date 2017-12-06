@@ -1,0 +1,90 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master language selection screen
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class masterlanguageinstall extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  public function getParameters($engine, $params)
+  {
+    return array('LANGUAGE' => $this->base->Language,
+                 'SELECT' => $this->getSelect(),
+                 'FLAGS' => $this->getCountries() );
+  }
+
+  private function getSelect()
+  {
+    $knowncountries = $this->base->getLocalCountries();
+    $text = '';
+    foreach($knowncountries as $lang => $language)
+    {
+      $text .= $language['select'].'<br />';
+    }
+    return $text;
+  }
+
+  private function getCountries()
+  {
+    $knowncountries = $this->base->getLocalCountries();
+
+    $sc = new \wajaf\separatorContainer();
+    $sc->setClassname('separatorinvisiblehorizontal');
+    $sc->setMode('horizontal');
+    $sc->setAuto('yes')->setHeight('*');
+    $sc->setStyle('overflow: visible;');
+
+    foreach($knowncountries as $lang => $language)
+    {
+      $zone = new \wajaf\separatorZone();
+      $zone->setSize('*');
+      $zone->setStyle('overflow: visible;');
+
+      $te = new \wajaf\textElement($language['name']);
+      $te->setClassname('languagename');
+      $zone->add($te);
+
+      $item = 0;
+      foreach($language['countries'] as $cid => $country)
+      {
+        $be = new \wajaf\buttonElement($country);
+        $be->setClassname('flag');
+        $be->setStyle('background-image: url(\'/skins/__SKIN__/flags/'.$cid.'.gif\');');
+        $be->setEvent('click', "function() { calllanguage(self, '$lang', '$cid'); }");
+        $be->setHelp('##language## '.$language['name'].', ##country## '.$country, '##flag.title##', '##flag.description##');
+        $zone->add($be);
+
+        $te = new \wajaf\textElement($country);
+        $te->setClassname('flagtext');
+        $te->setEvent('onclick', "function() { calllanguage(self, '$lang', '$cid'); }");
+        $te->setHelp('##language## '.$language['name'].' ##country## '.$country, '##flag.title##', '##flag.description##');
+        $zone->add($te);
+
+        $item ++;
+      }
+
+      $sc->add($zone);
+    }
+
+    return $sc->compile();
+  }
+
+}
+
+?>

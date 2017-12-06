@@ -1,0 +1,11 @@
++ Introduction:
+
+Welcome to the Wiki demo center
+
++ Edition:
+
+[[/examples/wiki/newpage|Create a new page (will give a 404, it's not a sub page of a official wiki root page)]]
+[[/examples/wiki/welcome/newpage|Create a new page (will work)]]
+
++ Reference:
+

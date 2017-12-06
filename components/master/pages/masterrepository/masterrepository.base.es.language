@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="masterrepository" lang="es">
+  <entry id="title"><![CDATA[Configuracion del repositorio de datos:]]></entry>
+  <entry id="status"><![CDATA[Estatus actual: ]]></entry>
+  <entry id="statusimage"><![CDATA[Estatus actual]]></entry>
+  <entry id="status.1.text"><![CDATA[El repositorio esta instalado y al día.]]></entry>
+  <entry id="status.2.text"><![CDATA[El conector aun no esta instalado.]]></entry>
+  <entry id="status.3.text"><![CDATA[El conector tiene un problema.]]></entry>
+  <entry id="status.4.text"><![CDATA[El repositorio esta instalado pero necesita actualización.]]></entry>
+  <entry id="status.5.text"><![CDATA[El repositorio aún no esta instalado.]]></entry>
+  <entry id="installed.text"><![CDATA[Versión instalada en el repositorio:&nbsp;]]></entry>
+  <entry id="available.text"><![CDATA[Versión disponible para instalar:&nbsp;]]></entry>
+
+  <entry id="install"><![CDATA[Instalar el repositorio]]></entry>
+  <entry id="verify"><![CDATA[Verificar la integridad del repositorio]]></entry>
+  <entry id="upgrade"><![CDATA[Actualizar el repositorio]]></entry>
+  <entry id="uninstall"><![CDATA[Borrar el repositorio]]></entry>
+
+  <entry id="alreadyinstalled"><![CDATA[Error: el repositorio ya esta instalado.]]></entry>
+  <entry id="noconnector"><![CDATA[Error: el conector del repositorio principal no existe.]]></entry>
+  <entry id="connectorfail"><![CDATA[Error: el conector del repositorio principal no funciona.]]></entry>
+  <entry id="errorduringinstall"><![CDATA[Error durante la instalación del repositorio:]]></entry>
+  <entry id="notinstalled"><![CDATA[Error: el repositorio no esta instalado.]]></entry>
+  <entry id="errorduringuninstall"><![CDATA[Error durante la desinstalación del repositorio:]]></entry>
+  <entry id="donotneedupgrade"><![CDATA[Error: el repositorio no necesita actualización.]]></entry>
+  <entry id="errorduringupgrade"><![CDATA[Error durante la actualización del repositorio:]]></entry>
+
+  <!-- Entries for the installer common\installer.lib -->
+  <!-- LOG Entries -->
+  <entry id="moduleinsert"><![CDATA[Insertando el módulo en [REPOSITORY]/modules.conf]]></entry>
+  <entry id="moduledelete"><![CDATA[Borrando el módulo de [REPOSITORY]/modules.conf]]></entry>
+  <entry id="databaseinsert"><![CDATA[Instalando las tablas en la base de datos.]]></entry>
+  <entry id="databasedelete"><![CDATA[Borrando las tablas de la base de datos.]]></entry>
+  <entry id="scriptinstall"><![CDATA[Corriendo el script de instalación.]]></entry>
+  <entry id="scriptuninstall"><![CDATA[Corriendo el script de desinstalación.]]></entry>
+
+  <!-- SCREEN entries -->
+  <entry id="table"><![CDATA[Instalando la tabla:&nbsp;<b>]]></entry>
+  <entry id="tabledone"><![CDATA[</b>... Hecho.<br />]]></entry>
+  <entry id="tabledelete"><![CDATA[Borrando la tabla:&nbsp;<b>]]></entry>
+  <entry id="tabledeletedone"><![CDATA[</b>... Hecho.<br />]]></entry>
+  
+  <entry id="pagesadmin"><![CDATA[Instalando las páginas de administración<br />]]></entry>
+  <entry id="records"><![CDATA[Insertando la data en las tablas<br />]]></entry>
+
+  <entry id="modulebase"><![CDATA[Insertando en módulo en tabla de módulos<br />]]></entry>
+  <entry id="modulereferences"><![CDATA[Insertando las referencias de tablas en tabla de referencias de módulos<br />]]></entry>
+  
+  <entry id="orderexecute"><![CDATA[Ejecutando la orden del script:&nbsp;<b>]]></entry>
+  <entry id="orderdone"><![CDATA[</b>... Hecho.<br />]]></entry>
+  <entry id="ordererror"><![CDATA[</b>... Error.<br />]]></entry>
+
+</language>

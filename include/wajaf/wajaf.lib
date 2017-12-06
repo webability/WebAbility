@@ -1,0 +1,199 @@
+<?php
+
+/*
+    wajaf.lib, WAJAF, the WebAbility(r) Javascript Application Framework
+    Contains the WAJAF classes to build WAJAF applications in PHP
+    (c) 2008-2010 Philippe Thomassigny
+
+    This file is part of WAJAF
+
+    WAJAF is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    WAJAF is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with WAJAF.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+namespace wajaf;
+
+class wajaf extends \core\WAClass
+{
+  protected $tagname = '';
+  protected $attributes = array();
+  protected $data = null;
+  protected $isnottext = false;
+  protected $children = array();
+  protected $summary = null;
+  protected $title = null;
+  protected $description = null;
+  protected $events = array();
+  protected $possiblechildren = array();
+  protected $messages = array();
+  protected $possiblemessages = array();
+
+  public function __construct($tagname)
+  {
+    $this->tagname = $tagname;
+  }
+
+  protected function registerAttributes($params)
+  {
+    foreach ($params as $p)
+      $this->attributes[$p] = null;
+  }
+
+  public function size($width, $height)
+  {
+    $this->attributes['width'] = $width;
+    $this->attributes['height'] = $height;
+    return $this;
+  }
+
+  public function position($left, $top, $right = null, $bottom = null)
+  {
+    $this->attributes['left'] = $left;
+    $this->attributes['top'] = $top;
+    $this->attributes['right'] = $right;
+    $this->attributes['bottom'] = $bottom;
+    return $this;
+  }
+
+  protected function getTagName()
+  {
+    return $this->tagname;
+  }
+
+  public function __call($name, $vars)
+  {
+    $var = strtolower(substr($name, 3));
+    if (array_key_exists($var, $this->attributes))
+    {
+      if ($name == 'get'.ucfirst($var))
+        return $this->attributes[$var];
+      elseif ($name == 'set'.ucfirst($var))
+      {
+        $this->attributes[$var] = $vars[0];
+        return $this;
+      }
+    }
+    throw new \throwables\wajafError('Error, ' . $name . '(' . $vars . ') is not a valid function.');
+  }
+
+  protected function registerPossibleChildren($tags)
+  {
+    foreach ($tags as $t)
+      $this->possiblechildren[$t] = true;
+  }
+
+  protected function registerPossibleMessages($entries)
+  {
+    foreach ($entries as $e)
+      $this->possiblemessages[$e] = true;
+  }
+
+  public function setData($data, $isnottext = false)
+  {
+    $this->isnottext = $isnottext;
+    $this->data = $data;
+    return $this;
+  }
+
+  public function setHelp($summary, $title, $description)
+  {
+    $this->summary = $summary;
+    $this->title = $title;
+    $this->description = $description;
+    return $this;
+  }
+
+  public function setMessages($messages)
+  {
+    foreach($messages as $e => $message)
+    {
+      $this->messages[$e] = $message;
+    }
+  }
+
+  public function setMessage($entry, $message)
+  {
+    $this->messages[$entry] = $message;
+  }
+
+  public function add($object)
+  {
+    if (!($object instanceof wajaf))
+      throw new \throwables\wajafError('Error, ' . $object->getTagName() . ' is not an instance of wajaf.');
+    if (!isset($this->possiblechildren[$object->getTagName()]))
+      throw new \throwables\wajafError('Error, '.$this->tagname.' cannot have '.$object->getTagName() . ' as child.');
+    $this->children[] = $object;
+    return $this;
+  }
+
+  public function setEvent($event, $code)
+  {
+    $this->events[$event] = $code;
+    return $this;
+  }
+
+  protected function compilepre()
+  {
+    $txt = '<'.$this->tagname;
+    foreach($this->attributes as $a => $v)
+      if (isset($v))
+        $txt .= ' '.$a.'="'.$v.'"';
+    $txt .= '>';
+    if ($this->data !== null && !$this->isnottext)
+      $txt .= '<![CDATA['.$this->data.']]>';
+    else if ($this->data !== null && $this->isnottext)
+      $txt .= $this->data;
+    foreach($this->children as $c)
+      $txt .= $c->compile();
+    if ($this->summary || $this->title || $this->description)
+    {
+      $txt .= '<help>';
+      if ($this->summary)
+        $txt .= '<summary><![CDATA['.$this->summary.']]></summary>';
+      if ($this->title)
+        $txt .= '<title><![CDATA['.$this->title.']]></title>';
+      if ($this->description)
+        $txt .= '<description><![CDATA['.$this->description.']]></description>';
+      $txt .= '</help>';
+    }
+    foreach($this->events as $e => $c)
+      $txt .= '<event type="'.$e.'"><code><![CDATA['.$c.']]></code></event>';
+    return $txt;
+  }
+
+  protected function compilemessages()
+  {
+    $txt = '';
+    foreach($this->messages as $k => $m)
+      $txt .= '<'.$k.'><![CDATA['.$m.']]></'.$k.'>';
+    return $txt;
+  }
+
+  protected function compilelocal()
+  { }
+
+  protected function compilepost()
+  {
+    $txt = '</'.$this->tagname.'>';
+    return $txt;
+  }
+
+  public function compile()
+  {
+    return $this->compilepre() . $this->compilemessages() . $this->compilelocal() . $this->compilepost();
+  }
+
+}
+
+?>

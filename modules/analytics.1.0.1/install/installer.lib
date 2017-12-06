@@ -1,0 +1,43 @@
+<?php
+
+namespace modules\analytics\install;
+
+class installer extends \common\installer
+{
+  const ID = 'analytics';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    );  
+  
+  public function __construct($language)
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
+  }  
+  
+  public function install()
+  {
+    $messages = $this->installDatabase();
+
+    $this->setModule(self::ID, $this->BASEDIR);
+
+    $this->setConfigParam('base', 'UNIVERSALANALYTICS', 'your-universal-analytics-ID');
+
+    // run the scripter
+    $messages .= $this->installScript();
+
+    return $messages;
+  }
+  
+  public function uninstall()
+  {
+    // run the scripter
+    $messages = $this->uninstallScript();
+    $this->delModule(self::ID);
+    $messages .= $this->uninstallDatabase();
+    return $messages;
+  }
+  
+};
+
+?>

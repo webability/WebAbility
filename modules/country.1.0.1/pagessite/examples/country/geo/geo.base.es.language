@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="geo" lang="es">
+  <entry id="yourip"><![CDATA[Su IP]]></entry>
+  <entry id="yourisocode"><![CDATA[Código ISO2 de la IP]]></entry>
+  <entry id="yourcountry"><![CDATA[Su Pais]]></entry>
+</language>

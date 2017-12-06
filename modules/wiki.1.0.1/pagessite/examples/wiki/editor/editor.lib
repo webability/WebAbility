@@ -1,0 +1,115 @@
+<?php
+
+class editor extends \xamboo\XBLibrary
+{
+  protected $wikiEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->wikiEntity = \modules\wiki\entities\wikiEntity::getInstance();
+  }
+
+  public function run($engine, $params)
+  {
+    // we search for the page to read
+    $wikipage = $this->wikiEntity->getPage($engine->URI);
+
+    $order = $this->base->HTTPRequest->getParameter('order');
+    if ($order == 'save')
+    {
+      $wikititle = $this->base->HTTPRequest->getParameter('wikititle');
+      $wikicode = $this->base->HTTPRequest->getParameter('wikicode');
+      $wikichanges = $this->base->HTTPRequest->getParameter('wikichanges');
+    
+      $wikipage->saveCode($wikititle, $wikicode, $wikichanges);
+      
+      return "Modificaciones realizadas";
+    }
+    
+    // we put the page into the content
+    $this->template->metaElements(array(
+        'title' => $wikipage->gettitle(),
+        'code' => $wikipage->getcode(),
+        'changes' => ''
+      ));
+
+    return $this->template->resolve();
+  }
+  
+  private function getMask($code)
+  {
+    // Objeto MaskDef
+    $MD = new DB_MaskDef(null, $TempMD);
+
+    $tabindex = 1;
+
+    // Parametros de MaskDef
+    $MD->MaskId = 'wikieditor';
+
+    $MD->Variables = Array("P" => $pageeditor, $varwiki => $path);
+
+    // Se crea el objeto Mask
+    $M = new DB_Mask($MD, $this);
+
+    $F = new DB_MaskFieldText($TempFMandatory);
+    $F->Title = $language["title.title"];
+    $F->Length = 130;
+    $F->TabIndex = $tabindex++;
+    $F->URLVariable = "TITLE";
+    $F->NotNull = true;
+    $F->Default = $WP->getTitle();
+    $M->addMaskField($F);
+
+    $F = new DB_MaskFieldTextAreaWiki($TempFMandatory);
+    $F->Title = $language["body.title"];
+    $F->Cols = 130;
+    $F->Rows = 30;
+    $F->TabIndex = $tabindex++;
+    $F->URLVariable = "BODY";
+    $F->Default = $WP->getCode();
+    $M->addMaskField($F);
+
+    $F = new DB_MaskFieldText($TempFMandatory);
+    $F->Title = $language["description.title"];
+    $F->Length = 130;
+    $F->TabIndex = $tabindex++;
+    $F->URLVariable = "DESCRIPTION";
+    $M->addMaskField($F);
+
+    // Submit
+    $F = new DB_MaskFieldButtonSubmit($TempFSubmit);
+    $F->ButtonInsert = $language["form.buttoninsert"];
+    $F->TabIndex = $tabindex++;
+    $M->addMaskField($F);
+
+    // Reset
+    $F = new DB_MaskFieldButtonReset($TempFClear);
+    $F->ButtonInsert = $language["form.buttonresetinsert"];
+    $F->TabIndex = $tabindex++;
+    $M->addMaskField($F);
+
+    $txt = "";
+    $Order = $this->base->getVariable("DomMaskOrder");
+    if ($Order=="Do")
+    {
+      $title = $this->base->HTTPRequest->getParameter("TITLE");
+      $code = $this->base->HTTPRequest->getParameter("BODY");
+      $description = $this->base->HTTPRequest->getParameter("DESCRIPTION");
+      $WP->setCode($title, $code, $description);
+
+      $modif = $template->getTemplate("modification");
+      $modif->addElement("__MESSAGE__", $language["modification.ok"]);
+      $modif->addElement("__BACKTITLE__", $language["back"]);
+      $txt .= $modif->resolve();
+    }
+    $txt .= $M->createInsert();
+
+    return $txt;
+  }
+  
+
+}
+
+?>

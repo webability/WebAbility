@@ -1,0 +1,10 @@
+<div style="padding: 5px;">@@breadcrumbs@@</div>
+[[breadcrumbs.first]]<a href="{{path}}">{{name}}</a>[[]]
+[[breadcrumbs]]&nbsp;&gt;&nbsp;<a href="{{path}}">{{name}}</a>[[]]
+
+<div style="padding: 5px;">{{title}}</div>
+
+<div style="min-height: 500px;">[[CONTENT]]</div>
+
+<div style="padding: 5px;">{{tools}}</div>
+

@@ -1,0 +1,43 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master template
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class template extends \xamboo\XBLibrary
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  public function run($engine, $params)
+  {
+    $this->base->HTTPResponse->buildHeaders();
+    $this->base->HTTPResponse->buildCookies();
+
+    $this->template->metaElements(
+      array('charcode' => \common\Base::CharSet,
+            'language' => $this->base->Language,
+            'htmltitle' => 'Master ' . $this->base->getSystem() . ' ' . $this->base->getVersion(),
+            'css' => $this->base->HTTPResponse->buildCSS(),
+            'js' => $this->base->HTTPResponse->buildJS()
+            )
+      );
+    return $this->template;
+  }
+
+}
+
+?>

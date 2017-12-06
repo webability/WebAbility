@@ -1,0 +1,24 @@
+<?php
+
+class html extends \xamboo\XBLibrary
+{
+  function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+
+  public function run($engine, $params)
+  {
+    // build all the page attributes
+    $meta = array(
+      'charset' => 'UTF-8',
+      'language' => $this->base->Language,
+      
+    );
+    $this->template->metaElements($meta);
+    return $this->template;
+  }
+  
+}
+
+?>

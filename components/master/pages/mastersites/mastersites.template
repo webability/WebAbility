@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="mastersites">
+  <element type="htmlElement" classname="maintitle">
+<![CDATA[##title##]]>
+  </element>
+
+  <element id="loading" type="htmlElement" classname="mastersites_loading" left="0" top="0" width="max" height="max" display="none"></element>
+
+  <container type="simpleContainer" classname="simplecontent">
+    <zone id="status">
+      <element type="textElement">
+<![CDATA[##status##]]>
+      </element>
+      <element id="image" type="imageElement" width="16" height="16" style="margin-left: 10px; margin-right: 10px;">
+<![CDATA[##statusimage##]]>
+      </element>
+      <element id="status_1" type="textElement" display="none">
+<![CDATA[##status.1.text##]]>
+      </element>
+      <element id="status_2" type="textElement" display="none">
+<![CDATA[##status.2.text##]]>
+      </element>
+      <element id="status_3" type="textElement" display="none">
+<![CDATA[##status.3.text##]]>
+      </element>
+
+      <element id="versioncodeinstalled" type="textElement" display="none">
+<![CDATA[<br />##installed.code.text##]]>
+      </element>
+      <element id="versioncodeinstallednum" type="textElement" display="none" style="font-weight: bold;">
+<![CDATA[__CODEINSTALLED__]]>
+      </element>
+      <element id="versionrepositoryinstalled" type="textElement" display="none">
+<![CDATA[<br />##installed.repository.text##]]>
+      </element>
+      <element id="versionrepositoryinstallednum" type="textElement" display="none" style="font-weight: bold;">
+<![CDATA[__REPOSITORYINSTALLED__]]>
+      </element>
+      <element id="versionavailable" type="textElement" display="none">
+<![CDATA[<br />##available.text##]]>
+      </element>
+      <element id="versionavailablenum" type="textElement" display="none" style="font-weight: bold;">
+<![CDATA[__AVAILABLE__]]>
+      </element>
+    </zone>
+  </container>
+
+  <container id="paths" type="simpleContainer" classname="simplecontent">
+    <zone id="pathsform">
+__FORM__
+    </zone>
+  </container>
+
+  <container id="buttons" type="simpleContainer" classname="simplecontent">
+    <zone id="sitesbuttons">
+      <element id="button_install" type="buttonElement" display="none">
+<![CDATA[##install##]]>
+        <event type="click">
+          <code>
+<![CDATA[
+function()
+{
+  startinstallsites();
+}
+]]>
+          </code>
+        </event>
+      </element>
+      <element id="button_upgrade" type="buttonElement" display="none">
+<![CDATA[##upgrade##]]>
+        <event type="click">
+          <code>
+<![CDATA[
+function()
+{
+  startinstallsites();
+}
+]]>
+          </code>
+        </event>
+      </element>
+    </zone>
+  </container>
+
+  <!-- container to fill with the installation/desinstallation/upgrade log -->
+  <element id="fillme" type="htmlElement" classname="mastersites_fillme" display="none">
+  </element>
+
+  <element type="codeElement">
+<![CDATA[
+
+// status is 1 = ok, 2 = not installed, 3 = upgrade needed
+var mastersitesstatus = __STATUS__;
+var mastercodeinstalled = '__CODEINSTALLED__';
+var masterrepositoryinstalled = '__REPOSITORYINSTALLED__';
+var mastersitesavailable = '__AVAILABLE__';
+
+function sitesinstalled(r)
+{
+  var data = WA.JSON.decode(r.responseText);
+  hidesitesstatus();
+  mastersitesstatus = data.newstatus;
+  mastercodeinstalled = data.codeinstalled;
+  masterrepositoryinstalled = data.repositoryinstalled;
+  mastersitesavailable = data.available;
+  WA.toDOM('fillme').innerHTML = data.message;
+  WA.$N('fillme').show();
+  showsitesstatus();
+  if (data.status)
+  {
+    WA.$N('masterindex|single|menu').reload();
+    WA.Managers.wa4gl.destroyApplication('mastercontrol', 'single');
+    WA.Managers.wa4gl.startApplication('masterindex|single|controlcenter', 'mastercontrol', 'single', '', '');
+  }
+  WA.$N('loading').hide();
+}
+
+function startinstallsites()
+{
+  WA.$N('fillme').hide();
+  WA.$N('buttons').hide();
+  WA.$N('loading').show();
+  WA.Managers.ajax.createRequest('/__INDEXPHP__/mastersites/install/json', 'POST', '', sitesinstalled, true);
+}
+
+function hidesitesstatus()
+{
+  switch(mastersitesstatus)
+  {
+    case 1:
+      WA.$N('status_1').hide();
+      WA.$N('versioncodeinstalled').hide();
+      WA.$N('versioncodeinstallednum').hide();
+      WA.$N('versionrepositoryinstalled').hide();
+      WA.$N('versionrepositoryinstallednum').hide();
+      WA.$N('button_install').hide();
+      break;
+    case 2:
+      WA.$N('status_2').hide();
+      WA.$N('versionavailable').hide();
+      WA.$N('versionavailablenum').hide();
+      WA.$N('button_install').hide();
+      break;
+    case 3:
+      WA.$N('status_3').hide();
+      WA.$N('versioncodeinstalled').hide();
+      WA.$N('versioncodeinstallednum').hide();
+      WA.$N('versionrepositoryinstalled').hide();
+      WA.$N('versionrepositoryinstallednum').hide();
+      WA.$N('versionavailable').hide();
+      WA.$N('versionavailablenum').hide();
+      WA.$N('button_upgrade').hide();
+      break;
+  }
+}
+
+function showsitesstatus()
+{
+  switch(mastersitesstatus)
+  {
+    case 1: // ok
+      WA.toDOM('status').className = 'sitesstatus_1';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/sites-ok.png';
+      WA.$N('status_1').show();
+      WA.toDOM('versioncodeinstallednum').innerHTML = mastercodeinstalled;
+      WA.$N('versioncodeinstalled').show();
+      WA.$N('versioncodeinstallednum').show();
+      WA.toDOM('versionrepositoryinstallednum').innerHTML = masterrepositoryinstalled;
+      WA.$N('versionrepositoryinstalled').show();
+      WA.$N('versionrepositoryinstallednum').show();
+      WA.toDOM('buttons').className = 'sitesstatus_1';
+      WA.$N('button_install').show();
+      WA.$N('buttons').show();
+      break;
+    case 2: // no instalado
+      WA.toDOM('status').className = 'sitesstatus_2';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/sites-no.png';
+      WA.$N('status_2').show();
+      WA.toDOM('versionavailablenum').innerHTML = mastersitesavailable;
+      WA.$N('versionavailable').show();
+      WA.$N('versionavailablenum').show();
+      WA.toDOM('buttons').className = 'sitesstatus_2';
+      WA.$N('button_install').show();
+      WA.$N('buttons').show();
+      break;
+    case 3: // need upgrade
+      WA.toDOM('status').className = 'sitesstatus_3';
+      WA.toDOM('image').src = '/skins/__SKIN__/icons/sites-upgrade.png';
+      WA.$N('status_3').show();
+      WA.toDOM('versioncodeinstallednum').innerHTML = mastercodeinstalled;
+      WA.$N('versioncodeinstalled').show();
+      WA.$N('versioncodeinstallednum').show();
+      WA.toDOM('versionrepositoryinstallednum').innerHTML = masterrepositoryinstalled;
+      WA.$N('versionrepositoryinstalled').show();
+      WA.$N('versionrepositoryinstallednum').show();
+      WA.toDOM('versionavailablenum').innerHTML = mastersitesavailable;
+      WA.$N('versionavailable').show();
+      WA.$N('versionavailablenum').show();
+      WA.toDOM('buttons').className = 'sitesstatus_3';
+      WA.$N('button_upgrade').show();
+      WA.$N('buttons').show();
+      break;
+  }
+}
+]]>
+  </element>
+
+  <event type="start">
+    <code>
+<![CDATA[
+function()
+{
+  showsitesstatus();
+}
+]]>
+    </code>
+  </event>
+
+</application>

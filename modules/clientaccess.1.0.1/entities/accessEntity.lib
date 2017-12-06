@@ -1,0 +1,48 @@
+<?php
+
+namespace modules\clientaccess\entities;
+
+class accessEntity extends \common\entity
+{
+  protected $tables = array(
+      'accessgroup' => array('table' => 'client_accessgroup'),
+      'access' => array('table' => 'client_access'),
+      'accessextended' => array('table' => 'client_accessextended'),
+      'profile' => array('table' => 'client_profile'),
+      'profileaccess' => array('table' => 'client_profileaccess'),
+      'profileaccessextended' => array('table' => 'client_profileaccessextended'),
+      'clientprofile' => array('table' => 'client_clientprofile'),
+      'clientaccess' => array('table' => 'client_clientaccess'),
+      'clientaccessextended' => array('table' => 'client_clientaccessextended')
+    );
+
+  public function __construct()
+  {
+    parent::__construct();
+  }
+/*
+  public function getGroups()
+  {
+    return $this->client_accessgroup->doSelectCondition(null, new \dominion\DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+  }
+  
+  public function getAccessesByGroup($group)
+  {
+    return $this->client_access->doSelectCondition(array(new \dominion\DB_Condition('group', '=', $group)), new \dominion\DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+  }
+  
+  public function getProfilesByAccess($access)
+  {
+    return $this->client_profile->doSelectCondition(array(new \dominion\DB_Condition('access', '=', $access)), new \dominion\DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+    
+  }
+*/
+  
+  public function ifAccess()
+  {
+    return true;
+  }
+
+}
+
+?>

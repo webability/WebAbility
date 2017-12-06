@@ -1,0 +1,475 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+wiki.lib, Xamboo
+Contains the basic class to contains a code page (simple page)
+(c) 2012 Philippe Thomassigny
+
+This file is part of Xamboo
+
+Xamboo is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Xamboo is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Xamboo.  If not, see <http://www.gnu.org/licenses/>.
+
+Creation: 2012-09-23
+Changes:
+  2015-07-19 Phil: Added PARAM metaword for simple pages to understand CALL syntax with named parameters.
+  2015-04-21 Phil: documentation, comments
+
+@End_DESCR */
+
+/* @UML_Box
+|------------------------------------------------------------------|
+| wiki: page object                                              |
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace modules\wiki\server;
+
+// Class to manage a page object
+class wiki extends \core\WAClass
+{
+  protected $code = '';
+
+  private $syntax = null;
+  private $preprocesor = "&&&&&";
+  private $postprocesor = "&&&&&";
+
+  private $links = array();
+  private $multimedias = array();
+
+  public $blocksnotparsed = array(
+    "nowiki" => array("regexp" => "/~~(.*?)~~/s", "fragments" => array(1 => "text"), "recursive" => null, "parser" => null),
+    "html" => array("regexp" => "/<html>(.*?)<\\/html>/s", "fragments" => array(1 => "html"), "recursive" => null, "parser" => null),
+    "comment" => array("regexp" => "/%\\-\\-(.*?)\\-\\-%/s", "fragments" => array(1 => "comment"), "recursive" => null, "parser" => null),
+    "toc" => array("regexp" => "/(<toc>)/s", "fragments" => array(1 => "keyword"), "recursive" => null, "parser" => null),
+    "syntax" => array("regexp" => "/<syntax:(.*?)>(.*?)<\\/syntax>/s", "fragments" => array(1 => "language", 2 => "source"), "recursive" => null, "parser" => null),
+    "hr" => array("regexp" => "/(\\-{4,})/s", "fragments" => array(1 => "keyword"), "recursive" => null, "parser" => null),
+
+    "autolink" => array("regexp" => "/(#?)(http:\\/\\/|https:\\/\\/|ftp:\\/\\/)([\S]+)/sm", "fragments" => array(1 => "popup", 2 => "scheme", 3 => "link"), "recursive" => null, "parser" => null),
+    "automail" => array("regexp" => "/([a-zA-Z0-9\\._-]+)@([a-zA-Z0-9\\._-]+)/sm", "fragments" => array(1 => "account", 2 => "domain"), "recursive" => null, "parser" => null),
+    );
+
+  public $structure = array(
+    "title" => array("regexp" => "/^(\\++) (.*?)\\r?\\n/m", "fragments" => array(1 => "level", 2 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "numbered" => array("regexp" => "/^(#+)((\\.)(([1aAiI])(\\,([1-9]))?)?)? (.*?)\\r?\\n/m", "fragments" => array(1 => "level", 3 => "point", 5 => "syntax", 7 => "namespace", 8 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "bullet" => array("regexp" => "/^(\\*+) (.*?)\\r?\\n/m", "fragments" => array(1 => "level", 2 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "quote" => array("regexp" => "/^(>+) (.*?)\\r?\\n/m", "fragments" => array(1 => "level", 2 => "text"), "recursive" => "text", "parser" => array("recursive")),
+   );
+
+    // tables
+  public $table = array(
+    "table" => array("regexp" => "/#\\|(\\|?)(.*?)\n(.*?)\\|#/s", "fragments" => array(1 => "border", 2 => "size", 3 => "content"), "recursive" => "content", "parser" => "tablecontent"),
+    );
+
+  // SPECIAL PARSE
+  public $tablecontent = array(
+    "line" => array("regexp" => "/^(\\|\\|.*?\\|\\|)\$/ms", "fragments" => array(1 => "content"), "recursive" => "content", "parser" => "line"),
+    );
+
+  public $line = array(
+    "cell" => array("regexp" => "/(\\|\\|)?(.*?)(\\|\\|)/s", "fragments" => array(1 => "celltype", 2 => "content"), "recursive" => "content", "parser" => "cell"),
+    );
+
+  public $cell = array(
+    "cellcontent" => array("regexp" => "/^(\\s)?(.*?)(\\s)?\$/s", "fragments" => array(1 => "rightalign", 2 => "content", 3 => "leftalign"), "recursive" => "content", "parser" => array("paragraph", "recursive")),
+    );
+
+  public $paragraph = array(
+    "center" => array("regexp" => "/>=<(.*?)>=</s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "left" => array("regexp" => "/==<(.*?)==</s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "right" => array("regexp" => "/>==(.*?)>==/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "justified" => array("regexp" => "/===(.*?)===/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "box" => array("regexp" => "/\\[([0-9])\\](.*?)\\[_\\]/s", "fragments" => array(1 => "number", 2 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    );
+
+  public $recursive = array(
+
+    // TEXT FORMAT TAGS: PUT AT THE END: //...// CAN BE MISUNDERSTOOD WITH HTTP:// ... HTTP://
+    "bold" => array("regexp" => "/\\*\\*(.*?)\\*\\*/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "important" => array("regexp" => "/!!(.*?)!!/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "italic" => array("regexp" => "/\\/\\/(.*?)\\/\\//s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "underline" => array("regexp" => "/__(.*?)__/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "deleted" => array("regexp" => "/\\-\\-(.*?)\\-\\-/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "subscript" => array("regexp" => "/,,(.*?),,/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "superscript" => array("regexp" => "/''(.*?)''/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "footnote" => array("regexp" => "/\\(\\((.*?)\\)\\)/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "money" => array("regexp" => "/\\\$\\\$(.*?)\\\$\\\$/s", "fragments" => array(1 => "text"), "recursive" => "text", "parser" => array("recursive")),
+    "mail" => array("regexp" => "/@@(.*?)\\|(.*?)@@/s", "fragments" => array(1 => "mail", 2 => "name"), "recursive" => "name", "parser" => array("recursive")),
+    "color" => array("regexp" => "/##(.*?)(:(.*?))?\\|(.*?)##/s", "fragments" => array(1 => "color", 3 => "background", 4 => "text"), "recursive" => "text", "parser" => array("recursive")),
+
+    "multimedia" => array("regexp" => "/{{([ #])?(\\*?)(.*?)(\\?([0-9]*)(x([0-9]*))?)?([ #])?(\\|(.*?))?}}/s", "fragments" => array(1 => "leftalign", 2 => "popup", 3 => "multimedia", 5 => "width", 7 => "height", 8 => "rightalign", 10 => "title"), "recursive" => "title", "parser" => array("recursive")),
+    "link" => array("regexp" => "/\\[\\[(#)?(.*?)(\\|(.*?))?\\]\\]/s", "fragments" => array(1 => "popup", 2 => "link", 4 => "title"), "recursive" => "title", "parser" => array("recursive")),
+
+    "specialchars" => array("regexp" => "/(\\->|<<|>>|<\\-|\\.\\.\\.|<\\->|=>|\\(c\\)|<=|\\(r\\)|<=>|\\(tm\\))/s", "fragments" => array(1 => "char"), "recursive" => null, "parser" => null),
+    "br" => array("regexp" => "/(\\r?\\n)/", "fragments" => array(1 => "keyword"), "recursive" => null, "parser" => null),
+    );
+  
+  
+  
+  public function __construct($data)
+  {
+    parent::__construct();
+    if (!$data || !is_string($data))
+      $data = '';
+    $this->code = wiki::compile($data);
+  }
+
+  public function run($engine, $params)
+  {
+    // verify edit mode or create mode and authorize it if needed (can do it, must be connected etc)
+    // ONLY a sub page of this page can be created (the root must exist), or this one edited
+    
+    // if params is not null, it's a new page
+    if ($params)
+    {
+      return $engine->run($this->base->config->wikieditor, 1, $params);
+    }
+
+    $edit = $this->base->HTTPRequest->getParameter('edit');
+    if ($edit == 1)
+      return $engine->run($this->base->config->wikieditor, 1, $params);
+    
+    // load the wiki painter and template and language
+    // If it exists on the instance, take the paths, else go to main config, or default
+    $painter = $engine->currentcontext['instance']->painter;
+    if (!$painter)
+      $painter = $this->base->config->wikipagepainter;
+    if (!$painter)
+      $painter = '\modules\wiki\server\wikiPainter';
+
+    $templatepath = $engine->currentcontext['instance']->template;
+    if (!$templatepath)
+      $templatepath = $this->base->config->wikitemplatepath;
+    $languagepath = $engine->currentcontext['instance']->language;
+    if (!$languagepath)
+      $languagepath = $this->base->config->wikilanguagepath;
+    
+    $template = $engine->run($templatepath, 1, null);
+    $language = $engine->run($languagepath, 1, null);
+
+    $html = new $painter($template, $language);
+    return $html->getCode($this->code);
+  }
+
+  protected function serial(&$data)
+  {
+    $data['code'] = $this->code;
+  }
+
+  protected function unserial($data)
+  {
+    $this->code = $data['code'];
+  }
+
+  public function __toString()
+  {
+    return 'Page code';
+  }
+
+  private function compile($code)
+  {
+    // we first transform the code to work cool
+    $code = str_replace("\r", "", $code);
+    $code = str_replace("\\\n", "", $code);   //  \ in end of line
+
+    // 1. pass 1: not parsed blocks
+    $pass1 = $this->getSyntax(array("blocksnotparsed"), $code);
+
+    // 2. pass 2: we get the structure
+    $pass2 = $this->getSyntax(array("structure"), $pass1["code"], $pass1);
+
+    // 3. pass 3: we get all other stuff
+    $pass3 = $this->getSyntax(array("table", "paragraph", "recursive"), $pass2["code"], $pass2);
+
+    return $pass3;
+  }
+
+  public function getLinks()
+  {
+    return $this->links;
+  }
+
+  public function getMultimedias()
+  {
+    return $this->multimedias;
+  }
+
+  // create the wiki parsed array from code
+  private function getSyntax($syntaxes, $code, $node = null)
+  {
+    $localparsed = $node?$node["parsed"]:array();
+    $islocalparsed = $node?$node["isparsed"]:false;
+
+    if (!is_array($syntaxes))
+      $syntaxes = array($syntaxes);
+    foreach ($syntaxes as $syntax)
+    {
+      foreach($this->$syntax as $syntaxtype => $syntaxline)
+      {
+        $parsed = $this->parse($syntaxtype, $syntaxline["regexp"], $code, $syntaxline["fragments"]);
+        if ($parsed)
+        {
+          $code = $parsed["code"];
+
+          // 3. we parse recursive values
+          foreach ($parsed["parsed"] as $kID => $parsedID)
+          {
+            // we check if we have to parse again the content
+            if ($syntaxline["recursive"])
+            {
+              // we pass to inner getSyntax the included id's
+              $newparsed = array();
+              foreach($localparsed as $newid => $newpar)
+              {
+                $newcode = $parsedID[$syntaxline["recursive"]];
+                if (strpos($newcode, "&&&&&".$newid."&&&&&") !== false)
+                  $newparsed[$newid] = $newpar;
+              }
+              $r = $this->getSyntax($syntaxline["parser"], $parsedID[$syntaxline["recursive"]], array("parsed" => $newparsed, "isparsed" => ($newparsed?true:false)));
+              if ($r["isparsed"])
+              {
+                $parsedID[$syntaxline["recursive"]] = $r;
+              }
+            }
+            $localparsed[$kID] = $parsedID;
+            $islocalparsed = true;
+          }
+        }
+      }
+    }
+
+    // We re-order the localparsed values, important for paragraph numbering
+    // and we remove not used ID's at this level
+    $ordered = array();
+    if ($islocalparsed)
+    {
+      $ar = array();
+      foreach($localparsed as $id => $p)
+      {
+        $pos = strpos($code, $this->preprocesor.$id.$this->postprocesor);
+        if ($pos !== false)
+          $ar[$pos] = array("id" => $id, "parsed" => $p);
+      }
+      ksort($ar);
+      foreach($ar as $p)
+      {
+        $ordered[$p["id"]] = $p["parsed"];
+      }
+    }
+
+    $result = array();
+    $result["code"] = $code;
+    $result["isparsed"] = $islocalparsed;
+    $result["parsed"] = $ordered;
+    return $result;
+  }
+
+  // ==============================
+  // get back a SINGLE NODE:
+  // array( "code" => $code string modified
+  //        "isparsed" => true|false
+  //        "parsed" => array(ID => array("quantity" => int, "type" => string, [ids] => string)
+  //      )
+
+  private function parse($type, $regexp, $code, $fragments)
+  {
+    preg_match_all($regexp, $code, $result);
+    $parsed = array();
+    $isparsed = false;
+    if (empty($result[0]))
+      return null;
+
+    $isparsed = true;
+    $aparsed = array();
+    foreach ($result[0] as $k => $E)
+    {
+      if (!$E)
+        continue;
+      $id = $this->base->createKey(10);
+      $pos = strpos($code, $E);
+      $code = substr_replace($code, $this->preprocesor.$id.$this->postprocesor, $pos, strlen($E));
+      $aparsed[$id]["type"] = $type;
+      foreach($fragments as $i => $n)
+        $aparsed[$id][$n] = $result[$i][$k];
+
+      if ($type == "link")
+      {
+        $this->links[] = $aparsed[$id];
+      }
+      if ($type == "multimedia")
+      {
+        $this->multimedias[] = $aparsed[$id];
+      }
+    }
+
+    $parsed["code"] = $code;
+    $parsed["isparsed"] = $isparsed;
+    $parsed["parsed"] = $aparsed;
+
+    return $parsed;
+  }
+
+}
+
+/*
+Official WA Wiki syntax:
+
+There are TWO types of parsers:
+1. The REGEXP parser, to separate big block and find simple tags
+2. The LINEAL parser, to find complex indented tags
+
+\ in end of line means "next line is this line"
+
+
+REG EXP PARSER:
+
+Level 1. MAIN STRUCTURE PARSER                    content not parsed, but replaced by direct block
+
+%% COMMENTS NO VISIBLE OUTSIDE %%
+~~ no wiki parser ~~
+<toc>                                                   table of content
+<html> ... </html>
+<syntax:type> ... </syntax>                             colored syntax
+<anyorder(:xxx) (id=val)> ... </anyorder>               extra orders added by external modules
+
+special strings:
+
+#http://*                                     terminated by space, enter, non official chars, # optional for POPUP
+#https://*                                    terminated by space, enter, non official chars
+#ftp://*                                      terminated by space, enter, non official chars
+mail@*                                       terminated by space, enter, non official chars
+----                                         line: 4 or more -
+
+special chars:
+
+->   <<    >>   <-     ...   <->  ---   =>   (c)    <=   (r)   <=>  (tm)
+smileys ? (optional)
+
+
+
+Level 2. STRUCTURE PARSER, cannot be mixed between them. content is parsed again with level 3 and more
+
+#|  ...  |#                                 table delimiters, content is lineal parsed
+#||  ...  |#                                table with borders delimiters, content is lineal parsed
+
+Level 3. LOCAL BLOCK, content is parsed with level 4 and more
+
+>=< paragraph centered >=<
+==< paragraph aligned left ==<
+>== paragraph aligned right >==
+=== paragraph justified ===
+
+Level 4. SIMPLE LINE parser, line is parsed with level 5 and more
+
+DOCUMENT STRUCTURE: USED FOR TABLE OF CONTENT:
++ title 1
+++ title 2
++++ title 3
+++++ title 4
++++++ title 5
+++++++ title 6
+
+LOCAL FORMATTING:
+*
+**
+*** bullet list
+#
+##,n   Auto numbered list on namespace 'n'
+###    Auto numbered list (numbers)           numbering is reinit to 0 on each document structure
+###1   numbered list forced with numbers
+###.1  numbered list forced with numbers and points relative to previous levels  (1.1.1 etc)
+###a   numbered list forced with letters
+###A   numbered list forced with upper letters
+###i   numbered list forced with roman letters
+###I   numbered list forced with roman upper letters
+>
+>>
+>>> quoted list
+
+Level 5. SIMPLE BLOCK PARSER, content (or name) is parsed again with level 3 and more
+
+[[link|name]]
+{{multimedia|name}}
+**BOLD**
+!!IMPORTANT!!
+//italic//
+__underlined__
+--deleted--
+,,subscript,,
+''superscript''
+((footnote))
+$$money formated$$
+@@mail formated|name@@
+::color|name::
+::color|background|name::
+
+
+No level: SPECIAL PARSERS FOR TABLE
+
+|| || || ||   line
+|  |          cell
+|  |          cell content
+
+*/
+
+/*
+
+complex sentences:
+Multimedia:
+{{
+space or #              optional    space=align to right   #=float to left
+*                       optional    open new window
+multimedia name                     .known extensions
+?                       optional    if resize
+height                  optional    force height
+x                       optional    if width
+width                   optional    force width
+space or #              optional    space=align to left or center   #=float to right
+|                       optional    if title
+title (alt/legend)      optional    wiki text can have format and images
+}}
+
+internal link:
+[[
+*                       popup
+namespaces:namespaces:  optional
+internalpage
+|                       optional
+name of link            wiki text           optional
+]]
+
+local link:
+[[
+*                       popup
+/
+link
+|                       optional
+name of link            wiki text           optional
+]]
+
+external link:
+[[
+*                       popup
+http://  https://  ftp://  mail:
+page
+|                       optional
+name of link            wiki text           optional
+]]
+
+*/
+
+
+?>

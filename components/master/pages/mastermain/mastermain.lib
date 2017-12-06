@@ -1,0 +1,84 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master main app dashboard and login
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class mastermain extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  private function getHelp()
+  {
+    $help = null;
+    if ($this->base->user)
+      $help = $this->base->user->getParameter('state', 'help');
+    if ($help === null)
+      $help = 2;
+    return $help;
+  }
+
+  private function getSound()
+  {
+    $sound = 1;
+    if ($this->base->user)
+      $sound = $this->base->user->getParameter('state', 'sound');
+    return ($sound == 1);
+  }
+
+  // we add our own parameters to application
+  public function getParameters($engine, $params)
+  {
+    $versioncode = $this->base->getVersionCode();
+
+    return array('VERSION' => $this->base->config->version,
+                 'VERSIONTYPE' => '##' . $versioncode->versiontype . '##',
+                 'APPLICATION' => $this->base->user?'true':'false',
+                 'USERKEY' => $this->base->user?$this->base->user->key:'null',
+                 'USER' => $this->base->user?$this->base->user->name:'',
+                 'HELP' => $this->getHelp(),
+                 'SOUND' => $this->getSound()?'true':'false'
+                );
+  }
+
+  public function form1($Params)
+  {
+    // login is easy to know: if base->Connected, then we get a success
+    // the login fields are controlled by Base, not by this library
+    if ($this->base->security->connected)
+    {
+      return array('success' => true, 'userkey' => $this->base->security->User, 'username' => $this->base->security->UserData['un'], 'help' => $this->getHelp(), 'sound' => $this->getSound());
+    }
+
+    return array('success' => false, 'messages' => array('username' => $this->language->getEntry('login.wrong')), 'popup' => false);
+  }
+
+  public function form2($Params)
+  {
+    // get password form
+    /*
+    if ($this->base->connected)
+    {
+      return array('success' => true, 'userkey' => $this->base->User, 'username' => $this->base->UserData['un'], 'help' => $this->getHelp(), 'sound' => $this->getSound());
+    }
+    */
+
+    return array('success' => false, 'messages' => array('username' => $this->language->getEntry('login.wrong')), 'popup' => false);
+  }
+}
+
+?>

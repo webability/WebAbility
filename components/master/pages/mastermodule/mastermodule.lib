@@ -1,0 +1,374 @@
+<?php
+
+class mastermodule extends \common\WAApplication
+{
+  private $baseModuleEntity = null;
+  private $Mod = null;
+  private $installed = null;
+  private $available = null;
+  private $installedmodules = array();
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
+
+    $this->Mod = $this->base->HTTPRequest->getParameter('Mod', \xamboo\Validator::REGEXP, $this->baseModuleEntity->modmask);
+    if (!$this->Mod)
+      throw new \throwables\masterError('Error: the mastermodule needs a valid module ID');
+    $this->checkVersion();
+  }
+
+  // we add our own parameters to cartridge
+  public function getParameters($engine, $params)
+  {
+    return array('STATUS' => $this->getStatus(),
+                 'INSTALLED' => $this->getInstalledVersion(),
+                 'AVAILABLE' => $this->getAvailableVersion(),
+                 'AVAILABLENAME' => $this->getAvailableVersionName(),
+                 'MOD' => $this->Mod,
+                 'NAME' => $this->getName(),
+                 'VERSIONLIST' => $this->getVersionList(),
+                 'LOG' => $this->getLog()
+                );
+  }
+
+  // set installed to the actual version, or if nothing installed take the highest available version
+  private function checkVersion()
+  {
+    // is the module installed ? 
+    $installed = $this->baseModuleEntity->readModule($this->Mod);
+    if ($installed && $installed->installed == 1)
+      $this->installed = $installed;
+    
+    $modules = $this->baseModuleEntity->getLocalModulesList($this->Mod);
+    foreach($modules[$this->Mod] as $m)
+    {
+      if ($this->installed)
+      {
+        if ($m->version == $this->installed->version)
+          continue;
+        $from = false;
+        foreach($m->versionfrom as $versionfrom)
+        {
+          if ($versionfrom == $this->installed->version)
+          {
+            $from = true;
+            break;
+          }
+        }
+        if (!$from)
+          continue;
+        // versionfrom must have a match
+        if (!$this->available || $this->baseModuleEntity->compareVersion($this->available->version, $m->version)<0)
+          $this->available = $m;
+        // verify requirements: modules
+        
+      }
+      else
+      {
+        // just search for last one
+        if (!$this->available || $this->baseModuleEntity->compareVersion($this->available->version, $m->version)<0)
+          $this->available = $m;
+      }
+    }
+  }
+
+  private function getName()
+  {
+    if ($this->installed)
+      return $this->installed->name;
+    // get the lastest available version name, or the installed version if any
+    return $this->available->name;
+  }
+  
+  private function getStatus()
+  {
+    // status is 3 = not installed, 1 = ok, 2 = upgrade needed
+    if ($this->installed)
+    {
+      $status = 1;
+      if ($this->available)
+      {
+        // upgrade ? 
+        $status = 2;
+      }
+    }
+    else
+      $status = 3;
+    return $status;
+  }
+
+  private function getInstalledVersion()
+  {
+    if ($this->installed)
+      return $this->installed->version;
+    return 'Ninguna';
+  }
+
+  private function getAvailableVersion()
+  {
+    if ($this->available)
+      return $this->available->version;
+    return '';
+  }
+  
+  private function getAvailableVersionName()
+  {
+    if ($this->available)
+      return $this->available->name;
+    return '';
+  }
+  
+  
+
+  private function getVersionList()
+  {
+    $list = new \wajaf\simpleContainer();
+    $list->setClassname('simplecontent');
+    $zone = new \wajaf\simpleZone();
+    $list->add($zone);
+    $modules = $this->baseModuleEntity->getLocalModulesList($this->Mod);
+    $modulelist = array_reverse($modules[$this->Mod]);
+    foreach($modulelist as $m)
+    {
+      $lm = new \wajaf\simpleContainer();
+      $lm->setClassname('simplecontent');
+      $lmz = new \wajaf\simpleZone();
+      // calc status
+      $install = $upgrade = $uninstall = $reinstall = false;
+      $installexamples = $uninstallexamples = $reinstallexamples = false;
+      $modulesneeded = array();
+      if (!$this->installed)
+      {
+        $status = 1;
+        $install = true;
+        $installexamples = true;
+        // any missing element ?
+        if (sizeof($m->modules))
+        {
+          $ok = true;
+          foreach($m->modules as $needed) 
+          {
+            if (!isset($this->installedmodules[$needed]))
+              $this->installedmodules[$needed] = $this->baseModuleEntity->readModule($needed);
+            if (!$this->installedmodules[$needed])
+            {
+              $ok = false;
+              $modulesneeded[$needed] = 1;
+            }
+          }
+          if (!$ok)
+          {
+            $status = 3;
+            $install = false;
+            $installexamples = false;
+          }
+        }
+      }
+      else
+      {
+        if ($m->version == $this->installed->version)
+        {
+          $status = 1;
+          $uninstall = $reinstall = true;
+          $uninstallexamples = $reinstallexamples = true;
+        }
+        else
+        {
+          if ($this->baseModuleEntity->compareVersion($this->installed->version, $m->version)>0)
+          {
+            $status = 4;
+          }
+          else
+          {
+            $status = 2;
+            $upgrade = true;
+            // any missing element ?
+            if (sizeof($m->modules))
+            {
+              $ok = true;
+              foreach($m->modules as $needed) 
+              {
+                if (!isset($this->installedmodules[$needed]))
+                  $this->installedmodules[$needed] = $this->baseModuleEntity->readModule($needed);
+                if (!$this->installedmodules[$needed])
+                {
+                  $ok = false;
+                  $modulesneeded[$needed] = 1;
+                }
+              }
+              if (!$ok)
+              {
+                $status = 3;
+                $upgrade = false;
+              }
+            }
+            // from version ?
+            if (sizeof($m->versionfrom) && $status == 2)
+            {
+              $ok = false;
+              foreach($m->versionfrom as $f)
+              {
+                if ($f == $this->installed->version)
+                {
+                  $ok = true; 
+                  break;
+                }
+              }
+              if (!$ok)
+              {
+                $status = 3;
+                $upgrade = false;
+              }
+            }
+          }
+        }
+      }
+
+      $lmz->setClassname('moduleavailablestatus_'.$status);
+      $lm->add($lmz);
+
+      $content = 'Versión: <span class="moduleversion">[' . $m->version . '] - ' . $m->versiondate . ' - ' . $m->name . '</span><br />';
+      if (sizeof($m->versionfrom) && $this->installed)
+      {
+        $content .= 'Puede actualizar las versiones: ';
+        foreach($m->versionfrom as $f)
+        {
+          if ($f == $this->installed->version)
+            $content .= '<span class="moduleversion">['.$f.']</span> ';
+          else
+            $content .= '['.$f.'] ';
+        }
+        $content .= '<br />';
+      }
+      if (sizeof($m->modules))
+      {
+        $content .= 'Módulos necesarios: ';
+        foreach($m->modules as $needed)
+        {
+          if (isset($modulesneeded[$needed]))
+            $content .= '[<span class="modulemissing">'.$needed.'</span>] ';
+          else
+            $content .= '['.$needed.'] ';
+        }
+        $content .= '<br />';
+      }
+      
+      $html = new \wajaf\htmlElement($content);
+      $lmz->add($html);
+
+      if ($install)
+      {
+        $b1 = new \wajaf\buttonElement('Instalar');
+        $b1->setEvent('click', ' function() { startinstallmodule("'.$m->id.'", "'.$m->version.'"); } ');
+        $lmz->add($b1);
+      }
+      if ($installexamples)
+      {
+        $b1 = new \wajaf\buttonElement('Instalar Ejemplos');
+        $b1->setEvent('click', ' function() { startinstallmodule("'.$m->id.'", "'.$m->version.'", "examples"); } ');
+        $lmz->add($b1);
+      }
+      if ($upgrade)
+      {
+        $b2 = new \wajaf\buttonElement('Actualizar');
+        $b2->setEvent('click', ' function() { startupgrademodule("'.$m->id.'", "'.$m->version.'"); } ');
+        $lmz->add($b2);
+      }
+      if ($uninstall)
+      {
+        $b3 = new \wajaf\buttonElement('Desinstalar');
+        $b3->setEvent('click', ' function() { startuninstallmodule("'.$m->id.'", "'.$m->version.'"); } ');
+        $lmz->add($b3);
+      }
+      if ($installexamples)
+      {
+        $b1 = new \wajaf\buttonElement('Desinstalar Ejemplos');
+        $b1->setEvent('click', ' function() { startuninstallmodule("'.$m->id.'", "'.$m->version.'", "examples"); } ');
+        $lmz->add($b1);
+      }
+      if ($reinstall)
+      {
+        $b4 = new \wajaf\buttonElement('Reinstalar');
+        $b4->setEvent('click', ' function() { startreinstallmodule("'.$m->id.'", "'.$m->version.'"); } ');
+        $lmz->add($b4);
+      }
+      if ($reinstallexamples)
+      {
+        $b4 = new \wajaf\buttonElement('Reinstalar Ejemplos');
+        $b4->setEvent('click', ' function() { startreinstallmodule("'.$m->id.'", "'.$m->version.'", "examples"); } ');
+        $lmz->add($b4);
+      }
+      
+      $zone->add($lm);
+    }
+    return $list->compile();
+  }
+  
+  private function getLog()
+  {
+    $log = $this->baseModuleEntity->readModuleLog(new \dominion\DB_Condition('module', '=', $this->Mod), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC));
+    $content = '';
+    if ($log)
+    {
+      foreach($log as $entry)
+      {
+        $content .= $entry . "<br />";
+      }
+    }
+    else
+      $content = 'La bitácora del módulo aún esta vacia.';
+    return $content;
+  }
+  
+  private function answer($status, $message, $mod, $version)
+  {
+    return array('status' => $status, 'message' => $message, 'id' => $mod, 'version' => $version);
+  }
+
+  public function install()
+  {
+    $Version = $this->base->HTTPRequest->getParameter('Version', \xamboo\Validator::REGEXP, $this->baseModuleEntity->versionmask);
+    if (!$Version)
+      throw new \throwables\masterError('Error: the mastermodule needs a valid module version number');
+    
+    $messages = '';
+    // load the installer of this module
+    include_once($this->base->BASEDIR . 'modules/' . $this->Mod . '.' . $Version . '/install/installer.lib');
+    $library = "\\modules\\{$this->Mod}\\install\\installer";
+    $inst = new $library($this->language);
+    $messages .= $inst->install();
+    return $this->answer(true, $this->language->result . $messages, $this->Mod, $Version);
+  }
+
+  public function reinstall()
+  {
+    return $this->install();
+  }
+
+  public function upgrade()
+  {
+    return $this->answer(true, $this->language->result . $messages);
+  }
+  
+  public function uninstall()
+  {
+    $Version = $this->base->HTTPRequest->getParameter('Version', \xamboo\Validator::REGEXP, $this->baseModuleEntity->versionmask);
+    if (!$Version)
+      throw new \throwables\masterError('Error: the mastermodule needs a valid module version number');
+    
+    $messages = '';
+    // load the installer of this module
+    include_once($this->base->BASEDIR . 'modules/' . $this->Mod . '.' . $Version . '/install/installer.lib');
+    $library = "\\modules\\{$this->Mod}\\install\\installer";
+    $inst = new $library($this->language);
+    $messages .= $inst->uninstall();
+    return $this->answer(true, $this->language->result . $messages, $this->Mod, $Version);
+  }
+
+  
+}
+
+?>

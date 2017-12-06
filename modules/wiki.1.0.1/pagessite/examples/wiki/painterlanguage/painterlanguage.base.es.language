@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="wiki" lang="en">
+  <entry id="editortitle"><![CDATA[Modify]]></entry>
+  <entry id="multimediatitle"><![CDATA[Multimedia files]]></entry>
+  <entry id="historytitle"><![CDATA[Change log]]></entry>
+  <entry id="securitytitle"><![CDATA[Security]]></entry>
+  <entry id="deletetitle"><![CDATA[Delete this page]]></entry>
+  <entry id="changenametitle"><![CDATA[Change the page ID]]></entry>
+  <entry id="toolstitle"><![CDATA[Tools]]></entry>
+</language>

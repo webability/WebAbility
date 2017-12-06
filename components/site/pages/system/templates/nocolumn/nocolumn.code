@@ -1,0 +1,13 @@
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#000080" alink="#FF0000">
+
+<div style="width: 1000px; margin: auto; border-left: 1px solid #cccccc; border-right: 1px solid #cccccc; border-bottom: 1px solid blue;">[[BLOCK,/system/blocks/header]]</div>
+
+<div style="clear: both;"></div>
+
+<div style="width: 1000px; margin: auto; min-height: 500px; border-left: 1px solid #cccccc; border-right: 1px solid #cccccc; position: relative;">[[CONTENT]]</div>
+
+<div style="clear: both;"></div>
+
+<div style="width: 1000px; margin: auto; border-left: 1px solid #cccccc; border-right: 1px solid #cccccc; border-top: 1px solid blue;">[[BLOCK,/system/blocks/footer]]</div>
+
+</body>

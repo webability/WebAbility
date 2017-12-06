@@ -1,0 +1,51 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master preinstall
+2017-02-03: Phil, Revision and Rewrite the library
+
+-
+Notes: we do not need yet a full set of languages for the presintall screen. 
+English is the default one, and the user selects here the language he needs, 
+then the interface is totally reloaded with right language and the application mastermaininstall takes the relay
+which contains all the available language tables
+
+@End_DESCR */
+
+class preinstall extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  public function getParameters($engine, $params)
+  {
+    $this->forcetype = 'page';
+  
+    $this->base->HTTPResponse->setJSFromRepository('wajaf.js');
+
+    $knowncountries = $this->base->getLocalCountries();
+    $COUNTRY = $this->base->HTTPRequest->getParameter('COUNTRY', \xamboo\Validator::SET, $knowncountries[$this->base->Language]['countries']);
+    if (!$COUNTRY)
+      $COUNTRY = null;    // no country yet
+    // verify right language/country
+    if (!($this->base->Language && $COUNTRY && isset($knowncountries[$this->base->Language]['countries'][$COUNTRY])))
+      $COUNTRY = null;
+  
+    return array('LANGUAGE' => $this->base->Language,
+                 'COUNTRY' => $COUNTRY);
+  }
+
+}
+
+?>

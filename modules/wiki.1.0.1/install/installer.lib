@@ -1,0 +1,69 @@
+<?php
+
+namespace modules\wiki\install;
+
+class installer extends \common\installer
+{
+  const ID = 'wiki';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateEngine',
+           'id' => 'wiki',
+           'type' => 'server',
+           'server' => '\modules\wiki\server\wikiServer',
+           'run' => true,
+           'language' => null,
+           'template' => null ),
+    );  
+  
+  public function __construct()
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/');
+  }  
+  
+  public function install($language)
+  {
+    $messages = $this->installDatabase($language);
+    
+    $this->setModule(self::ID, $this->BASEDIR);
+    // config params
+    $this->setConfigParam('site', 'wikipagepainter', '\modules\wiki\server\wikiPainter');
+    $this->setConfigParam('site', 'wikitemplatepath', 'examples/wiki/paintertemplate');
+    $this->setConfigParam('site', 'wikilanguagepath', 'examples/wiki/painterlanguage');
+    $this->setConfigParam('site', 'wikieditor', 'examples/wiki/editor');
+    $this->setConfigParam('site', 'wikidefaulttemplate', 'examples/wiki/wikitemplate');
+    $this->setConfigParam('site', 'wikitools', 'logged');
+    // wikitools is "logged", "all" or any specific right
+
+    $messages .= $language->getEntry('records');
+    
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/site', $this->base->SITEDIR);
+
+    $messages .= $language->getEntry('pagesadmin') . "<br />\n";
+
+    // run the scripter
+    $messages .= $this->installScript($language);
+    
+    return $messages;
+  }
+  
+  public function uninstall($language)
+  {
+    // run the scripter
+    $messages = $this->uninstallScript($language);
+
+    $this->delConfigParam('site', 'wikipagepainter');
+    $this->delConfigParam('site', 'wikitemplatepath');
+    $this->delConfigParam('site', 'wikilanguagepath');
+    $this->delModule(self::ID);
+
+    $messages .= $this->uninstallDatabase($language);
+    return $messages;
+  }
+  
+};
+
+?>

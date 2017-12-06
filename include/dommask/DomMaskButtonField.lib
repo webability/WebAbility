@@ -1,0 +1,67 @@
+<?php
+
+/*
+    DomMaskButtonField.lib, Dominion, the WebAbility(r) Database Abstraction Layer
+    Contains the class to manage a ButtonField
+    (c) 2008-2010 Philippe Thomassigny
+
+    This file is part of Dominion
+
+    Dominion is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Dominion is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Dominion.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| DB_MaskFieldButtonField:                                              |
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace dommask;
+
+class DomMaskButtonField extends DomMaskField
+{
+  public $action = 'submit';
+  public $OnClick = 'reset();';          // for ButtonFields
+  public $ButtonFieldInsert = null;      // string
+  public $ButtonFieldUpdate = null;      // string
+  public $ButtonFieldDelete = null;      // string
+  public $ButtonFieldView = null;        // string
+  public $ButtonFieldAsImage = null;     // string link of image
+  public $OnEvent = null;
+
+  function __construct($name = '')
+  {
+    parent::__construct($name, false);
+    $this->type = 'button';
+  }
+
+  public function getAction()
+  {
+    return $this->action;
+  }
+
+  public function create()
+  {
+    $f = new \wajaf\buttonElement($this->title, $this->name);
+
+    $f->setVisible($this->DomMask->createModes($this->authmodes));
+    $f->setAction($this->action);
+
+    return $f;
+  }
+}
+
+?>

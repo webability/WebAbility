@@ -1,0 +1,822 @@
+<?php
+
+/*
+    DomList.lib, Dominion, the WebAbility(r) Database Abstraction Layer
+    Contains the class to manage lists of information and reports
+    (c) 2008-2010 Philippe Thomassigny
+
+    This file is part of Dominion
+
+    Dominion is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Dominion is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Dominion.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| DomList: Automatic list controller                               |
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+final class DomList extends \core\WAClass
+{
+  const VERSION = '1.0.1';
+
+  private $Caller = null;             // caller object
+
+  private $Fields;                    // The fields definition
+  private $FieldCounter = 0;          // Field counter
+  private $insertedkey = null;        // last inserted key
+
+  public $CharSet = "UTF-8";          // the charset to calculate entities if needed
+
+  public $Select = null;              // the function to call to get the record
+  public $Record = null;              // a defined record
+  public $Table = null;               // the DB_Table to user
+  public $Key = null;                 // the record key
+
+  public $BaseIndex = 1;
+  public $MaskId = null;              // default id="" in <form> tag. If not set, id will be dommask$BaseIndex
+  public $RealMaskId = null;          // the real ID of the form calculated if needed or natural if ok
+
+  public $Mode = 4;                   // starting mode
+  public $CanInsert = true;           // set to false to protect json/post injection on any type
+  public $CanUpdate = true;
+  public $CanDelete = true;
+  public $Variables = null;           // array, Variables to keep present when submitting info
+
+  public $AlertMessage = 'Error: some fields are not valid. Please check the red ones.';
+  public $ServerMessage = 'Error: the record data could not be retrieved from the server.';
+  public $TitleInsert = 'Insert:';
+  public $TitleUpdate = 'Update:';
+  public $TitleDelete = 'Delete:';
+  public $TitleView = 'View:';
+
+  // Some functions to execute before, during or after inserting, updating or deleting.
+  // SQLInsert, SQLUpdate and SQLDelete OVERRIDE the DomMask function to do it
+  // Pre and Post are just execute before and after.
+  // If PRE returns a 0, then there is an error and insertion/update/delete is NOT executed, and post neither
+  public $PreInsert = null;           // the function to call before insert
+  public $Insert = null;              // the function to call to insert
+  public $PostInsert = null;          // the function to call after inserting
+  public $PreUpdate = null;           // the function to call before update
+  public $Update = null;              // the function to call to update
+  public $PostUpdate = null;          // the function to call after updating
+  public $PreDelete = null;           // the function to call before deleting
+  public $Delete = null;              // the function to call to delete
+  public $PostDelete = null;          // the function to call after deleting
+
+  public $JSpreSubmit = null;         // javascript string to add functions to the submit function before form validation
+  public $JSonSubmit = null;          // javascript string to add functions to the submit function once form IS valid
+  public $JSpostSubmit = null;        // javascript string to add functions to the submit function AFTER form has been sent to the server
+  public $JSonSuccess = null;         // javascript string to add functions to the success javascript
+  public $JSonFailure = null;         // javascript string to add functions to the failure javascript
+
+  function __construct($Table, $Caller = null)
+  {
+    parent::__construct();
+    $this->Table = $Table;
+    $this->Caller = $Caller;
+  }
+
+  public function addMaskField($MaskField)
+  {
+    $MaskField->setCaller($this, $this->Caller);
+    $MaskField->setFieldNumber();
+
+    $this->Fields[$this->FieldCounter++] = $MaskField;
+  }
+
+  // get the record from the selected source
+  private function __getRecord()
+  {
+    if ($this->Select)
+    {
+      $fct = $this->Select;
+      if ($this->Caller)
+        $ret = $this->Caller->$fct($this->Key);
+      else
+        $ret = $fct($this->Key);
+      return $ret;
+    }
+    if ($this->Table)
+      return $this->Table->doSelect($this->Key);
+    if ($this->Record)
+      return $this->Record;
+    return null;
+  }
+
+  // creates the WAJAF objects and gets back the container
+  public function create()
+  {
+    if ($this->MaskId)
+      $this->RealMaskId = $this->MaskId;
+    else
+      $this->RealMaskId = "dommask".$this->BaseIndex;
+
+    $container = new \wajaf\dommaskContainer($this->RealMaskId);
+    $container->setMode($this->Mode);
+    $container->setKey($this->Key);
+    $container->setMessage('alertmessage', $this->AlertMessage);
+    $container->setMessage('servermessage', $this->ServerMessage);
+    $container->setMessage('titleinsert', $this->TitleInsert);
+    $container->setMessage('titleupdate', $this->TitleUpdate);
+    $container->setMessage('titledelete', $this->TitleDelete);
+    $container->setMessage('titleview', $this->TitleView);
+
+    // any template ?
+
+    // creates the dataset if mode > 1 ? (just to save a hit and time)
+
+    // creates the zone
+    $zone = new \wajaf\Xzone();
+    $container->add($zone);
+
+    // fill the zone with fields
+// ******************************************** USE A TEMPLATE TO PUT THE FIELDS TOO :)
+    foreach ($this->Fields as $K => $F)
+    {
+      $f = $F->create();
+      $zone->add($f);
+    }
+
+    // creates the original dataset
+// ********************************************
+    $ds = new \wajaf\dommaskdataset();
+    $ds->setData(json_encode(array($this->Key => $this->__getRecord())));
+    $container->add($ds);
+
+    return $container;
+  }
+
+  // will return the necesary data based on context
+  public function run()
+  {
+    // listener of the mask
+    $order = $this->base->HTTPRequest->getParameter('order');
+    $mode = $this->base->HTTPRequest->getParameter('mode');
+    $key = $this->base->HTTPRequest->getParameter('key');
+    switch($order)
+    {
+      case 'getrecord':
+        $this->Key = $key;
+        $R = $this->__getRecord();
+        return array($key => $R);
+      case 'submit':
+        return $this->__ExecuteOrder($mode);
+      case 'previous':
+        return $rec;
+      case 'next':
+        return $rec;
+      case 'first':
+        return $rec;
+      case 'last':
+        return $rec;
+
+    }
+
+  }
+
+  // IF any error occurs, then the functions should throw any Error
+  private function __ExecuteOrder($mode)
+  {
+    $_KEY = null;
+
+    $this->doDebug(".... Entry ExecuteOrder");
+    switch($mode)
+    {
+      case 1:
+        // BUILD RAW RECORD
+        $Rec = $this->__buildrecord(1);
+        // USER PREINSERT ON RECORD (CAN MODIFY RECORD)
+        if ($this->PreInsert)
+        {
+          $fct = $this->PreInsert;
+          if ($this->Caller)
+            $ret = $this->Caller->$fct($Rec);
+          else
+            $ret = $fct($Rec);
+          if ($ret && is_array($ret))
+            $Rec = $ret;
+        }
+        // SYSTEM PREINSERT ON FIELDS (CAN MODIFY FIELD OR FIELDS IF COMPLEX)
+        foreach ($this->Fields as $K => $F)
+        {
+          if ($F->IfTable && !$F->IfInfo && !$F->Auto)
+          {
+            $F->setRecord($Rec);
+            $r = $F->preInsert($Rec[$F->Name], $this->asXML);
+            if (is_array($r))
+            {
+              foreach($r as $rf => $rv)
+                $Rec[$rf] = $rv;
+            }
+            else
+              $Rec[$F->Name] = $r;
+          }
+        }
+        // USER INSERT
+        if ($this->Insert)
+        {
+          $fct = $this->Insert;
+          if ($this->Caller)
+            $KEY = $this->Caller->$fct($Rec);
+          else
+            $KEY = $fct($Rec);
+          if ($KEY === null)
+            throw new \throwables\InsertError("Error during Insert, no key has been returned");
+        }
+        // OR SYSTEM INSERT
+        else
+        {
+          $this->__doInsert($Rec);
+          $KEY = $this->insertedkey;
+        }
+        // SYSTEM POSTINSERT ON FIELDS (DO NOT MODIFY FIELD)
+        foreach ($this->Fields as $K => $F)
+          if ($F->IfTable && !$F->IfInfo && !$F->Auto)
+            $F->postInsert($KEY, $Rec[$F->Name], $this->asXML);
+        // USER POST INSERT ON RECORD
+        if ($this->PostInsert!=null)
+        {
+          $fct = $this->PostInsert;
+          if ($this->Caller)
+            $this->Caller->$fct($KEY, $Rec);
+          else
+            $fct($KEY, $Rec);
+        }
+        break;
+      case 2:
+        // GET OLD RECORD
+        $OldRec = $this->__getRecord();
+        // BUILD RAW RECORD
+        $Rec = $this->__buildrecord(2);
+        //var_dump($Rec);
+        // USER PREUPDATE, CAN MODIFY RECORD
+        if ($this->PreUpdate)
+        {
+          $fct = $this->PreUpdate;
+          if ($this->Caller)
+            $ret = $this->Caller->$fct($this->Key, $Rec, $OldRec);
+          else
+            $ret = $fct($this->Key, $Rec, $OldRec);
+          if ($ret && is_array($ret))
+            $Rec = $ret;
+        }
+        // SYSTEM PREUPDATE ON FIELDS (CAN MODIFY FIELD)
+        foreach ($this->Fields as $K => $F)
+        {
+          if ($F->IfTable && !$F->IfInfo && !$F->Auto)
+          {
+            $F->setRecord($Rec);
+            $F->setOldRecord($OldRec);
+            $r = $F->preUpdate($this->Key, $Rec[$F->Name], $OldRec[$F->Name], $this->asXML);
+            if (is_array($r))
+            {
+              foreach($r as $rf => $rv)
+                $Rec[$rf] = $rv;
+            }
+            else
+              $Rec[$F->Name] = $r;
+          }
+        }
+        // USER UPDATE
+        if ($this->Update)
+        {
+          $fct = $this->Update;
+          if ($this->Caller)
+            $this->Caller->$fct($this->Key, $Rec, $OldRec);
+          else
+            $fct($this->Key, $Rec, $OldRec);
+        }
+        // OR SYSTEM UPDATE
+        else
+          $this->__doUpdate($this->Key, $Rec, $OldRec);
+        // SYSTEM POSTUPDATE ON FIELDS
+        foreach ($this->Fields as $K => $F)
+          if ($F->IfTable && !$F->IfInfo && !$F->Auto)
+            $F->postUpdate($this->Key, $Rec[$F->Name], $OldRec[$F->Name], $this->asXML);
+        // USER POSTUPDATE
+        if ($this->PostUpdate!=null)
+        {
+          $fct = $this->PostUpdate;
+          if ($this->Caller)
+            $this->Caller->$fct($this->Key, $Rec, $OldRec);
+          else
+            $fct($this->Key, $Rec, $OldRec);
+        }
+        break;
+      case 3:
+        // GET OLD RECORD
+        $OldRec = $this->__getRecord();
+        // USER PREDELETE
+        if ($this->PreDelete)
+        {
+          $fct = $this->PreDelete;
+          if ($this->Caller)
+            $this->Caller->$fct($this->Key, $OldRec);
+          else
+            $fct($this->Key, $OldRec);
+        }
+        // SYSTEM PREDELETE ON FIELDS
+        foreach ($this->Fields as $K => $F)
+          if ($F->IfTable && !$F->IfInfo && !$F->Auto)
+          {
+            $F->setOldRecord($OldRec);
+            $F->preDelete($this->Key, $OldRec[$F->Name]);
+          }
+        // USER DELETE
+        if ($this->Delete)
+        {
+          $fct = $this->Delete;
+          if ($this->Caller)
+            $this->Caller->$fct($this->Key, $OldRec);
+          else
+            $fct($this->Key, $OldRec);
+        }
+        // OR SYSTEM DELETE
+        else
+          $this->__doDelete($this->Key, $OldRec);
+        // SYSTEM POSTDELETE ON FIELDS
+        foreach ($this->Fields as $K => $F)
+          if ($F->IfTable && !$F->IfInfo && !$F->Auto)
+            $F->postDelete($this->Key, $OldRec[$F->Name]);
+        // USER POSTDELETE
+        if ($this->PostDelete!=null)
+        {
+          $fct = $this->PostDelete;
+          if ($this->Caller)
+            $this->Caller->$fct($this->Key, $OldRec);
+          else
+            $fct($this->Key, $OldRec);
+        }
+        break;
+    }
+    return array('success' => true);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+  private function __buildrecord($mode)
+  {
+    // we loop over the fields
+    $Rec = array();
+    foreach ($this->Fields as $K => $F)
+    {
+      //print "<br />" . $F->Name ;
+      if ($F->IfTable) // the field must be part of the table
+      {
+        // we check fields that are not to be used
+        if ($F->Type == DomMaskField::INFO || $F->IfInfo)
+          continue;
+        if ($F->Type == DomMaskField::AUTO || $F->Auto)
+        {
+          if ($mode == DomMask::INSERT)
+            $val = $F->Default;
+          else
+            continue;
+        }
+        else
+        {
+          $val = $F->getParameter();
+
+          // we dont change the password if it is NULL on update
+          if ($F->Type == DomMaskField::PW && $val == null && $mode == DomMask::UPDATE)
+            continue;
+
+        }
+        if (is_array($val))
+        {
+          if ($this->asXML && ($F->Type == DomMaskField::FILE || $F->Type == DomMaskField::IMAGE))
+          {
+            $Rec[$F->Name] = $val['truename'];
+          }
+          else
+          {
+            foreach($val as $rf => $rv)
+            {
+              $Rec[$rf] = $rv;
+            }
+          }
+        }
+        else
+          $Rec[$F->Name] = $val;
+      }
+    }
+    return $Rec;
+  }
+
+  private function __doInsert($Rec)
+  {
+    $this->doDebug("...... __doInsert: executing insertion into table", WADebug::SYSTEM);
+//var_dump($Rec);
+    if ($this->Table)
+    {
+      $ret = $this->Table->doInsert($Rec);
+      $this->insertedkey = $this->Table->getInsertedKey();
+      return $ret;
+    }
+    return false;
+  }
+
+  private function __doUpdate($Key, $Rec)
+  {
+    $this->doDebug("...... __doUpdate: executing modification onto the table", WADebug::SYSTEM);
+
+    if ($this->Table)
+    {
+       return $this->Table->doUpdate($Key, $Rec);
+    }
+    return false;
+  }
+
+  private function __doDelete($Key)
+  {
+    $this->doDebug("...... __doDelete: execute the deletion of the record", WADebug::SYSTEM);
+
+    if ($this->Table)
+    {
+      return $this->Table->doDelete($Key);
+    }
+    return false;
+  }
+
+  private function __getVariable($V)
+  { // the the variable for the user, first check POST (PRIORITY) then GET
+    // if the variable doesnt exists, returns NULL
+    if (isset($_POST[$V]))
+    {
+      return $_POST[$V];
+    }
+    if (isset($_GET[$V]))
+    {
+      return $_GET[$V];
+    }
+    return null;
+  }
+
+  private function __printgeneral($typeofmask, $separatejs)
+  {
+
+
+
+
+
+
+
+    $jsprint = "";
+    $jspostprint = "";
+
+    $this->doDebug("Entry __printgeneral type = <b>$typeofmask</b>", WADebug::SYSTEM);
+
+    if ($typeofmask != DomMask::VIEW)
+    {
+      $DomMaskOrder = $this->__getVariable("DomMaskOrder");
+      if ($this->CanDo && $DomMaskOrder != null)
+      {
+        if ($DomMaskOrder == "Do")
+          return $this->__ExecuteOrder($typeofmask, $separatejs);
+        throw new \throwables\BadVariableError("The system variable DomMaskOrder has a wrong value: <b>$DomMaskOrder</b>");
+      }
+    }
+
+    if ($this->IfJavaScript)
+    {
+      $jsvars = "";
+      $jsfunctions = "";
+      $jstestinfo = "\nfunction TestInfo_".$this->BaseIndex."(print)\n{\n  var error = \"\";\n";
+    }
+
+    $toprint = "";
+    $form = "";
+    $endform = "";
+    $key = $this->Key?$this->Key:'record';
+    $xmlkey = $typeofmask==1?'':' key="'.$key.'"';
+    $xml = "<container id=\"$this->MaskId\" type=\"groupContainer\" width=\"max\" height=\"max\" mode=\"$typeofmask\" $xmlkey><zone>";
+
+    // Open the mask
+    if ($this->TablePre)
+      $toprint .= $this->TablePre."\n";
+
+    // Get record if update or delete to display
+    if ($typeofmask != DomMask::INSERT)
+    {
+      $R = $this->__getRecord();
+//var_dump($R);
+    }
+    else
+      $R = null;
+
+    $hasforced = false;  // forced fields for mode 3 indicator
+    foreach ($this->Fields as $K => $F)
+    {
+      if ($F->Type != DomMaskField::INVISIBLE) // if the field is empty, we do nothing on the screen
+      {
+        $hasforced |= $F->Force;
+      }
+    }
+
+    $x = $this->XAlign; $y = $this->YStart; $formid = $this->MaskId;
+    $previousfield = null;
+    $xmlset = array($key => array());
+    $xmlrecord = "{".$key.":{";
+    $item = 0;
+    foreach ($this->Fields as $K => $F)
+    {
+      $F->setMaskID($this->MaskId);
+      $F->setRecord($R);
+      $F->setTypeOfMask($typeofmask);
+      $F->setForcedMode($hasforced);
+
+      $toprint .= $F->getEntryPre();
+
+      if ($F->XAlign)
+        $x = $F->XAlign;
+      $xmlfield = $F->getXML($x, $y, $formid, $previousfield);
+      $xml .= $xmlfield;
+
+    	$numfield = $K+$this->BaseIndex;
+      if ($F->URLVariable)
+        $urlvariable = $F->URLVariable;
+      else
+        $urlvariable = "DOMMASKVAR".$numfield;
+
+      if($xmltemplate)
+      {
+        $xmltemplate = str_replace("__".$urlvariable."__", $xmlfield, $xmltemplate);
+
+        $previousfield = "!".$urlvariable;
+        //$previousfield = "?";
+        $y = 5;
+      }
+
+      if ($urlvariable && $F->Name && (($this->Table && $F->IfTable) || !$this->Table))
+      {
+        $xmlrecord .= ($item++?',':'')."\"$urlvariable\":\"".$R[$F->Name]."\"";
+        if ($F->Type == DomMaskField::DATE)
+          $xmlset[$key][$urlvariable] = is_object($R[$F->Name])?$R[$F->Name]->getDateFormat('d/m/Y'):($R[$F->Name]?date('d/m/Y', $R[$F->Name]):'');
+        elseif ($F->Type == DomMaskField::DATETIME)
+          $xmlset[$key][$urlvariable] = is_object($R[$F->Name])?$R[$F->Name]->getDateFormat('d/m/Y H:i:s'):($R[$F->Name]?date('d/m/Y H:i:s', $R[$F->Name]):'');
+        else
+        {
+          if (is_object($R[$F->Name]))
+            $xmlset[$key][$urlvariable] = $R[$F->Name]->getDateFormat('d/m/Y H:i:s');
+          else
+            $xmlset[$key][$urlvariable] = $R[$F->Name];
+        }
+      }
+
+
+      // add the elements in order
+      $pr["T"] = $F->getTitlePre() . $F->getTitle() . $F->getTitlePost();
+      $pr["S"] = $F->getStatusPre() . $F->getStatus() . $F->getStatusPost();
+      $pr["F"] = $F->getFieldPre() . $F->getField() . $F->getFieldPost();
+      $pr["E"] = $F->getExtraPre() . $F->getExtra() . $F->getExtraPost();
+
+      for ($i=0; $i<strlen($this->ViewOrder); $i++)
+        $toprint .= $pr[substr($this->ViewOrder, $i, 1)];
+
+      if ($this->IfJavaScript)
+      {
+        $jsvars .= $F->getJSVars();
+        $jsfunctions .= $F->getJSFunctions();
+        $jstestinfo .= $F->getJSTestInfo();
+      }
+
+      $toprint .= $F->getEntryPost() . "\n";
+
+      if ($template)
+      {
+        $numfield = $K+$this->BaseIndex;
+        if ($F->URLVariable)
+          $urlvariable = $F->URLVariable;
+        else
+          $urlvariable = "DOMMASKVAR".$numfield;
+
+        $template = str_replace("__".$urlvariable."TITLE__", $F->getTitle(), $template);
+        $template = str_replace("__".$urlvariable."STATUS__", $F->getStatus(), $template);
+        $template = str_replace("__".$urlvariable."FIELD__", $F->getField(), $template);
+        $template = str_replace("__".$urlvariable."EXTRA__", $F->getExtra(), $template);
+      }
+      $previousfield = "!".$urlvariable;
+      $y = 5;
+    }
+    $xmlrecord .= "}}";
+
+    // Close table
+    if ($this->TablePost)
+      $toprint .= $this->TablePost;
+    $toprint .= "\n"; // we add a return line forced (readability)
+
+    $xmlvariables = "";
+    $variables = "<input type=\"hidden\" name=\"DomMaskOrder\" value=\"Do\" />\n";
+    $xml .= "<element id=\"DomMaskOrder\" type=\"hiddenfieldElement\" record=\"false\" link=\"$this->MaskId\" >Do</element>";
+    // Put all the hidden variables
+    if ($this->Variables && $typeofmask != DomMask::VIEW)
+    {
+      foreach ($this->Variables as $K => $V)
+      {
+        $variables .= "<input type=\"hidden\" id=\"$K\" name=\"$K\" value=\"$V\" />\n";
+        $xml .= "<element id=\"$K\" type=\"hiddenfieldElement\" record=\"false\" link=\"$this->MaskId\" >$V</element>";
+        $xmlvariables .= "<element id=\"$K\" type=\"hiddenfieldElement\" record=\"false\" link=\"$this->MaskId\" >$V</element>";
+      }
+    }
+
+    if ($template)
+      $template = str_replace("__EXTRAVARIABLES__", $variables, $template);
+    if($xmltemplate)
+      $xmltemplate = str_replace("__EXTRAVARIABLES__", $xmlvariables, $xmltemplate);
+    else
+      $toprint .= $variables;
+
+    if ($this->IfForm && $typeofmask != DomMask::VIEW)
+    {
+      $form = "\n<form id=\"".$this->MaskId."\" name=\"".$this->MaskId."\" action=\"".$this->FormMain."\" method=\"".$this->FormMethod."\"".
+      ($this->IfMultipart?" enctype=\"multipart/form-data\"":"").
+      ($this->IfJavaScript?" onsubmit=\"return false;\"":"").
+      ">\n";
+    }
+
+    if ($this->IfEndForm && $typeofmask != DomMask::VIEW)
+      $endform .= "</form>\n";
+
+    if ($this->IfJavaScript && $typeofmask != DomMask::VIEW)
+    {
+      if ($separatejs)
+        $jsprint = "";
+      else
+        $jsprint = "\n<script type=\"text/javascript\">\n<!--\n";
+      $jspostprint = "";
+
+      if ($typeofmask == DomMask::DELETE)
+      {
+        $jsprint .= "\nfunction Validate_".$this->BaseIndex."()\n".
+        "{\n".
+        "  return confirm('".$this->DeleteMessage."');\n".
+        "}\n".
+        "\n";
+      }
+
+      if ($typeofmask == DomMask::INSERT || $typeofmask == DomMask::UPDATE || ($typeofmask == DomMask::DELETE && $hasforced))
+      {
+        $jsprint .= ($this->IfStatus?
+        "\nfunction doImage_".$this->BaseIndex."(img, status)\n".
+        "{\n".
+        "  if (status==2)\n".
+        "    document.images[img].src = '".$this->StatusOk."';\n".
+        "  else if (status==1)\n".
+        "    document.images[img].src = '".$this->StatusDisable."';\n".
+        "  else\n".
+        "    document.images[img].src = '".$this->StatusBad."';\n".
+        "}\n":"");
+        // end ifstatus
+      }
+
+      if ($typeofmask != DomMask::VIEW)
+      {
+        $jsprint .= "\nfunction doSubmit_".$this->BaseIndex."()\n".
+        "{\n";
+
+        if ($this->JS)
+          $jsprint .= $this->JS."\n";
+
+        if ($typeofmask == DomMask::DELETE)
+          $jsprint .= "  if (Validate_".$this->BaseIndex."())\n  {\n";
+
+        $jsprint .= "  if (TestInfo_".$this->BaseIndex."(true))\n  {\n";
+
+        if ($this->JSonSubmit)
+          $jsprint .= $this->JSonSubmit."\n";
+
+        $jsprint .= "    document.forms['".$this->MaskId."'].submit();\n";
+
+        if ($this->JSpostSubmit)
+          $jsprint .= $this->JSpostSubmit."\n";
+
+        $jsprint .= "  }\n";
+
+        if ($typeofmask == DomMask::DELETE)
+          $jsprint .= "  }\n";
+        $jsprint .= "}\n";
+
+        $jstestinfo .= "  if (error != \"\")\n  {  if (print) window.alert(error);\n    return false;\n  }\n  return true;\n}\n";
+        $jsprint .= $jsvars.$jsfunctions.$jstestinfo;
+
+        if (!$separatejs)
+        {
+          $jsprint .= "\n// -->\n</script>\n";
+
+          $jspostprint = "\n<script type=\"text/javascript\">\n<!--\n".
+          "TestInfo_".$this->BaseIndex."(false);\n// -->\n</script>\n";
+        }
+        else
+        {
+          $jsprint .= "TestInfo_".$this->BaseIndex."(false);";
+        }
+      }
+    }
+
+    $this->doDebug("Exit __printgeneral: type = <b>$typeofmask</b>", WADebug::SYSTEM);
+
+    $xmlrecord = ($typeofmask==1?'':"
+<dataset>
+$xmlrecord
+</dataset>
+");
+
+   $xmlrecord = ($typeofmask==1?'':"
+<dataset>
+".json_encode($xmlset)."
+</dataset>
+");
+
+
+    $xml .= <<<EOF
+</zone>
+<event type="start">
+<code>function(params)
+{
+  {$this->start}
+}
+</code>
+</event>
+<event type="success">
+<code>function(params)
+{
+  {$this->success}
+}
+</code>
+</event>
+<event type="failure">
+<code>function(params) { alert('ERROR'); this.icontainer.setMessages(params);
+{$this->failure}
+}</code>
+</event>
+$xmlrecord
+</container>
+
+EOF;
+
+    if($xmltemplate)
+    {
+      $xmltemplate = str_replace("__DATASET__", $xmlrecord, $xmltemplate);
+      return $xmltemplate;
+    }
+    if ($template)
+    {
+      if (!$separatejs)
+      {
+        $template = str_replace("__JS__", ($this->IfJavaScript?$jsprint:""), $template);
+        $template = str_replace("__JSPOST__", ($this->IfJavaScript?$jspostprint:""), $template);
+      }
+      $template = str_replace("__FORM__", $form, $template);
+      $template = str_replace("__ENDFORM__", $endform, $template);
+      if ($this->asXML)
+        return $xml;
+      return $template;
+    }
+    if (!$separatejs)
+    {
+      $toprint = $form . ($this->IfJavaScript?$jsprint:"") . $toprint . ($this->IfJavaScript?$jspostprint:"") . $endform;
+      if ($this->asXML)
+        return $xml;
+      return $toprint;
+    }
+    $toprint = array("html" => $form . $toprint . $endform, "javascript" => ($this->IfJavaScript?$jsprint:""));
+
+    if ($this->asXML)
+      return $xml;
+
+    return $toprint;
+  }
+
+  public function getInsertedKey()
+  {
+    return $this->insertedkey;
+  }
+
+
+
+} // class DomMask
+
+?>

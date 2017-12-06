@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="client_access" lang="es">
+
+  <entry id="name.notconnected"><![CDATA[No conectado]]></entry>
+  <entry id="name.connected"><![CDATA[Conectado]]></entry>
+  <entry id="name.public"><![CDATA[Acceso público]]></entry>
+
+</language>

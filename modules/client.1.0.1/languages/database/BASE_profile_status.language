@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_profile_status" lang="es">
+
+  <entry id="1"><![CDATA[Activado]]></entry>
+  <entry id="2"><![CDATA[Desactivado]]></entry>
+
+</language>

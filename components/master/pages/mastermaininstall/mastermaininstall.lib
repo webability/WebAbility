@@ -1,0 +1,49 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+WebAbility Base Version: >= 6
+Module: master
+Language: PHP5 or PHP7
+Creation: 2017-01-11
+Copyright: Ing. Philippe Thomassigny (c) 2002-2017
+
+-
+
+WebAbility v6 master main install screen
+2017-02-03: Phil, Revision and Rewrite the library
+
+@End_DESCR */
+
+class mastermaininstall extends \common\WAApplication
+{
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+  }
+  
+  public function getParameters($engine, $params)
+  {
+    $knowncountries = $this->base->getLocalCountries();
+    $COUNTRY = $this->base->HTTPRequest->getParameter('COUNTRY', \xamboo\Validator::SET, $knowncountries[$this->base->Language]['countries']);
+    if (!$COUNTRY)
+      $COUNTRY = null;    // no country yet
+    // verify right language/country
+    if (!($this->base->Language && $COUNTRY && isset($knowncountries[$this->base->Language]['countries'][$COUNTRY])))
+      $COUNTRY = null;
+    
+    $pagetocall = $COUNTRY?'masteraccountinstall':'masterlanguageinstall';
+    
+    // we read the version from code if not available from config
+    
+    return array(
+      'PAGE' => $pagetocall,
+      'LANGUAGE' => $this->base->Language,
+      'COUNTRY' => $COUNTRY,
+      'VERSION' => \common\Base::VERSION,
+      'VERSIONTYPE' => '##' . 'FREE' . '##'
+    );
+  }
+}
+
+?>

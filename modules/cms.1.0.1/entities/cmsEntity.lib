@@ -1,0 +1,692 @@
+<?php
+
+namespace modules\cms\entities;
+
+class cmsEntity extends \patterns\Singleton
+{
+  public $regexpPageDefKey = '/^[a-z0-9_-]{1,50}$/';
+  public $JSregexpPageDefKey = '^[a-z0-9_-]{1,50}$';
+//  public $BASE_element;
+
+  public $icontypes = array(1 => 'page-simple.png', 13 => 'page-block.png', 4 => 'page-php.png',
+                             21 => 'page-translation.png', 22 => 'page-template.png',
+                             23 => 'page-css.png', 28 => 'page-rss.png', 24 => 'page-robot.png', 26 => 'page-js.png', 27 => 'page-other.png',
+                             2 => 'page-aslanguage.png', 3 => 'page-asbrowser.png',
+                             6 => 'page-macro.png', 7 => 'page-os.png',
+                             8 => 'page-osencoded.png', 9 => 'page-directlink.png',
+                             14 => 'page-dynamicmenu.png',
+                             10 => 'page-wrapper.png', 11 => 'page-workflow.png',
+                             12 => 'page-xmlreport.png', 32 => 'page-require.png',
+                             41 => 'page-folder.png'
+                            );
+  
+  private $iconstatus = array(0 => 'page-notvisible.png', 1 => 'page-visible.png', 6 => 'page-noheader.png',
+                             3 => 'page-datablock.png', 2 => 'page-globaltemplate.png',
+                             4 => 'page-internaltemplate.png', 5 => 'page-blocktemplate.png'
+                            );
+  
+  public $defaultinstancestatus = 1;  // default status for instances of a page
+
+  function __construct()
+  {
+    parent::__construct();
+
+//    require $this->base->getTablePath('BASE_element');
+//    $this->BASE_element = $BASE_element;
+//    $this->BASE_element->setDB($this->base->connector['Main']);
+  }
+
+  public function getPagesList($father)
+  {
+    return null;
+    return $this->base_pagedef->doSelectCondition(new DB_Condition('father', '=', $father), new DB_OrderBy('order', DB_OrderBy::ASC));
+  }
+
+  
+  
+  // =============================================================
+  // page
+  public function getPageDefType()
+  {
+    return $this->base->loadLanguage('BASE_pagedef_type', 'repository');
+  }
+  
+  public function getPageTypeIcon($type)
+  {
+    if (isset($this->icontypes[$type]))
+      return $this->icontypes[$type];
+    return '';
+  }
+
+  public function getPageDefStatus()
+  {
+    return $this->base->loadLanguage('BASE_pagedef_status', 'repository');
+  }
+
+  public function getPageStatusIcon($status)
+  {
+    if (isset($this->iconstatus[$status]))
+      return $this->iconstatus[$status];
+    return '';
+  }
+  
+  // =============================================================
+  // templatedef
+
+  public function getTemplateDefStatus()
+  {
+    return $this->base->loadLanguage('BASE_templatedef_status', 'repository');
+  }
+
+  public function getTemplateDefInMap()
+  {
+    return $this->base->loadLanguage('BASE_templatedef_inmap', 'repository');
+  }
+
+  public function getTemplateDefInMenu()
+  {
+    return $this->base->loadLanguage('BASE_templatedef_inmenu', 'repository');
+  }
+
+}
+
+
+/*
+class PageAdmin extends Adm
+{
+  public $BASE_pagedef;
+  public $BASE_templatedef;
+  public $BASE_clientaccess;
+
+  public $BASE_profile;
+  public $BASE_userprofile;
+  public $BASE_profileaccessextended;
+  public $BASE_language;
+  public $BASE_useraccessextended;
+  public $BASE_openclose;
+
+  public $engineLoader;
+  public $pageType;
+  public $pageStatus;
+  public $templateStatus;
+  public $inMenu;
+  public $inMap;
+  public $SearchPage;
+  public $path;
+  public $ifversion;
+  public $ifbrowser;
+  public $iflanguage;
+  public $autoversion;
+  public $ifautoversion;
+  public $defaultinstancestatus;
+  public $ifagglutinate;
+  public $status;
+  public $type;
+  public $statustemplate;
+  public $Posibilities;
+
+  public $template;
+  public $lang;
+
+
+  function __construct()
+  {
+    parent::__construct("pageadmin", true, "root");
+
+    require "common/database_def/BASE_pagedef.inc";
+    $this->BASE_pagedef = $BASE_pagedef;
+    $this->BASE_pagedef->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_templatedef.inc";
+    $this->BASE_templatedef = $BASE_templatedef;
+    $this->BASE_templatedef->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_clientaccess.inc";
+    $this->BASE_clientaccess = $BASE_clientaccess;
+    $this->BASE_clientaccess->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_profile.inc";
+    $this->BASE_profile = $BASE_profile;
+    $this->BASE_profile->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_userprofile.inc";
+    $this->BASE_userprofile = $BASE_userprofile;
+    $this->BASE_userprofile->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_profileaccessextended.inc";
+    $this->BASE_profileaccessextended = $BASE_profileaccessextended;
+    $this->BASE_profileaccessextended->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_useraccessextended.inc";
+    $this->BASE_useraccessextended = $BASE_useraccessextended;
+    $this->BASE_useraccessextended->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_language.inc";
+    $this->BASE_language = $BASE_language;
+    $this->BASE_language->setDB($this->base->connector['Main']);
+
+    require "common/database_def/BASE_openclose.inc";
+    $this->BASE_openclose = $BASE_openclose;
+    $this->BASE_openclose->setDB($this->base->connector['Main']);
+
+    // Descomentar despu?s estas l?neas y borrar los includes
+    $this->pageType = $this->base->getLanguage("BASE_pagedef_type", "database");
+    $this->pageStatus = $this->base->getLanguage("BASE_pagedef_status", "database");
+    $this->templateStatus = $this->base->getLanguage("BASE_templatedef_status", "database");
+    $this->inMenu = $this->base->getLanguage("BASE_templatedef_inmenu", "database");
+    $this->inMap = $this->base->getLanguage("BASE_templatedef_inmap", "database");
+
+    $this->SearchPage = $this->base->HTTPRequest->getParameter("searchpage", Base_Common::ALL);
+
+    // Init user auth arrays of status and type
+    $this->getPageStatusAndType();
+    $this->getTemplateStatus();
+
+    // Initialize Posibilities
+    $this->initPosibilities();
+
+    $this->path = array();
+
+    $this->ifversion = ($this->base->getConfig("site.ifversion")==1);
+    $this->ifbrowser = ($this->base->getConfig("site.ifbrowser")==1);
+    $this->iflanguage = ($this->base->getConfig("site.iflanguage")==1);
+    $this->autoversion = $this->base->getConfig("site.autoversion");
+    $this->ifautoversion = ($this->base->getConfig("site.ifautoversion")==1);
+    $this->defaultinstancestatus = $this->base->getConfig("root.defaultinstancestatus");
+    $this->ifagglutinate = ($this->base->getConfig("root.ifagglutinate")==1);
+
+//    $this->template = $this->base->getTemplate("pageadmin");
+//    $this->lang = $this->base->getLanguage("pageadmin");
+  }
+
+  function getPageStatusAndType()
+  {
+    while(list($k, $f) = each($this->pageStatus))
+    {
+      if ($this->base->ifAccess($k, "adminauthstatuspages"))
+        $this->status[] = array("value" => $k, "desc" => $f, "id" => "FILTERPAGESTATUS".$k, "display" => "1", "exists" => "1");
+    }
+    while(list($k, $f) = each($this->pageType))
+    {
+      if ($this->base->ifAccess($k, "adminauthtypepages"))
+        $this->type[$k] = array("value" => $k, "desc" => $f, "id" => "FILTERPAGETYPE".$k, "display" => "1", "exists" => "1");
+    }
+  }
+
+  function getPageProperties($type)
+  {
+    if (!$this->engineLoader)
+      $this->engineLoader = new EngineLoader();
+
+    return $this->engineLoader->getPageProperties($type);
+  }
+
+  // get the page record
+  function getPage($k)
+  {
+    $res = $this->BASE_pagedef->doSelect($k);
+    return $res;
+  }
+
+  // check if page exists
+  function checkPage($k)
+  {
+    $res = $this->BASE_pagedef->doSelect($k);
+    if ($res)
+      return true;
+    return false;
+  }
+
+  // records into tree
+  function calcIfDisplayed($k)
+  {
+    if ($this->base->UserData["status"] == "S")
+      return true;
+    if (isset($this->Posibilities[$k]))
+      return true;
+    return false;
+  }
+
+  // buttons and modificable
+  function calcIfVisible($k)
+  {
+    if ($this->base->UserData["status"] == "S")
+      return true;
+    if (isset($this->Posibilities[$k]) && $this->Posibilities[$k][2])
+      return true;
+    return false;
+  }
+
+  function getPosibilities($page, $Posibilities, &$newposibilities)
+  {
+    $res = $this->BASE_pagedef->doSelectCondition(new DB_Condition("father", "=", $page), null);
+    if (!$res)
+      return;
+    foreach($res as $k => $p)
+    {
+      if (isset($Posibilities[$p["key"]]))
+        continue;
+      if (isset($newposibilities[$p["key"]]))
+        continue;
+      $newposibilities[$p["key"]] = array($p["father"], 2, true, $p["name"], $p["type"], $p["status"]);
+      $this->getPosibilities($p["key"], $Posibilities, $newposibilities);
+    }
+  }
+
+  function getFatherPosibilities($page, $Posibilities, &$newposibilities)
+  {
+    $res = $this->BASE_pagedef->doSelect($page);
+    if (!$res)
+      return;
+    if (isset($Posibilities[$res["key"]]))
+      return;
+    if (isset($newposibilities[$res["key"]]))
+      return;
+    $newposibilities[$res["key"]] = array($res["father"], 3, false, $res["name"], $res["type"], $res["status"]);
+    if ($res["father"])
+      $this->getFatherPosibilities($res["father"], $Posibilities, $newposibilities);
+  }
+
+  function initPosibilities()
+  {
+    // if user is super user => all accesible
+    if ($this->base->UserData["status"] == "S")
+      return true;
+
+    // Else: we check starting from auth pages with recuring function to search for childs and fathers
+    // 1. we search from useraccess then from profile
+    $join = new DB_Join(array("up" => $this->BASE_userprofile, "pr" => $this->BASE_profile, "pae" => $this->BASE_profileaccessextended, "pag" => $this->BASE_pagedef),
+            array(new DB_JoinCondition("up", "profile", "=", "pr", "key", "inner", null), new DB_JoinCondition("pae", "profile", "=", "pr", "key", "inner", "and"), new DB_JoinCondition("pag", "key", "=", "pae", "extkey", "inner", "and")));
+
+    $res = $join->doSelectCondition(array(array("up", new DB_Condition("user", "=", $this->base->User, "and")), array("pr", new DB_Condition("status", "=", 1, "and")), array("pae", new DB_Condition("extaccess", "=", "adminauthpages", "and"))), null);
+
+    // The array of posibilities is:
+    // 0> father key
+    // 1> type of security; 1 = natural right, 2 = hereditary right, 3 = father right
+    // 2> buttons and modificable, true/false
+    // 3> name
+    // 4> type
+    // 5> status
+
+    $Posibilities = null;
+    if ($res)
+    {
+      foreach($res as $p)
+      {
+        $Posibilities[$p["pae.extkey"]] = array($p["pag.father"], 1, true, $p["pag.name"], $p["pag.type"], $p["pag.status"]);
+      }
+    }
+
+    // 2. then we seek pages from direct user rights
+    $join = new DB_Join(array("uae" => $this->BASE_useraccessextended, "pag" => $this->BASE_pagedef),
+            array(new DB_JoinCondition("pag", "key", "=", "uae", "extkey", "inner", null)));
+
+    $res = $join->doSelect(array(array("uae", new DB_Condition("user", "=", $this->base->User, "and")), array("uae", new DB_Condition("extaccess", "=", "adminauthpages", "and"))), null);
+
+    if ($res)
+    {
+      foreach($res as $p)
+      {
+        if (isset($Posibilities[$p["uae.extkey"]]))
+        {
+          if ($p["uae.denied"])
+            $Posibilities[$p["uae.extkey"]] = array($p["pag.father"], 0, false, $p["pag.name"], $p["pag.type"], $p["pag.status"]);
+        }
+        else
+          $Posibilities[$p["uae.extkey"]] = array($p["pag.father"], 1, true, $p["pag.name"], $p["pag.type"], $p["pag.status"]);
+      }
+    }
+
+    if (!$Posibilities)
+    {
+      $this->Posibilities = array();
+      return;
+    }
+
+    // 3. for each page we seek subpages
+    $newposibilities = array();
+    foreach($Posibilities as $k => $p)
+    {
+      if ($p[1])
+      {
+        $this->getPosibilities($k, $Posibilities, $newposibilities);
+      }
+    }
+
+    // for each main page we seek fathers
+    foreach($Posibilities as $k => $p)
+    {
+      if ($p[1] == 1 && $p[0]) // natural pages
+      {
+        $this->getFatherPosibilities($p[0], $Posibilities, $newposibilities);
+      }
+    }
+
+    // Finally we merge newposibilities and posibilities
+    foreach($Posibilities as $k => $p)
+    {
+      if ($p[1])
+        $newposibilities[$k] = $p;
+    }
+
+    $this->Posibilities = $newposibilities;
+
+  }
+
+  function getPath($page)
+  {
+    $path = array($page);
+    $mypage = $this->BASE_pagedef->doSelect($page);
+    while ($mypage["father"])
+    {
+      $path[] = $mypage["father"];
+      $fpage = $this->BASE_pagedef->doSelect($mypage["father"]);
+      $mypage = $fpage;
+    }
+    return $path;
+  }
+
+  function getPrependPath($page)
+  {
+    if (!$page)
+      return "";
+    $mypage = $this->BASE_pagedef->doSelect($page);
+    $path = $mypage["prepend"];
+    while ($mypage["father"])
+    {
+      $fpage = $this->BASE_pagedef->doSelect($mypage["father"]);
+      $mypage = $fpage;
+      $path = $mypage["prepend"] . $path;
+    }
+    return $path;
+  }
+
+  function getHierarchicalPages($father, $level = 0, $thispage = null)
+  {
+    if ($thispage)
+      $this->path = $this->getPath($thispage);
+
+    // FATHER // list of pages, hierarchical
+    if ($father)
+      $temp = $this->BASE_pagedef->doSelectCondition(new DB_Condition("father", "=", $father), new DB_OrderBy("order", DB_OrderBy::ASC));
+    else
+      $temp = $this->BASE_pagedef->doSelectCondition(new DB_Condition("father", "=", null), new DB_OrderBy("order", DB_OrderBy::ASC));
+    $pages = array();
+    if ($temp)
+    {
+      while (list($k, $t) = each($temp))
+      {
+        $subpages = array();
+        $symbol = "";
+        if ($this->calcIfDisplayed($t["key"]))
+        {
+          // We search into the liststructure tree si this branch is opened !
+          $r = $this->BASE_openclose->doSelectCondition(array(new DB_Condition("user", "=", $this->base->User), new DB_Condition("id", "=", "ADMSTRLISTOC".$t["key"], "and")));
+          if (($r && $r[0]["value"]) || !$r || in_array($t["key"], $this->path))
+            $subpages = $this->getHierarchicalPages($t["key"], $level+1);
+
+          if (!$subpages && !(($r && $r[0]["value"]) || !$r))
+            $symbol = " (hijos invisibles)";
+          else
+            $symbol = "";
+        }
+        if ($this->calcIfVisible($t["key"]))
+        {
+          $pages[$t["key"]] = str_repeat(" +", $level)." ".$t["key"]." / ".$t["name"].$symbol;
+        }
+        $pages = $pages + $subpages;
+      }
+    }
+    return $pages;
+  }
+
+  function getBackToList()
+  {
+    $button = $this->template->getTemplate("backtolist");
+    $button->addElement("__BUTTONTITLE__", $this->lang["backtolist"]);
+    return $button;
+  }
+
+  function getShowPath($thispage, $new = false)
+  {
+    $path = $this->template->getTemplate("path");
+    $path->addElement("__TITLE__", $this->lang["path.title"]);
+    $path->addElement("__ROOT__", $this->lang["path.root"]);
+    $pathsep = $path->getTemplate("pathsep");
+    $onepath = $path->getTemplate("onepath");
+    $onepathselect = $path->getTemplate("onepathselect");
+
+    if ($new)
+    {
+      $op = $onepathselect->getClone();
+      $op->addElement("__NAME__", $this->lang["path.new"]);
+      $path->addElement("__PATH__", $op, true);
+      $item = 1;
+    }
+    else
+      $item = 0;
+    if ($thispage)
+    {
+      $this->path = $this->getPath($thispage);
+      foreach($this->path as $p)
+      {
+        if ($item)
+          $path->addElement("__PATH__", $pathsep->getClone(), true);
+        if ($item++)
+          $op = $onepath->getClone();
+        else
+          $op = $onepathselect->getClone();
+        $op->addElement("__NAME__", $p);
+        $path->addElement("__PATH__", $op, true);
+      }
+    }
+    return $path;
+  }
+
+
+  // Function to display things of pages (in 3 levels of pages)
+  function getListOfAuthPages($thispage)
+  {
+    if ($thispage)
+      $this->path = $this->getPath($thispage);
+    $pages = $this->getHierarchicalPages(null);
+
+    $select = $this->template->getTemplate("listofpages");
+    $select->addElement("__TITLE__", $this->lang["listofpages.title"]);
+    $select->addElement("__OBJECTBUTTON__", $this->lang["listofpages.object"]);
+    $select->addElement("__INSTANCEBUTTON__", $this->lang["listofpages.instance"]);
+    $select->addElement("__CODEBUTTON__", $this->lang["listofpages.code"]);
+
+    $option = $select->getTemplate("option");
+    foreach($pages as $k => $p)
+    {
+      $op = $option->getClone();
+      $op->addElement("__CLASS__", "");
+      $op->addElement("__SELECTED__", "");
+      if ($thispage==$k)
+      {
+        $op->addElement("__CLASS__", " class=\"select2\"");
+        $op->addElement("__SELECTED__", " selected=\"selected\"");
+      }
+      $op->addElement("__VALUE__", $k);
+      $op->addElement("__NAME__", $p);
+      $select->addElement("__OPTIONS__", $op);
+    }
+
+    return $select;
+  }
+
+  function getGotoPage()
+  {
+    $select = $this->template->getTemplate("gotopage");
+    $select->addElement("__TITLE__", $this->lang["gotopage.title"]);
+    $select->addElement("__OBJECTBUTTON__", $this->lang["gotopage.object"]);
+    $select->addElement("__INSTANCEBUTTON__", $this->lang["gotopage.instance"]);
+    $select->addElement("__CODEBUTTON__", $this->lang["gotopage.code"]);
+
+    return $select;
+  }
+
+  function getInsert($id, $father, $text)
+  {
+    $button = $this->template->getTemplate("buttoninsert");
+    $button->addElement("__BUTTON__", $text);
+    $button->addElement("__ID__", $id);
+    $button->addElement("__FATHER__", $father);
+
+    return $button;
+  }
+
+  function getTemplate($Page, $key)
+  {
+    $template = $this->BASE_templatedef->doSelect($key);
+    if ($template)
+    {
+      if ($template["page"] != $Page)
+        return null;
+    }
+    return $template;
+  }
+
+  function getListOfTemplates($Page, $key, $hascode = true)
+  {
+    $templates = $this->BASE_templatedef->doSelectCondition(new DB_Condition("page", "=", $Page), new DB_OrderBy("version", DB_OrderBy::ASC));
+
+    $select = $this->template->getTemplate("listoftemplates");
+    $select->addElement("__TITLE__", $this->lang["listoftemplates.title"]);
+    $select->addElement("__INSTANCEBUTTON__", $this->lang["listoftemplates.instance"]);
+    $select->addElement("__PAGE__", $Page);
+    $select->addElement("__CODE__", "");
+    if ($hascode)
+    {
+      $code = $select->getTemplate("codebutton");
+      $code->addElement("__CODEBUTTON__", $this->lang["listoftemplates.code"]);
+      $select->addElement("__CODE__", $code);
+    }
+
+    $option = $select->getTemplate("option");
+    foreach ($templates as $t)
+    {
+      $op = $option->getClone();
+      $op->addElement("__CLASS__", "");
+      $op->addElement("__SELECTED__", "");
+      if ($key==$t["key"])
+      {
+        $op->addElement("__CLASS__", " class=\"select2\"");
+        $op->addElement("__SELECTED__", " selected=\"selected\"");
+      }
+      $op->addElement("__VALUE__", $t["key"]);
+
+      $name = $this->lang["listoftemplates.key"].$t["key"]."; ".
+              $this->lang["listoftemplates.version"].$t["version"]."; ".
+              $this->lang["listoftemplates.language"].$t["language"]."; ".
+              $this->lang["listoftemplates.browser"].$t["browserfamily"]."; ".
+              $this->lang["listoftemplates.htmltitle"].$t["title"];
+
+      $op->addElement("__NAME__", $name);
+      $select->addElement("__OPTIONS__", $op);
+    }
+
+    return $select;
+  }
+
+  function getInsertTemplate($id, $page, $text, $type)
+  {
+    $button = $this->template->getTemplate("buttoninserttemplate");
+    $button->addElement("__BUTTON__", $text);
+    $button->addElement("__ID__", $id);
+    $button->addElement("__PAGE__", $page);
+    $button->addElement("__ORDER__", $type);
+
+    return $button;
+  }
+
+  // get the page record
+  function getVersions($page)
+  {
+    $f = array(new DB_CalcField("version", "version", DB_CalcField::DISTINCT));
+    $res = $this->BASE_templatedef->doSelectReport($f, new DB_Condition("page", "=", $page), new DB_OrderBy("version", DB_OrderBy::ASC));
+    $ver = array();
+    if ($res)
+    {
+      foreach($res as $r)
+        $ver[$r["version"]] = $r["version"];
+    }
+    return $ver;
+  }
+
+  // get the site languages
+  function getLanguages()
+  {
+    $res = $this->BASE_language->doSelectCondition(array(new DB_Condition("status", "=", 1), new DB_Condition("father", "=", null, "and")), new DB_OrderBy("key", DB_OrderBy::ASC));
+    $lan = array();
+    foreach($res as $r)
+      $lan[$r["key"]] = $r["key"] . " / " . $r["name"];
+
+    if ($this->base->getConfig("site.iflanguage") != 1)
+    {
+      // we only return the default language
+      $lan = array($this->base->getConfig("site.language") => $lan[$this->base->getConfig("site.language")] );
+    }
+    return $lan;
+  }
+
+  function getBrowsers()
+  {
+    return array("1" => "Gen?rico");
+  }
+
+  function getTemplateStatus()
+  {
+    while(list($k, $f) = each($this->templateStatus))
+    {
+      if ($this->base->ifAccess($k, "adminauthstatustemplates"))
+        $this->statustemplate[$k] = $f;
+    }
+  }
+
+
+}
+
+namespace entities;
+
+class baseCMSEntity extends \patterns\Singleton
+{
+  public $regexpPageDefKey = '/^[a-z0-9_-]{1,50}$/';
+  public $JSregexpPageDefKey = '^[a-z0-9_-]{1,50}$';
+
+  function __construct()
+  {
+    parent::__construct();
+  }
+
+  // =============================================================
+  // page
+  public function getPageDefData($key)
+  {
+    if (!preg_match($this->regexpPageDefKey, $key))
+      return null;
+    return $this->base_pagedef->doSelect($key);
+  }
+
+  public function getPageTemplates($page)
+  {
+    return $this->base_templatedef->doSelectCondition(new DB_Condition('page', '=', $page), array(new DB_OrderBy('skin', DB_OrderBy::ASC), new DB_OrderBy('version', DB_OrderBy::ASC), new DB_OrderBy('browserfamily', DB_OrderBy::ASC), new DB_OrderBy('language', DB_OrderBy::ASC)));
+  }
+
+  public function getPagesList($father)
+  {
+    return $this->base_pagedef->doSelectCondition(new DB_Condition('father', '=', $father), new DB_OrderBy('order', DB_OrderBy::ASC));
+  }
+
+  // =============================================================
+  // templatedef
+  public function getTemplateDefData($key)
+  {
+    if (!is_numeric($key))
+      return null;
+    return $this->base_templatedef->doSelect($key);
+  }
+}
+*/
+?>

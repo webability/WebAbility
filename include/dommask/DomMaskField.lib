@@ -1,0 +1,277 @@
+<?php
+
+/*
+    DomMaskField.lib, Dominion, the WebAbility(r) Database Abstraction Layer
+    Contains the class of basic field creation for DomMask
+    (c) 2008-2010 Philippe Thomassigny
+
+    This file is part of Dominion
+
+    Dominion is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Dominion is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Dominion.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| DomMaskField: Mask basic field                                   |
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace dommask;
+
+class DomMaskField extends \core\WAClass
+{
+  protected $DomMask;                  // the DomMask that owns us
+
+  public $name = null;               // the name of the field (can be null if it is NOT a record field)
+  public $inrecord = false;          // true if the field is a record field, false if not
+  public $type = '';                 // the type of the field
+  public $fieldnumber;               // unique field id
+
+  // Var to pass to the Post/Get method to submit information
+  public $urlvariable = null;        // asked name
+  public $realurlvariable = null;    // real calculated name
+
+  public $authmodes = 143;           // by default visible on all editable/view modes (ins, upd, del, view, conf del)
+  public $viewmodes = 140;           // by default view on ::VIEW and ::DELETE and ::CONFIRMDELETE
+  public $readonlymodes = null;      // which modes needs read only field
+  public $notnullmodes = null;       // which modes needs not null
+  public $disabledmodes = null;      // which modes disabled the field
+  public $helpmodes = 3;             // which modes prints the help
+
+  // CLIENT SIDE PARAMETERS
+  // title and helpdescription must be entered even if we use a Template
+  public $title = null;              // string or array of strings
+  public $helpdescription = null;    // string, all modes
+  public $helpsummary = null;        // string, only 4GL
+  public $helptitle = null;          // string, only 4GL
+  public $tabindex = 0;              // index of field
+
+  // Server or Validation side
+  public $auto = false;              // automatic mode
+  public $default = null;            // any object, default value of the field (insert). Can be integer, datetime, array, etc.
+  public $calcfunction = null;       // function to calculate the value(s) of the field based on the value from table
+  public $encoded = false;           // boolean, if the value is encoded, will make a rawurldecode before using it, or rawurlencode to send to database
+  public $entities = false;
+
+  public $automessage = null;        // string, the auto.filled legend if insert mode
+  public $size = null;               // the size of the field in pixels, null = default
+
+  public $format = null;             // string reg exp, to validate the format of the entry. PHP reg exp
+  public $emptyonnull = false;       // boolean: force 0 if null on integer, '' if null on string
+  public $nullonempty = false;       // boolean: force null if 0 on integer or '' on string
+  public $nullvalue = '';            // string, what to display if null
+  public $md5encrypted = false;      // boolean, if the value is MD5 hashed
+  public $minlength = null;          // integer: max length of captured value
+  public $maxlength = null;          // integer: max length of captured value
+  public $minwords = null;           // anything, for int, real, dates, money
+  public $maxwords = null;           // anything
+  public $min = null;                // anything, for int, real, dates, money
+  public $max = null;                // anything
+
+  public $statusok = null;           // string
+  public $statusnotnull = null;      // string
+  public $statusbadformat = null;    // string
+  public $statustooshort = null;     // string
+  public $statustoolong = null;      // string
+  public $statustoofewwords = null;  // string
+  public $statustoomanywords = null; // string
+  public $statuscheck = null;        // string
+
+  public $js = null;                 // javascript string to add to validator onchange JSON and 4GL
+  public $formatjs = null;           // string reg exp, to validate the format of the entry. JS reg exp, JSON and 4GL
+
+
+  public function __construct($name, $inrecord)
+  {
+    parent::__construct();
+    $this->name = $name;
+    $this->inrecord = $inrecord;
+  }
+
+  public function fix($DomMask)
+  {
+    $this->DomMask = $DomMask;
+  }
+
+  public function needEncType()
+  {
+    // replace this method in your extended field to get back true if enctype is needed in the form: file, image, etc.
+    return false;
+  }
+
+
+  public function gettitle()
+  {
+    return $this->title;
+  }
+
+  public function getType()
+  {
+    return $this->type;
+  }
+
+  public function getMessages()
+  {
+    return $this->helpdescription;
+  }
+
+  // VARIABLES functions
+  // gets the value from DATABASE (record array) or DEFAULT or FUNCTION
+  public function getValue($record)
+  {
+    if ($this->DomMask->realmode != DomMask::INSERT && $this->name && $this->inrecord)
+    {
+      if (@isset($record[$this->name]))
+      {
+        $val = $record[$this->name];
+      }
+      else
+      {
+        $val = '';
+      }
+      if ($this->encoded)
+        $val = rawurldecode($val);
+      if ($this->entities)
+      {
+        $trans = get_html_translation_table (HTML_ENTITIES);
+        $trans = array_flip ($trans);
+        $val = strtr($val, $trans);
+      }
+    }
+    elseif ($this->DomMask->realmode == DomMask::INSERT && $this->auto)
+    {
+      $val = $this->automessage;
+    }
+    elseif ($this->DomMask->realmode == DomMask::INSERT && $this->default)
+    {
+      $val = $this->default;
+    }
+    elseif (!$this->inrecord)
+    {
+      $val = $this->default;
+    }
+    else
+      $val = "";
+
+    if (($this->DomMask->realmode == DomMask::DELETE || $this->DomMask->realmode == DomMask::VIEW) && is_null($val))
+      $val = "";
+
+    if ($this->calcfunction)
+    {
+      $Fct = $this->calcfunction;
+      $val = $this->DomMask->$Fct($val, $record);
+    }
+    return $val;
+  }
+
+  // format the value from URL
+  protected function formatField($val)
+  {
+    if ($this->encoded)
+      $val = rawurldecode($val);
+    if ($this->entities)
+      $val = nl2br(htmlentities($val, ENT_COMPAT, $this->DomMask->CharSet));
+    else
+    {
+      $val = nl2br($val);
+    }
+    return $val;
+  }
+
+  protected function filterParameter($val)
+  {
+    if ($val !== null && $val!="")
+    {
+      if ($this->entities)
+        $val = htmlentities($val, ENT_COMPAT, $this->DomMask->CharSet);
+      if ($this->encoded)
+        $val = rawurlencode($val);
+      if ($this->md5encrypted && $this->DomMask->realmode == DomMask::INSERT)  // MD5 only apply on INSERT (cannot change on update ?)
+        $val = MD5($val);
+      if ($this->maxlength)
+        $val=substr($val, 0, $this->maxlength);
+    }
+    return $val;
+  }
+
+  // get and filter the parameter from URL
+  public function getParameter()
+  {
+    $val = $this->DomMask->getParameter($this->realurlvariable);
+    if ($this->format)
+    {
+      if (!preg_match($this->format, $val))
+        $val = null;
+    }
+    if ($this->nullonempty && !$val)
+    { $val = null; }
+    if ($this->emptyonnull && !$val)
+    { $val = ''; }
+    return $this->filterParameter($val);
+  }
+
+  // CONTROL functions, do nothing by default, are called by DomMask
+  public function preInsert($record) // record is a DB_Record, by ref
+  {
+  }
+
+  public function postInsert($record)
+  {
+  }
+
+  public function preUpdate($key, $record, $oldrecord) // record is a DB_Record, by ref
+  {
+  }
+
+  public function postUpdate($key, $record, $oldrecord)
+  {
+  }
+
+  public function preDelete($key, $oldrecord)
+  {
+  }
+
+  public function postDelete($key, $oldrecord)
+  {
+  }
+
+  // 4GL method to create a wajaffield object
+  public function create()
+  {
+    return null;
+  }
+
+  public function loadDefinition($data)
+  {
+    foreach($data as $p => $v)
+    {
+      if ($p == 'type')
+        continue;
+      if (is_array($v))
+      {
+        $t = array();
+        foreach($v as $p1 => $v1)
+          $t[constant('DomMask::'. $p1)] = $v1;
+        $this->$p = $t;
+      }
+      else
+        $this->$p = $v;
+    }
+  }
+
+}
+
+?>

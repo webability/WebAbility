@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="BASE_module_installed" lang="es">
+
+  <entry id="0"><![CDATA[No instalado]]></entry>
+  <entry id="1"><![CDATA[Instalado]]></entry>
+
+</language>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="mastermypage">
+
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes" classname="separatorinvisiblevertical">
+    <zone size="60">
+      <container type="simpleContainer" width="max" height="max">
+        <zone>
+          <element id="titleform" type="htmlElement" classname="introcenter">
+<![CDATA[<br />##accounttitle##]]>
+          </element>
+          <element id="titleconfirmation" type="htmlElement" classname="introcenter" display="none">
+<![CDATA[<br />##accountconfirmation##]]>
+          </element>
+        </zone>
+      </container>
+    </zone>
+    <zone size="*">
+__FORM__
+    </zone>
+  </container>
+</application>
