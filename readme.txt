@@ -1,15 +1,20 @@
 @UTF-8
 
-WebAbility v6
+WebAbility v6 -- Free edition
 This is the build 6.0.1
 -------------------------
+
+*** This code is still under build and not yet fully working ***
+
+Please refer to the Webability 6 installation section in the documentation of https://developers.webability.info/webability
+
 
 Version Changes Control
 =============================
 * Individual files changes are consigned into every file
 
 Build 6.0.1 - 2017-12-06
-> CORE 1.00.14, DOMINION 8.0.5, WAJAF 3.0.3, XCONFIG 1.0.8
+> Includes CORE 1.00.14, DOMINION 8.0.5, WAJAF 3.0.3, XCONFIG 1.0.8
 ==============================================================================================
 - First build for version 6
 
