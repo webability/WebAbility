@@ -13,11 +13,11 @@ namespace common;
 
 class entity extends \patterns\Singleton
 {
-  // tables: id => array(table => table_name, connector => [Main], init => [false])
-  // connector and init are optional, default fixed to Main and false.
+  // tables: id => array(table => table_name, connector => [main], init => [false])
+  // connector and init are optional, default fixed to main and false.
   // id is used for __get    Entity->[name] and Entity->CRUD[name]
   protected $tables = array();
-  protected $connector = 'Main';
+  protected $connector = 'main';
   protected $key = 'key';
 
   public function __construct()
@@ -35,6 +35,7 @@ class entity extends \patterns\Singleton
     }
 
     // search the table
+    $table = null;
     foreach($this->tables as $id => $xtable)
     {
       if ($this->tables[$id] instanceof \dominion\DB_Table)
@@ -53,7 +54,7 @@ class entity extends \patterns\Singleton
     require $this->base->getTablePath($table);
 
     $this->tables[$table] = ${$table};
-    $this->tables[$table]->setDB($this->base->connector[$connector]);
+    $this->tables[$table]->setDB($this->base->connectors[$connector]);
     if ($init)
     {
       $this->tables[$table]->synchronize(false);
@@ -61,15 +62,18 @@ class entity extends \patterns\Singleton
     return $this->tables[$table];
   }
   
-  // CRUD basic auto functions   create, read, update, delete, count, check
+  // CRUD basic auto functions   max, create, insert, read, select, update, delete, count, check
   public function __call($name, $vars)
   {
     // countTable(conditions)
-    // checkTable(key)
-    // createTable(record)
-    // updateTable(key, record)
-    // deleteTable(key)
-    // selectTable(key)
+    // maxTable(conditions)
+    // checkTable(key|keys)
+    // createTable(record|records)
+    // insertTable(record|records)
+    // updateTable(key|conditions, record)
+    // deleteTable(key|conditions)
+    // selectTable(key|conditions, orderby, limit, offset, fields)
+    // readTable(key|conditions, orderby, limit, offset, fields)
     
     $sub = substr($name, 0, 3);
     $tableid = strtolower(substr($name, 3));
@@ -105,16 +109,24 @@ class entity extends \patterns\Singleton
         {
           return $this->$table->doSelectCondition(null, null);
         }
-        $key = $where = $orderby = null;
+        $key = $where = $orderby = $limit = $offset = $fields = null;
         if (isset($vars[0]) && (($vars[0] instanceof \dominion\DB_Condition) || (is_array($vars[0]) && isset($vars[0][0]) && $vars[0][0] instanceof \dominion\DB_Condition)))
           $where = $vars[0];
         elseif (isset($vars[0]) && $vars[0])
           $key = $vars[0];
         if (isset($vars[1]) && $vars[1] instanceof \dominion\DB_OrderBy)
           $orderby = $vars[1];
+        if (isset($vars[4]) && is_array($vars[4]))
+          $fields = $vars[4];
+        if (isset($vars[4]) && is_string($vars[4]))
+          $fields = array($vars[4]);
         if ($key)
-          return $this->$table->doSelect($key);
-        return $this->$table->doSelectCondition($where, $orderby);
+          return $this->$table->doSelect($key, false, $fields);
+        if (isset($vars[2]) && is_numeric($vars[2]))
+          $limit = $vars[2];
+        if (isset($vars[3]) && is_numeric($vars[3]))
+          $offset = $vars[3];
+        return $this->$table->doSelectCondition($where, $orderby, false, $limit, $offset, $fields);
       case 'count':
         return $this->$table->getNumberOfRecords($vars[0]);
       case 'max':
@@ -126,7 +138,8 @@ class entity extends \patterns\Singleton
         break;
       case 'create':
       case 'insert':
-        return $this->$table->doInsert($vars[0]);
+        $this->key = $this->$table->doInsert($vars[0]);
+        return $this->key;
       case 'update':
         $key = $where = null;
         if (isset($vars[0]) && (($vars[0] instanceof \dominion\DB_Condition) || (is_array($vars[0]) && isset($vars[0][0]) && $vars[0][0] instanceof \dominion\DB_Condition)))

@@ -39,7 +39,14 @@ class admincountrylist extends \common\WAApplication
     {
       foreach($countries as $country)
       {
-        $result[] = array('key' => $country->key, 'flag' => '<img src="/skins/admin/modules/country/'.strtolower($country->key).'.gif">', 'iso3' => $country->iso3, 'geoip' => $country->geoip, 'name' => $country->name);
+        $buttons = <<<EOF
+  <input type="button" value="{$this->language->modif}" onclick="admincountrylist_edit('{$country->key}');" />
+  <input type="button" value="{$this->language->delete}" onclick="admincountrylist_delete('{$country->key}');" />
+EOF;
+        
+        $result[] = array('key' => $country->key, 'flag' => '<img src="/skins/admin/modules/country/flags/'.strtolower($country->key).'.gif">', 'iso3' => $country->iso3, 'geoip' => $country->geoip, 'name' => $country->name,
+        'commands' => $buttons
+        );
       }
     }
     return array('row' => $result, 'total' => $quantity, 'first' => 1, 'quantity' => $quantity, 'page' => 1);

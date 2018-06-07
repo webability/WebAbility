@@ -684,9 +684,9 @@ $fat = null;
 
       // we link the file
       $dirbase = 'pages/'.$key;
-      $def = $this->base->BASEDIR.'/components/site/templates/clean/base/generic/placeholder.template';
-      $f = $this->base->REPOSITORYDIR.$dirbase.'/clean.base.'.$this->base->getConfig('site.language').'.generic.page';
-      \core\WAFile::createDirectory($this->base->REPOSITORYDIR, $dirbase);
+      $def = $this->base->config->BASEDIR.'/components/site/templates/clean/base/generic/placeholder.template';
+      $f = $this->base->config->REPOSITORYDIR.$dirbase.'/clean.base.'.$this->base->getConfig('site.language').'.generic.page';
+      \core\WAFile::createDirectory($this->base->config->REPOSITORYDIR, $dirbase);
       \core\WAFile::copyFile($def, $f);
     }
 

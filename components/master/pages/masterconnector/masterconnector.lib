@@ -47,8 +47,8 @@ class masterconnector extends \common\WAApplication
     // then we create the mask object
     $M = new \dommask\DomMask(null, null, $this);
     $M->maskid = 'formconnector';
-    $M->key = 'Main';
-    if (!isset($this->Connectors['Main']))
+    $M->key = 'main';
+    if (!isset($this->Connectors['main']))
       $M->mode = \dommask\DomMask::UPDATE;
     else
       $M->mode = \dommask\DomMask::VIEW;
@@ -154,11 +154,11 @@ EOF;
     $F->title = '##password.title##';
     $F->helpsummary = '##password.help.summary##';
     $F->helptitle = '##password.help.title##';
-    if (!isset($this->Connectors['Main']))
+    if (!isset($this->Connectors['main']))
       $F->helpdescription = '##password.help.description##';
     else
       $F->helpdescription = '##password.help.descriptionoptional##';
-    if (!isset($this->Connectors['Main']))
+    if (!isset($this->Connectors['main']))
       $F->notnullmodes = \dommask\DomMask::UPDATE;
     $F->authmodes = \dommask\DomMask::UPDATE;
     $F->statusnotnull = '##password.status.notnull##';
@@ -215,15 +215,15 @@ EOF;
   {
     $M = $this->createMaskDefinition();
 
-    $M->record = array( 'ID' => 'Main' );
-    if (isset($this->Connectors->Main))
+    $M->record = array( 'ID' => 'main' );
+    if (isset($this->Connectors->main))
     {
-      $M->record['TYPE'] = $this->Connectors->Main['type'];
-      $M->record['METHOD'] = $this->Connectors->Main['method'];
-      $M->record['PERSISTENT'] = $this->Connectors->Main['persistent'];
-      $M->record['DATABASE'] = $this->Connectors->Main['database'];
-      $M->record['UNAME'] = $this->Connectors->Main['username'];
-      $M->record['EXTRA'] = $this->Connectors->Main['extra'];
+      $M->record['TYPE'] = $this->Connectors->main['type'];
+      $M->record['METHOD'] = $this->Connectors->main['method'];
+      $M->record['PERSISTENT'] = $this->Connectors->main['persistent'];
+      $M->record['DATABASE'] = $this->Connectors->main['database'];
+      $M->record['UNAME'] = $this->Connectors->main['username'];
+      $M->record['EXTRA'] = $this->Connectors->main['extra'];
       $M->record['PWORD'] = null;
     }
 
@@ -285,7 +285,7 @@ EOF;
 //      throw new masterError($this->language->getEntry("error.connector.idexists"));
 //    }
 
-    $dataconnector = array('id' => 'Main',
+    $dataconnector = array('id' => 'main',
                            'type' => $TYPE,
                            'method' => $METHOD,
                            'persistent' => $PERSISTENT,
@@ -296,7 +296,7 @@ EOF;
                            );
     if ($PWORD)
       $dataconnector['password'] = $PWORD;
-    $Connectors->Main = $dataconnector;
+    $Connectors->main = $dataconnector;
     $this->base->writeconfig("connectors", $Connectors);
 
     return 'Main';

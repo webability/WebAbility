@@ -12,7 +12,7 @@ class installer extends \common\installer
            'Id' => 'country',
            'Template' => null,
            'Name' => 'country',
-           'Icon' => '/skins/admin/modules/country/country.png',
+           'Icon' => '/skins/admin/modules/country/country.gif',
            'Cond' => null,
            'Help' => 'country' ),
 
@@ -37,7 +37,7 @@ class installer extends \common\installer
     parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
     
     // country icon will be installed country
-    $this->script[0]['Icon'] = '/skins/admin/modules/country/flags/'.$this->base->config->country.'.png';
+    $this->script[0]['Icon'] = '/skins/admin/modules/country/flags/'.$this->base->config->country.'.gif';
   }
 
   public function install()
@@ -50,8 +50,8 @@ class installer extends \common\installer
 
     // we insert the default data values in the database
     // we load the language
-    $countries = \core\WASimpleXML::tags(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/database/country_country.xml'));
-    $countrynames = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/country_country.'.$this->base->Language.'.xml'));
+    $countries = \core\WASimpleXML::tags(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/database/country_country.xml'));
+    $countrynames = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/country_country.'.$this->base->Language.'.xml'));
 
     $messages .= $this->language->records;
     // loop to insert all the countries
@@ -60,13 +60,13 @@ class installer extends \common\installer
       $data = array('key' => $country['key'], 'name' => $countrynames->{$country['key']}, 'father' => $country['father'], 'iso3' => $country['iso3'], 'geoip' => $country['geoip']);
       $this->countryEntity->createCountry( $data );
     }
-
+    
     // copy pages
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->config->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->config->ADMINDIR);
 
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/site', $this->base->SITEDIR);
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->config->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/site', $this->base->config->SITEDIR);
 
     $messages .= $this->language->pagesadmin . "<br />\n";
 

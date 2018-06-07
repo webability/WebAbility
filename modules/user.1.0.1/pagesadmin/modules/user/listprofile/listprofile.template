@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="modules/user/listprofile">
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone id="filtrocontainer" size="80">
+      <element type="htmlElement" ><![CDATA[
+
+<div style="padding: 10px;">
+  perfiles de acceso del sistema.<br />
+  Haz click sobre un renglon para verlo: <br />
+  <input type="button" value="Recargar la lista" onclick="perfiles_recarguartodo();" />
+  <input type="button" value="Insertar nuevo" onclick="perfiles_go('');" />
+</div>
+
+      ]]></element>
+    </zone>
+    
+    <zone id="contenedorescontainer" size="*">
+      <container type="gridContainer" id="contenedoresdata" width="max" height="max" haslistener="yes" classname="grid colored">
+        <zone type="column" size="100" field="clave" title="Clave">
+        </zone>
+        <zone type="column" size="300" field="nombre" title="Nombre">
+        </zone>
+        <zone type="column" size="300" field="derechos" title="Derechos">
+        </zone>
+        <zone type="column" size="300" field="usuarios" title="Usuarios">
+        </zone>
+        <zone type="column" size="200" field="comandos" title="Comandos">
+        </zone>
+        
+        <event type="click">
+          <code><![CDATA[
+function(data)
+{
+  if (!data || !data.data)
+    return;
+    
+  perfiles_go(data.data.clave);
+}
+          ]]></code>
+        </event>
+        
+        
+      </container>
+    </zone>
+    
+  </container>
+  
+  <element type="codeElement"><![CDATA[
+  
+function perfiles_recarguartodo()
+{
+  WA.$N('perfiles|single|contenedoresdata').reload();
+}
+
+function perfiles_editar(key)
+{
+  perfiles_go(key, 2);
+}
+
+function perfiles_borrar(key)
+{
+  perfiles_go(key, 3);
+}
+
+function perfiles_go(key, mode)
+{
+  // abrimos una ventana para editar este mailing
+  var node = WA.$N('main|single|app_perfiles/editar');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_perfiles/editar',title:'Edición perfiles',closeable:'yes',application:'perfiles/editar|single',params:'key='+key+(mode?'&mode='+mode:'')}};
+    WA.$N('main|single|application').app.createTree('application', tree);
+  }
+  WA.$N('main|single|application').activateZone('app_perfiles/editar');
+}
+
+  ]]></element></application>

@@ -17,14 +17,14 @@ class installer extends \common\installer
            'template' => null ),
     );  
   
-  public function __construct()
+  public function __construct($language)
   {
-    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/');
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
   }  
   
-  public function install($language)
+  public function install()
   {
-    $messages = $this->installDatabase($language);
+    $messages = $this->installDatabase();
     
     $this->setModule(self::ID, $this->BASEDIR);
     // config params
@@ -36,31 +36,31 @@ class installer extends \common\installer
     $this->setConfigParam('site', 'wikitools', 'logged');
     // wikitools is "logged", "all" or any specific right
 
-    $messages .= $language->getEntry('records');
+    $messages .= $this->language->getEntry('records');
     
     // copy pages
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/site', $this->base->SITEDIR);
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->config->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/site', $this->base->config->SITEDIR);
 
-    $messages .= $language->getEntry('pagesadmin') . "<br />\n";
+    $messages .= $this->language->getEntry('pagesadmin') . "<br />\n";
 
     // run the scripter
-    $messages .= $this->installScript($language);
+    $messages .= $this->installScript();
     
     return $messages;
   }
   
-  public function uninstall($language)
+  public function uninstall()
   {
     // run the scripter
-    $messages = $this->uninstallScript($language);
+    $messages = $this->uninstallScript();
 
     $this->delConfigParam('site', 'wikipagepainter');
     $this->delConfigParam('site', 'wikitemplatepath');
     $this->delConfigParam('site', 'wikilanguagepath');
     $this->delModule(self::ID);
 
-    $messages .= $this->uninstallDatabase($language);
+    $messages .= $this->uninstallDatabase();
     return $messages;
   }
   

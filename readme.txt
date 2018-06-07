@@ -5,6 +5,7 @@ This is the build 6.0.1
 -------------------------
 
 *** This code is still under build and not yet fully working ***
+*** Install the application in spanish for now (all the default language tables are in spanish) ***
 
 Please refer to the Webability 6 installation section in the documentation of https://developers.webability.info/webability
 

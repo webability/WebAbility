@@ -29,7 +29,7 @@ class Xdataset extends wajaf
   public function __construct($data)
   {
     parent::__construct('dataset');
-    $this->setData($data, true);
+    $this->setData($data);
   }
 }
 

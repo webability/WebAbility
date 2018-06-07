@@ -44,11 +44,11 @@ class baseModuleEntity extends \common\entity
   
   public function getModulePath($module)
   {
-    if ($module == 'base')
+    if ($module == 'wa')
       return 'components';
     
     // USE LOCAL MODULES CACHE
-    $modules = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'modules.conf'));
+    $modules = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'modules.conf'));
     return 'modules/' . $modules->$module;
   }
 
@@ -67,15 +67,15 @@ class baseModuleEntity extends \common\entity
     $plugins = array();
 
     // 1. loop on the include/plugins directory
-    if (is_dir($this->base->BASEDIR . "/modules"))
+    if (is_dir($this->base->config->BASEDIR . "/modules"))
     {
-      $handle=opendir($this->base->BASEDIR . "/modules");
+      $handle=opendir($this->base->config->BASEDIR . "/modules");
       while ($file = readdir($handle))
       {
         if ($file == "." || $file == "..")
           continue;
 
-        if (is_dir($this->base->BASEDIR . "/modules/".$file) && preg_match("/".$this->basenamemask."/i", $file, $res))
+        if (is_dir($this->base->config->BASEDIR . "/modules/".$file) && preg_match("/".$this->basenamemask."/i", $file, $res))
         {
           $id = $res[1];
           $mod = $res[2];
@@ -83,9 +83,9 @@ class baseModuleEntity extends \common\entity
           if ($seek && $mod != $seek)
             continue;
 
-          if (is_file($this->base->BASEDIR . "/modules/".$file."/install/version.conf"))
+          if (is_file($this->base->config->BASEDIR . "/modules/".$file."/install/version.conf"))
           {
-            $module = $this->loadVersion($this->base->BASEDIR . "/modules/".$file."/install/version.conf");
+            $module = $this->loadVersion($this->base->config->BASEDIR . "/modules/".$file."/install/version.conf");
 
             if ($module->id == $mod && $module->version == $num)
             {

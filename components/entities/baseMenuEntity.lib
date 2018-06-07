@@ -21,7 +21,7 @@ class baseMenuEntity extends \common\entity
   // all
   public function getMenuTree()
   {
-    $themes = $this->readMenuTheme(new \dominion\DB_Condition('module', '=', 'base'), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
+    $themes = $this->readMenuTheme(new \dominion\DB_Condition('module', '=', 'wa'), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
     if ($themes)
     {
       foreach($themes as $k => $theme)
@@ -29,7 +29,7 @@ class baseMenuEntity extends \common\entity
         $themes[$k]['children'] = $this->readMenu(new \dominion\DB_Condition('theme', '=', $theme['key']), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
       }
     }
-    $themesmod = $this->readMenuTheme(new \dominion\DB_Condition('module', '!=', 'base'), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
+    $themesmod = $this->readMenuTheme(new \dominion\DB_Condition('module', '!=', 'wa'), new \dominion\DB_OrderBy('order', \dominion\DB_OrderBy::ASC));
     if ($themesmod)
     {
       foreach($themesmod as $k => $theme)

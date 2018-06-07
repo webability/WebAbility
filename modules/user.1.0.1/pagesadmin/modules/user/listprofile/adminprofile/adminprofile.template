@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="modules/user/listprofile/adminprofile">
+
+  <container id="application" type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone size="250">
+__FORMPERFIL__
+    </zone>
+    <zone id="extra" size="*">
+      <container type="separatorContainer" width="max" height="max" mode="horizontal" auto="yes">
+        <zone size="*">
+          <element type="htmlElement" id="perfiles_derechos"></element>
+        </zone>
+        <zone size="*">
+          <element type="htmlElement" id="perfiles_usuarios"></element>
+        </zone>
+      </container>
+    </zone>
+  </container>
+
+  <element type="codeElement"><![CDATA[
+  
+function perfiles_editar_formlistener(tipo, mode, clave, data)
+{
+  if (!clave || mode == 1)
+  {  // esconder los dos tabs extras
+    WA.$N('perfiles/editar|single|application').hideZone('extra');
+    WA.toDOM('perfiles/editar|single|perfiles_derechos').style.display = 'none';
+    WA.toDOM('perfiles/editar|single|perfiles_usuarios').style.display = 'none';
+  }
+  else
+  {  // ensenar los dos tabs extras y cargarlos
+    WA.$N('perfiles/editar|single|application').showZone('extra');
+    WA.toDOM('perfiles/editar|single|perfiles_derechos').style.display = 'block';
+    WA.toDOM('perfiles/editar|single|perfiles_usuarios').style.display = 'block';
+    var request = WA.Managers.ajax.createRequest('/perfiles/editar/derechos/html', 'POST', null, perfiles_editar_fillderechos, false);
+    request.addParameter('key', clave);
+    request.send();
+    var request = WA.Managers.ajax.createRequest('/perfiles/editar/usuarios/html', 'POST', null, perfiles_editar_fillusuarios, false);
+    request.addParameter('key', clave);
+    request.send();
+  }
+}
+
+function perfiles_editar_fillderechos(request)
+{
+  WA.toDOM('perfiles/editar|single|perfiles_derechos').innerHTML = request.responseText;
+}
+
+function perfiles_editar_fillusuarios(request)
+{
+  WA.toDOM('perfiles/editar|single|perfiles_usuarios').innerHTML = request.responseText;
+}
+
+function perfiles_editar_switchusuario(key, id, val)
+{
+  var req = WA.Managers.ajax.createRequest('/perfiles/editar/setusuario/json', 'POST', 'key='+key+'&id='+id+'&val='+val, perfiles_editar_respuestausuario, true);
+}
+
+function perfiles_editar_respuestausuario(request)
+{
+  var code = WA.JSON.decode(request.responseText);
+  if (code.estatus != 'OK')
+    alert(request.responseText);
+}
+
+function perfiles_editar_switchderecho(key, id)
+{
+  var req = WA.Managers.ajax.createRequest('/perfiles/editar/setderecho/json', 'POST', 'key='+key+'&id='+id, perfiles_editar_respuestaderecho, true);
+}
+
+function perfiles_editar_respuestaderecho(request)
+{
+  var code = WA.JSON.decode(request.responseText);
+  if (code.estatus != 'OK')
+    alert(request.responseText);
+}
+
+  ]]></element>
+  
+  <event type="start">
+    <code><![CDATA[
+    function(e)
+    {
+      WA.$N('perfiles/editar|single|formperfil').addListener(perfiles_editar_formlistener);
+    }
+    ]]></code>
+  </event>
+
+</application>

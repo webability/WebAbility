@@ -64,6 +64,8 @@ class WAApplication extends \xamboo\XBLibrary
     // we should check validity of type in known types
     if ($type == 'json')
     {
+      if ($code instanceof \wajaf\wajaf)
+        $code = $code->compile();
       if (is_string($code))
         $tree = \tools\xml\xmltoarray::parse($code);
       elseif (is_array($code))

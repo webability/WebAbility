@@ -651,16 +651,20 @@ treeexplorer
   border: 1px solid red;
 }
 
-.moduleavailablestatus_4
+.moduleavailablestatus_4, .moduleneutral
 {
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   background-color: #f8f8f8;
-  color: #bbb;
   padding: 5px;
   border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; -khtml-border-radius: 5px;
   margin-bottom: 5px;
   margin-right: 10px;
   margin-left: 10px;
+}
+
+.moduleavailablestatus_4
+{
+  color: #bbb;
 }
 
 .modulelog

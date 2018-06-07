@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="user_accessgroup" lang="es">
+<!-- Basic admin accesses -->
+  <entry id="console_name"><![CDATA[Acceso a la consola]]></entry>
+  <entry id="config_name"><![CDATA[Acceso a la configuración]]></entry>
+  <entry id="explorer_name"><![CDATA[Acceso al explorador de archivos]]></entry>
+<!-- user module accesses -->
+  <entry id="users_name"><![CDATA[Acceso a los usuarios]]></entry>
+  <entry id="useraccesses_name"><![CDATA[Acceso a los accesos]]></entry>
+  <entry id="userprofiles_name"><![CDATA[Acceso a los perfiles]]></entry>
+</language>

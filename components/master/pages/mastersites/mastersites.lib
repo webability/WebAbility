@@ -63,7 +63,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'admindir';
-    $F->default = $this->base->ADMINDIR;
+    $F->default = $this->base->config->ADMINDIR;
     $M->addMaskField($F);
 
     // Admin domain
@@ -75,7 +75,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'admindomain';
-    $F->default = $this->base->ADMINDOMAIN;
+    $F->default = $this->base->config->ADMINDOMAIN;
     $M->addMaskField($F);
     
     // site dir
@@ -87,7 +87,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'sitedir';
-    $F->default = $this->base->SITEDIR;
+    $F->default = $this->base->config->SITEDIR;
     $M->addMaskField($F);
 
     // site domain
@@ -99,7 +99,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'sitedomain';
-    $F->default = $this->base->SITEDOMAIN;
+    $F->default = $this->base->config->SITEDOMAIN;
     $M->addMaskField($F);
     
     // api dir
@@ -111,7 +111,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'apidir';
-    $F->default = $this->base->APIDIR;
+    $F->default = $this->base->config->APIDIR;
     $M->addMaskField($F);
 
     // api domain
@@ -123,7 +123,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'apidomain';
-    $F->default = $this->base->APIDOMAIN;
+    $F->default = $this->base->config->APIDOMAIN;
     $M->addMaskField($F);
     
     // cdn dir
@@ -135,7 +135,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'cdndir';
-    $F->default = $this->base->CDNDIR;
+    $F->default = $this->base->config->CDNDIR;
     $M->addMaskField($F);
 
     // cdn domain
@@ -147,7 +147,7 @@ EOF;
     $F->size = 500;
     $F->maxlength = 255;
     $F->urlvariable = 'cdndomain';
-    $F->default = $this->base->CDNDOMAIN;
+    $F->default = $this->base->config->CDNDOMAIN;
     $M->addMaskField($F);
     
     $F = new \dommask\DomMaskButtonField('update');
@@ -169,14 +169,14 @@ EOF;
     $M->addMaskField($F);
 
     $M->record = array( 
-      'admindir' => $this->base->ADMINDIR,
-      'admindomain' => $this->base->ADMINDOMAIN,
-      'sitedir' => $this->base->SITEDIR,
-      'sitedomain' => $this->base->SITEDOMAIN,
-      'apidir' => $this->base->APIDIR,
-      'apidomain' => $this->base->APIDOMAIN,
-      'cdndir' => $this->base->CDNDIR,
-      'cdndomain' => $this->base->CDNDOMAIN,
+      'admindir' => $this->base->config->ADMINDIR,
+      'admindomain' => $this->base->config->ADMINDOMAIN,
+      'sitedir' => $this->base->config->SITEDIR,
+      'sitedomain' => $this->base->config->SITEDOMAIN,
+      'apidir' => $this->base->config->APIDIR,
+      'apidomain' => $this->base->config->APIDOMAIN,
+      'cdndir' => $this->base->config->CDNDIR,
+      'cdndomain' => $this->base->config->CDNDOMAIN,
     );
     
     return $M->code()->compile();
@@ -195,7 +195,7 @@ EOF;
     
     // verify directories are ok and r/w and domains good syntax
 
-    $base = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'base.conf'));
+    $base = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'base.conf'));
     $base->ADMINDIR = $admindir;
     $base->ADMINDOMAIN = $admindomain;
     $base->SITEDIR = $sitedir;
@@ -237,9 +237,9 @@ EOF;
 
     //  light version: directories are fixed to the unique site
     $dirs = array(
-      'api' => $this->base->APIDIR,
-      'site' => $this->base->SITEDIR,
-      'admin' => $this->base->ADMINDIR
+      'api' => $this->base->config->APIDIR,
+      'site' => $this->base->config->SITEDIR,
+      'admin' => $this->base->config->ADMINDIR
     );
 
     $messages = '';
@@ -249,12 +249,12 @@ EOF;
       {
         // should throw an exception if there is an error
         $messages .= $this->language->getEntry('file') . $dir;
-        $res = \core\WAFile::copyFile($this->base->BASEDIR.'components/'.$site.'/site', $dir);
-        $res = \core\WAFile::copyFile($this->base->BASEDIR.'components/'.$site.'/pages', $this->base->BASEDIR.'application/pages'.$site);
+        $res = \core\WAFile::copyFile($this->base->config->BASEDIR.'components/'.$site.'/site', $dir);
+        $res = \core\WAFile::copyFile($this->base->config->BASEDIR.'components/'.$site.'/pages', $this->base->config->BASEDIR.'application/pages'.$site);
         
         $messages .= $this->language->getEntry('done');
 
-        $BASEDIR = $this->base->BASEDIR;
+        $BASEDIR = $this->base->config->BASEDIR;
         // windows drive
         if (substr($BASEDIR, 1, 1) == ':')
         {
@@ -264,7 +264,7 @@ EOF;
         else
           $BASEDRIVE = 'C:';
 
-        $REPOSITORYDIR = $this->base->REPOSITORYDIR;
+        $REPOSITORYDIR = $this->base->config->REPOSITORYDIR;
         // windows drive
         if (substr($REPOSITORYDIR, 1, 1) == ':')
         {

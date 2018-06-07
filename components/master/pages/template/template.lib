@@ -28,7 +28,7 @@ class template extends \xamboo\XBLibrary
     $this->base->HTTPResponse->buildCookies();
 
     $this->template->metaElements(
-      array('charcode' => \common\Base::CharSet,
+      array('charcode' => \common\Base::CHARSET,
             'language' => $this->base->Language,
             'htmltitle' => 'Master ' . $this->base->getSystem() . ' ' . $this->base->getVersion(),
             'css' => $this->base->HTTPResponse->buildCSS(),

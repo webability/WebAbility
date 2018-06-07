@@ -1,0 +1,80 @@
+<?php
+
+namespace modules\accountkit\install;
+
+class installer extends \common\installer
+{
+  const ID = 'accountkit';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateMenuTheme',
+           'Id' => 'accountkit',
+           'Template' => null,
+           'Name' => 'accountkit',
+           'Icon' => '/skins/admin/modules/accountkit/accountkit.gif',
+           'Cond' => null,
+           'Help' => 'accountkit' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'country_',
+           'Theme' => 'accountkit',
+           'Father' => null,
+           'Template' => null,
+           'Access' => 'accountkit',
+           'Name' => 'accountkit',
+           'Link' => '@adminaccountkit',
+           'Params' => null,
+           'Icon' => null,
+           'Cond' => null,
+           'Help' => 'accountkit' ),
+    );  
+  
+  private $countryEntity = null;
+  
+  public function __construct($language)
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
+  }
+
+  public function install()
+  {
+    $messages = $this->installDatabase();
+
+    $this->setModule();
+
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->config->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->config->ADMINDIR);
+
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->config->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/site', $this->base->config->SITEDIR);
+
+    $messages .= $this->language->pagesadmin . "<br />\n";
+
+    // run the scripter
+    $messages .= $this->installScript();
+    
+    return $messages;
+  }
+  
+  public function uninstall()
+  {
+    // run the scripter
+    $messages = $this->uninstallScript();
+
+    $this->delModule();
+
+    $messages .= $this->uninstallDatabase();
+
+    return $messages;
+  }
+  
+  public function upgrade($from)
+  {
+    // Special tasks to execute in case of an upgrade
+  }
+  
+};
+
+?>

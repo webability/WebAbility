@@ -13,6 +13,7 @@ Copyright: Ing. Philippe Thomassigny (c) 2002-2017
 WebAbility v6 Common Library and object
 2015-05-07: Phil, added config params, entities for conectors.
 2017-01-11: Phil, Version 6 added
+2018-05-23: Phil, CHARSET goes uppers. Remove *DIRs and *DOMAINs attributes. They are directly into config. connector is now connectors
 
 @End_DESCR */
 
@@ -26,7 +27,7 @@ WebAbility v6 Common Library and object
 | - ::ADMIN : string: admin identificator                          |
 | - ::SITE : string: site identificator                            |
 | - ::API : string: API identificador                              |
-| - ::CharSet : string: the sistem language set (UTF-8)            |
+| - ::charset : string: the system language set (UTF-8)            |
 | + VERSION : string: code version number of webability from version.inc|
 | + VERSIONTYPE : string: version type of webability from version.inc|
 | + VERSIONDATE : string: version date of webability from version.inc|
@@ -64,7 +65,7 @@ namespace common;
 class Base extends \xamboo\Base_Engine
 {
   // the version MUST match version.conf. this number is used to compile tar.gz to the published last version of WA6
-  const MODULE = 'WACore';
+  const MODULE = 'wa';
   const VERSION = '6.0.1';
 
   // constants to locate our needs
@@ -74,10 +75,11 @@ class Base extends \xamboo\Base_Engine
   const SITE = 'SITE';
   const API = 'API';
   
-  const CharSet = 'UTF8';        // dont even think to change this, the whole world works on utf8 now
+  const CHARSET = 'UTF-8';        // dont even think to change this, the whole world works on utf8 now
 
   public $mode;                  // the working mode: MASTER, ADMIN, SITE, API
 
+/*
   public $BASEDIR = '';          // the base installation directory
   public $REPOSITORYDIR = '';    // the repository of data directory
   public $MASTERDIR = '';        // directory for master site
@@ -91,8 +93,8 @@ class Base extends \xamboo\Base_Engine
   public $SITEDOMAIN = '';       // site domain
   public $CDNDOMAIN = '';        // cdn domain
   public $APIDOMAIN = '';        // api domain
-
-  public $connector = null;      // array of open connectors (database on site instance)
+*/
+  public $connectors = null;      // array of open connectors (database on site instance)
   
   public function __construct($config, $mode)
   {
@@ -105,7 +107,7 @@ class Base extends \xamboo\Base_Engine
       throw new \core\WAException('The installed version has not been upgraded to the last version: ' . self::VERSION . ' vs ' . $config->version);
 
     $this->mode = $mode;
-
+/*
     $this->BASEDIR = isset($config['BASEDIR'])?$config['BASEDIR']:'';
     $this->REPOSITORYDIR = isset($config['REPOSITORYDIR'])?$config['REPOSITORYDIR']:'';
     $this->MASTERDIR = isset($config['MASTERDIR'])?$config['MASTERDIR']:'';
@@ -119,7 +121,7 @@ class Base extends \xamboo\Base_Engine
     $this->SITEDOMAIN = isset($config['SITEDOMAIN'])?$config['SITEDOMAIN']:'';
     $this->CDNDOMAIN = isset($config['CDNDOMAIN'])?$config['CDNDOMAIN']:'';
     $this->APIDOMAIN = isset($config['APIDOMAIN'])?$config['APIDOMAIN']:'';
-
+*/
     // load the connectors
     $this->createConnectors();
   }
@@ -147,8 +149,8 @@ class Base extends \xamboo\Base_Engine
   // ====================================================================
   public function loadEngines()
   {
-    if (is_file($this->REPOSITORYDIR.'engines.conf'))
-      $engines = new \xconfig\XConfig(file_get_contents($this->REPOSITORYDIR.'engines.conf'));
+    if (is_file($this->config->REPOSITORYDIR.'engines.conf'))
+      $engines = new \xconfig\XConfig(file_get_contents($this->config->REPOSITORYDIR.'engines.conf'));
     else
       $engines = new \xconfig\XConfig(null);
     return $engines;
@@ -185,8 +187,8 @@ class Base extends \xamboo\Base_Engine
       {
         try
         {
-          $this->connector[$k] = new \dominion\DB_Base($c['type'], $c['flags']);
-          $this->connector[$k]->SetLogon($c['username'], isset($c['password'])?$c['password']:'', $c['database'], $c['extra']);
+          $this->connectors[$k] = new \dominion\DB_Base($c['type'], $c['flags']);
+          $this->connectors[$k]->SetLogon($c['username'], isset($c['password'])?$c['password']:'', $c['database'], $c['extra']);
         }
         catch(\core\WAException $t)
         {
@@ -201,8 +203,8 @@ class Base extends \xamboo\Base_Engine
       $this->doDebug('common/Base->loadConnectors()', \core\WADebug::SYSTEM);
 
     clearstatcache();
-    if (is_file($this->REPOSITORYDIR.'connectors.conf'))
-      $connectors = new \xconfig\XConfig(file_get_contents($this->REPOSITORYDIR.'connectors.conf'));
+    if (is_file($this->config->REPOSITORYDIR.'connectors.conf'))
+      $connectors = new \xconfig\XConfig(file_get_contents($this->config->REPOSITORYDIR.'connectors.conf'));
     else
       $connectors = new \xconfig\XConfig(null);
     return $connectors;
@@ -254,7 +256,7 @@ class Base extends \xamboo\Base_Engine
       }
     }
 
-    return $this->BASEDIR . $path;
+    return $this->config->BASEDIR . $path;
   }
 
   // ==================
@@ -266,8 +268,8 @@ class Base extends \xamboo\Base_Engine
       $this->doDebug('common/Base->getFastObject(%, %, %)', \core\WADebug::SYSTEM, $type, $name, $useSHM);
 
     $afo = new \datasources\FastObjectSource(
-        new \datasources\FileSource($this->REPOSITORYDIR, $type, $name.'.afo', true),
-        $this->SHM?new \datasources\SHMSource($this->REPOSITORYDIR.$type.'/'.$name.'.afo', $this->SHM):null
+        new \datasources\FileSource($this->config->REPOSITORYDIR, $type, $name.'.afo', true),
+        $this->SHM?new \datasources\SHMSource($this->config->REPOSITORYDIR.$type.'/'.$name.'.afo', $this->SHM):null
     );
 
     return $afo;

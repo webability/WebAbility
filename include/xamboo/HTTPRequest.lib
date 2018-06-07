@@ -27,6 +27,8 @@ Changes:
   2015-03-10: Phil, added METHOD to use with the REST API
   2015-04-21: Phil, documentation, comments
   2015-06-17: Phil, added PUTDATA to be able to access the data sent by a PUT command into the body, if it not a JSON string
+  2017-05-05: Phil, added X-FORWARDED-FOR based on cookie for HTTPS requests behind a LB (be carefull: easily spoofable)
+  2018-01-02: Phil, modified to avoid warnings on REMOTE_ADDR and REQUEST_METHOD: they are not always present (in CLI for instance)
 
 @End_DESCR */
 
@@ -103,14 +105,19 @@ class HTTPRequest extends \core\WAClass
         $this->IP = $_SERVER["HTTP_X_FORWARDED_FOR"];
         $this->HOST = null;
       }
+      elseif (isset($_COOKIE["X-FORWARDED-FOR"]))
+      {
+        $this->IP = $_COOKIE["X-FORWARDED-FOR"];
+        $this->HOST = null;
+      }
       else
       {
-        $this->IP = $_SERVER["REMOTE_ADDR"];
+        $this->IP = isset($_SERVER["REMOTE_ADDR"])?$_SERVER["REMOTE_ADDR"]:'127.0.0.1';
         $this->HOST = isset($_SERVER["REMOTE_HOST"])?$_SERVER["REMOTE_HOST"]:null;
       }
       // special case: PUT method with JSON parameters in BODY, because PHP does not supper by default PUT method
       // se we put the JSON body into _POST if available and correct syntax.
-      $this->METHOD = strtoupper($_SERVER['REQUEST_METHOD']);
+      $this->METHOD = isset($_SERVER['REQUEST_METHOD'])?strtoupper($_SERVER['REQUEST_METHOD']):null;
       if ($this->METHOD == 'PUT')
       {
         $this->PUTDATA=file_get_contents('php://input');

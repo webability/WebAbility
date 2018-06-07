@@ -1,0 +1,328 @@
+<?php
+
+class adminprofile extends \common\WAApplication
+{
+  private $usuarioEntity;
+  
+  private $key;
+  private $mode;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->usuarioEntity = \entities\usuarioEntity::getInstance();
+    
+    $this->key = $this->base->HTTPRequest->getParameter('key');
+    $this->mode = $this->base->HTTPRequest->getParameter('mode');
+  }
+
+  // we add our own parameters to application
+  public function getParameters($engine, $params)
+  {
+    return array(
+                 'FORMPERFIL' => $this->getformperfil()->compile(),
+    );
+  }
+  
+
+  // FORMA PARA CAMBIAR EL perfil
+  
+  private function createMaskDefinitionperfil()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, $this);
+    $M->maskid = 'formperfil';
+    $M->key = null;
+    $M->mode = \dommask\DomMask::INSERT;
+    $M->alertmessage = '##formperfil.errormessage##';
+    $M->servermessage = '##formperfil.servermessage##';
+    $M->titles[\dommask\DomMask::INSERT] = '##formperfil.titleinsert##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##formperfil.titleupdate##';
+    $M->titles[\dommask\DomMask::VIEW] = '##formperfil.titleview##';
+    $M->titles[\dommask\DomMask::DELETE] = '##formperfil.titledelete##';
+
+    $M->jsonfailure = "function(params) { this.icontainer.setMessages(params); }";
+
+    $ti = 1;
+
+    $F = new \dommask\DomMaskTextField('clave');
+    $F->title = '##perfilclave.title##';
+    $F->helpsummary = '##perfilclave.help.summary##';
+    $F->helptitle = '##perfilclave.help.title##';
+    $F->helpdescription = '##perfilclave.help.description##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskTextField('nombre');
+    $F->title = '##perfilnombre.title##';
+    $F->helpsummary = '##perfilnombre.help.summary##';
+    $F->helptitle = '##perfilnombre.help.title##';
+    $F->helpdescription = '##perfilnombre.help.description##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    // BOTONES
+    $F = new \dommask\DomMaskButtonField('firstperfil');
+    $F->action = 'first';
+    $F->title = '##formperfil.first##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('previousperfil');
+    $F->action = 'previous';
+    $F->title = '##formperfil.previous##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('nextperfil');
+    $F->action = 'next';
+    $F->title = '##formperfil.next##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('lastperfil');
+    $F->action = 'last';
+    $F->title = '##formperfil.last##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('insertperfil');
+    $F->action = 'insert';
+    $F->title = '##formperfil.insert##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('updateperfil');
+    $F->action = 'update';
+    $F->title = '##formperfil.update##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('deleteperfil');
+    $F->action = 'delete';
+    $F->title = '##formperfil.delete##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submitperfil');
+    $F->action = 'submit';
+    $F->title[\dommask\DomMask::INSERT] = '##formperfil.submitinsert##';
+    $F->title[\dommask\DomMask::UPDATE] = '##formperfil.submitupdate##';
+    $F->title[\dommask\DomMask::DELETE] = '##formperfil.submitdelete##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('resetperfil');
+    $F->action = 'reset';
+    $F->title = '##formperfil.reset##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('viewperfil');
+    $F->action = 'view';
+    $F->title[\dommask\DomMask::INSERT] = '##formperfil.viewinsert##';
+    $F->title[\dommask\DomMask::UPDATE] = '##formperfil.viewupdate##';
+    $F->title[\dommask\DomMask::DELETE] = '##formperfil.viewdelete##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    return $M;
+  }
+  
+  private function getformperfil()
+  {
+    $M = $this->createMaskDefinitionperfil();
+
+    if (!$this->key)
+    {
+      $M->mode = \dommask\DomMask::INSERT;
+    }
+    else
+    {
+      $M->key = $this->key;
+      if ($this->mode == 2)
+        $M->mode = \dommask\DomMask::UPDATE;
+      elseif ($this->mode == 3)
+        $M->mode = \dommask\DomMask::DELETE;
+      else
+        $M->mode = \dommask\DomMask::VIEW;
+      $rec = $this->usuarioEntity->kl_adminperfil->doSelect($this->key);
+      $M->record = array(
+        'clave' => $rec->clave,
+        'nombre' => $rec->nombre,
+      );
+    }
+    return $M->code();
+  }
+  
+  public function formperfil()
+  {
+    $order = $this->base->HTTPRequest->getParameter('order');
+    $key = $this->base->HTTPRequest->getParameter('key');
+    $mode = $this->base->HTTPRequest->getParameter('mode');
+    switch($order)
+    {
+      case 'first':
+        $rec = $this->usuarioEntity->readAdminperfil(null, new \dominion\DB_OrderBy('clave', \dominion\DB_OrderBy::ASC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'last':
+        $rec = $this->usuarioEntity->readAdminperfil(null, new \dominion\DB_OrderBy('clave', \dominion\DB_OrderBy::DESC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'next':
+        $rec = $this->usuarioEntity->readAdminperfil(array(new \dominion\DB_Condition('clave', '>', $key)), new \dominion\DB_OrderBy('clave', \dominion\DB_OrderBy::ASC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'previous':
+        $rec = $this->usuarioEntity->readAdminperfil(array(new \dominion\DB_Condition('clave', '<', $key)), new \dominion\DB_OrderBy('clave', \dominion\DB_OrderBy::DESC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'getrecord': // Buscamos este, o el anterior o el siguiente
+        $rec = $this->usuarioEntity->readAdminperfil($key);
+        if (!$rec)
+        {
+          $rec = $this->usuarioEntity->readAdminperfil(array(new \dominion\DB_Condition('clave', '>', $key)), new \dominion\DB_OrderBy('clave', \dominion\DB_OrderBy::ASC), 1);
+          if ($rec) $rec = $rec[0];
+        }
+        if (!$rec)
+        {
+          $rec = $this->usuarioEntity->readAdminperfil(array(new \dominion\DB_Condition('clave', '<', $key)), new \dominion\DB_OrderBy('clave', \dominion\DB_OrderBy::DESC), 1);
+          if ($rec) $rec = $rec[0];
+        }
+        return $this->buildRecord($rec);
+      case 'submit':
+        break;
+      default:
+        return null; // nothing to do
+    }
+    
+    try
+    {
+      $success = true;
+      $clave = $this->base->HTTPRequest->getParameter('clave');
+      $nombre = $this->base->HTTPRequest->getParameter('nombre');
+      if ($mode == 1) // insert
+      {
+        $clave = $this->usuarioEntity->insertAdminPerfil(array('clave' => $clave, 'nombre' => $nombre));
+        $data = 'OK';
+      }
+      elseif ($mode == 2)  // update
+      {
+        $this->usuarioEntity->updateAdminPerfil($key, array('clave' => $clave, 'nombre' => $nombre));
+        $data = 'OK';
+      }
+      elseif ($mode == 3)  // delete
+      {
+        $this->usuarioEntity->deleteAdminPerfil($key);
+        $data = 'OK';
+      }
+    }
+    catch (\Exception $e)
+    {
+      $success = false;
+      $clave = $key;
+      $data = ''.$e;
+    }
+    return array('success' => $success, 'key' => $clave, 'messages' => array('main' => 'Resultado: ' . $data));
+  }
+  
+  private function buildRecord($rec)
+  {
+    if (!$rec)
+      return array();
+    
+    return array($rec->clave => array(
+      'clave' => $rec->clave,
+      'nombre' => $rec->nombre,
+    ));
+  }
+  
+  public function derechos($engine, $params)
+  {
+    $text = 'Derechos que tiene este perfil:<br />';
+    $derechos = $this->usuarioEntity->selectAdminderecho(null, new \dominion\DB_OrderBy('nombre', \dominion\DB_OrderBy::ASC));
+    if ($derechos)
+    {
+      foreach($derechos as $d)
+      {
+        $data = $this->usuarioEntity->selectAdminperfilderecho(array(new \dominion\DB_Condition('perfil', '=', $this->key), new \dominion\DB_Condition('derecho', '=', $d->clave, 'and')));
+        if ($data)
+          $c = 'checked="checked"';
+        else 
+          $c = '';
+
+        $text .= <<<EOF
+<div style="border-bottom: 1px dotted #ccc;"><input type="checkbox" value="1" name="cb_{$d->clave}" id="cb_{$d->clave}" onclick="perfiles_editar_switchderecho('{$this->key}', '{$d->clave}');" $c /> {$d->nombre} ({$d->clave})</div>
+EOF;
+      }
+    }
+    return $text;
+  }
+  
+  public function usuarios($engine, $params)
+  {
+    $text = 'Usuarios que tienen este perfil:<br />';
+    $usuarios = $this->usuarioEntity->selectUsuario(new \dominion\DB_Condition('estatus', 'in', "('A', 'S')"), new \dominion\DB_OrderBy('nombre', \dominion\DB_OrderBy::ASC));
+    if ($usuarios)
+    {
+      foreach($usuarios as $u)
+      {
+        $data = $this->usuarioEntity->selectAdminperfilusuario(array(new \dominion\DB_Condition('perfil', '=', $this->key), new \dominion\DB_Condition('usuario', '=', $u->clave, 'and')));
+        $c1 = $c2 = '';
+        if ($data)
+          $c1 = 'checked="checked"';
+        else
+          $c2 = 'checked="checked"';
+        
+        $text .= <<<EOF
+<div style="border-bottom: 1px dotted #ccc;"><input type="radio" value="1" name="cb_{$u->clave}" id="cb_{$u->clave}_si" onclick="perfiles_editar_switchusuario('{$this->key}', {$u->clave}, 1);" $c1 /> Si <input type="radio" value="2" name="cb_{$u->clave}" id="cb_{$u->clave}_no" onclick="perfiles_editar_switchusuario('{$this->key}', {$u->clave}, 2);" $c2 /> No | {$u->nombre} {$u->correo} ({$u->clave})</div>
+EOF;
+      }
+    }
+    return $text;
+  }
+  
+  public function setderecho($engine, $params)
+  {
+    $id = $this->base->HTTPRequest->getParameter('id');
+    
+    $data = $this->usuarioEntity->selectAdminperfilderecho(array(new \dominion\DB_Condition('perfil', '=', $this->key), new \dominion\DB_Condition('derecho', '=', $id, 'and')));
+    if ($data)
+      $this->usuarioEntity->deleteAdminperfilderecho($data[0]->clave);
+    else
+      $this->usuarioEntity->insertAdminperfilderecho(array('clave' => 0, 'perfil' => $this->key, 'derecho' => $id));
+    return array('estatus' => 'OK');
+  }
+  
+  public function setusuario($engine, $params)
+  {
+    $id = $this->base->HTTPRequest->getParameter('id');
+    $val = $this->base->HTTPRequest->getParameter('val');
+    
+    $data = $this->usuarioEntity->selectAdminperfilusuario(array(new \dominion\DB_Condition('perfil', '=', $this->key), new \dominion\DB_Condition('usuario', '=', $id, 'and')));
+    if ($val == 1)
+    {
+      if (!$data)
+        $this->usuarioEntity->insertAdminperfilusuario(array('clave' => 0, 'perfil' => $this->key, 'usuario' => $id));
+    }
+    else
+    {
+      if ($data)
+        $this->usuarioEntity->deleteAdminperfilusuario($data[0]->clave);
+    }
+    return array('estatus' => 'OK');
+  }
+  
+}
+
+?>

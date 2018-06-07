@@ -68,14 +68,14 @@ class BaseMaster extends Base
   public function writeConfig($name, $data)
   {
     \xconfig\XConfig::$NEWLINE = "\n";
-    $fp = fopen($this->REPOSITORYDIR.$name.'.conf', 'wb');
+    $fp = fopen($this->config->REPOSITORYDIR.$name.'.conf', 'wb');
     fwrite($fp, (string)$data);
     fclose($fp);
   }
   
   public function getVersionCode()
   {
-    return new \xconfig\XConfig(file_get_contents($this->BASEDIR.'components/install/version.conf'));
+    return new \xconfig\XConfig(file_get_contents($this->config->BASEDIR.'components/install/version.conf'));
   }
 
   public function getLocalLanguages()
@@ -83,7 +83,7 @@ class BaseMaster extends Base
     if (self::$debug || $this->localdebug)
       $this->doDebug('master/PreBase->getLocalLanguages()', \core\WADebug::SYSTEM);
 
-    $dbase = $this->BASEDIR . 'components/install/languages';
+    $dbase = $this->config->BASEDIR . 'components/install/languages';
     $dh = opendir($dbase);
     $languages = array();
     while (($df = readdir($dh)) !== false)
@@ -107,7 +107,7 @@ class BaseMaster extends Base
     $allcountries = array();
     foreach($languages as $lang)
     {
-      require $this->BASEDIR . 'components/install/languages/'.$lang.'/countries.inc';
+      require $this->config->BASEDIR . 'components/install/languages/'.$lang.'/countries.inc';
       $allcountries[$lang] = $countries;
     }
     return $allcountries;
@@ -146,7 +146,7 @@ class BaseMaster extends Base
     if (self::$debug || $this->localdebug)
       $this->doDebug("common/Base_Common->getInstalledVersion(%)", \core\WADebug::SYSTEM, $module);
     
-    if (!$this->connector['Main'])
+    if (!$this->connectors['main'])
       return null;
     $baseModuleEntity = \entities\baseModuleEntity::getInstance();
 
@@ -181,20 +181,20 @@ class BaseMaster extends Base
     // first the main connector
     // check si el repositorio esta instalado y fija imagen
     $fconnector = $frepository = 0;
-    if (isset($this->connector['Main']))
+    if (isset($this->connectors['main']))
     {
       try
       {
-        $c = $this->connector['Main']->checkLogon();
+        $c = $this->connectors['main']->checkLogon();
         // we check if the repository is working
         if ($c)
         {
           $fconnector = 1;
           try
           {
-            require $this->BASEDIR . '/components/tables/base_module.inc';
-            $base_module->setDB($this->connector['Main']);
-            $res = $base_module->doSelect('base');
+            require $this->config->BASEDIR . '/components/tables/base_module.inc';
+            $base_module->setDB($this->connectors['main']);
+            $res = $base_module->doSelect('wa');
             if ($res)
             {
               if ($res->version == $this->getVersion())
@@ -230,9 +230,9 @@ class BaseMaster extends Base
     // then we check the files .php are in right places.
     if ($version->version == $this->config->version)
     {
-      if (is_file($this->REPOSITORYDIR . 'admin.conf'))
+      if (is_file($this->config->REPOSITORYDIR . 'admin.conf'))
         $fadmin = 1;
-      if (is_file($this->REPOSITORYDIR . 'site.conf'))
+      if (is_file($this->config->REPOSITORYDIR . 'site.conf'))
         $fsite = 1;
     }
     else

@@ -336,7 +336,7 @@ class mastermodule extends \common\WAApplication
     
     $messages = '';
     // load the installer of this module
-    include_once($this->base->BASEDIR . 'modules/' . $this->Mod . '.' . $Version . '/install/installer.lib');
+    include_once($this->base->config->BASEDIR . 'modules/' . $this->Mod . '.' . $Version . '/install/installer.lib');
     $library = "\\modules\\{$this->Mod}\\install\\installer";
     $inst = new $library($this->language);
     $messages .= $inst->install();
@@ -361,7 +361,7 @@ class mastermodule extends \common\WAApplication
     
     $messages = '';
     // load the installer of this module
-    include_once($this->base->BASEDIR . 'modules/' . $this->Mod . '.' . $Version . '/install/installer.lib');
+    include_once($this->base->config->BASEDIR . 'modules/' . $this->Mod . '.' . $Version . '/install/installer.lib');
     $library = "\\modules\\{$this->Mod}\\install\\installer";
     $inst = new $library($this->language);
     $messages .= $inst->uninstall();

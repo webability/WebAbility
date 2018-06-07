@@ -2,7 +2,7 @@
 
 namespace modules\user\entities;
 
-class securityEntity extends \patterns\Singleton
+class securityEntity extends \common\entity
 {
   private $cookiesize = 24;   // Master cookie 24 positions
   private $timeout = 600;     // 10 minutes default for Master timeout
@@ -33,9 +33,9 @@ class securityEntity extends \patterns\Singleton
     return $this->base->readFastObject('session/parameters/'.$user, $group);
   }
 
-  public function saveParameterGroup($user, $group)
+  public function saveParameterGroup($user, $group, $data)
   {
-    $this->base->writeFastObject('session/parameters/'.$user, $group, $this->parameters[$group]);
+    $this->base->writeFastObject('session/parameters/'.$user, $group, $data);
   }
 
   // ======================================================

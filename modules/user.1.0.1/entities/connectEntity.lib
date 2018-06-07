@@ -2,24 +2,18 @@
 
 namespace modules\user\entities;
 
-class connectEntity extends \patterns\Singleton
+class connectEntity extends \common\entity
 {
   public $regexpID = '/^[a-zA-Z0-9]{5,24}$/';
 
-  public $base_connection;
-  public $base_connectionhistory;
+  protected $tables = array(
+      'connection' => array('table' => 'base_connection'),
+      'connectionhistory' => array('table' => 'base_connectionhistory')
+    );
 
   public function __construct()
   {
     parent::__construct();
-
-    require $this->base->getTablePath('base_connection');
-    $this->base_connection = $base_connection;
-    $this->base_connection->setDB($this->base->connector['Main']);
-
-    require $this->base->getTablePath('base_connectionhistory');
-    $this->base_connectionhistory = $base_connectionhistory;
-    $this->base_connectionhistory->setDB($this->base->connector['Main']);
   }
 
   // =============================================================

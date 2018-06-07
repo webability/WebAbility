@@ -2,17 +2,15 @@
 
 namespace modules\user\entities;
 
-class userEntity extends \patterns\Singleton
+class userEntity extends \common\entity
 {
-  public $user_user;
+  protected $tables = array(
+      'user' => array('table' => 'user_user')
+    );
 
   public function __construct()
   {
     parent::__construct();
-
-    require $this->base->getTablePath('user_user');
-    $this->user_user = $user_user;
-    $this->user_user->setDB($this->base->connector['Main']);
   }
 
 

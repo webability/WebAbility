@@ -196,7 +196,7 @@ try
 
   $base = new \common\BaseMaster($config);
 
-  \core\WAMessage::setMessagesFile($base->BASEDIR.'components/static/'.$base->Language.'.xml');
+  \core\WAMessage::setMessagesFile($base->config->BASEDIR.'components/static/'.$base->Language.'.xml');
 
   // check the version if any upgrade available
   if (!isset($config->version) || $config->version != \common\BASE::VERSION)

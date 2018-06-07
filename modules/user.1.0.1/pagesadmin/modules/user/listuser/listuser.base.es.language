@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="listuser" lang="es">
+
+  <entry id="title"><![CDATA[Usuarios administradores del sistema.]]></entry>
+  <entry id="intro"><![CDATA[Haz click sobre un renglon para verlo: ]]></entry>
+
+  <entry id="button_reload"><![CDATA[Recargar la lista]]></entry>
+  <entry id="button_insert"><![CDATA[Insertar nuevo]]></entry>
+  <entry id="check_active"><![CDATA[Sólo los activos]]></entry>
+
+</language>

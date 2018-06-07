@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="editar" lang="es">
+
+  <entry id="formperfil.errormessage"><![CDATA[Los datos aún no son bien capturados. Por favor, verifique los mensajes y los campos en rojo antes de enviar la información.]]></entry>
+  <entry id="formperfil.servermessage"><![CDATA[Error: Los datos del registro no pudierón ser recuperados del servidor.]]></entry>
+  <entry id="formperfil.titleupdate"><![CDATA[Modificar los datos del perfil de usuario:]]></entry>
+  <entry id="formperfil.titleview"><![CDATA[Datos del perfil de usuario del sistema:]]></entry>
+  <entry id="formperfil.titleinsert"><![CDATA[Insertar un nuevo perfil de usuario del sistema:]]></entry>
+  <entry id="formperfil.titledelete"><![CDATA[Borrar el perfil de usuario del sistema:]]></entry>
+
+  <entry id="perfilclave.title"><![CDATA[Clave:]]></entry>
+  <entry id="perfilclave.help.summary"><![CDATA[La clave es alfanumérica]]></entry>
+  <entry id="perfilclave.help.title"><![CDATA[Clave.]]></entry>
+  <entry id="perfilclave.help.description"><![CDATA[La clave es alfanumérica]]></entry>
+  <entry id="perfilclave.status.notnull"><![CDATA[La clave no puede ser vacia.]]></entry>
+
+  <entry id="perfilnombre.title"><![CDATA[Nombre:]]></entry>
+  <entry id="perfilnombre.help.summary"><![CDATA[El nombre es alfanumérico]]></entry>
+  <entry id="perfilnombre.help.title"><![CDATA[Nombre:]]></entry>
+  <entry id="perfilnombre.help.description"><![CDATA[El nombre es alfanumérico]]></entry>
+  <entry id="perfilnombre.status.notnull"><![CDATA[El nombre no puede ser vacio.]]></entry>
+
+  <entry id="formperfil.first"><![CDATA[Ir al primero]]></entry>
+  <entry id="formperfil.next"><![CDATA[Siguiente]]></entry>
+  <entry id="formperfil.previous"><![CDATA[Anterior]]></entry>
+  <entry id="formperfil.last"><![CDATA[Ir al último]]></entry>
+  <entry id="formperfil.insert"><![CDATA[Crear uno nuevo]]></entry>
+  <entry id="formperfil.update"><![CDATA[Modificar los datos]]></entry>
+  <entry id="formperfil.delete"><![CDATA[Eliminar]]></entry>
+
+  <entry id="formperfil.submitinsert"><![CDATA[Grabar la información nueva]]></entry>
+  <entry id="formperfil.submitupdate"><![CDATA[Grabar los cambios]]></entry>
+  <entry id="formperfil.submitdelete"><![CDATA[Confirmar la eliminación de este renglón]]></entry>
+  <entry id="formperfil.reset"><![CDATA[Deshacer los cambios realizados]]></entry>
+  <entry id="formperfil.viewinsert"><![CDATA[Cancelar inserción]]></entry>
+  <entry id="formperfil.viewupdate"><![CDATA[Cancelar la modificación]]></entry>
+  <entry id="formperfil.viewdelete"><![CDATA[Cancelar la eliminación]]></entry>
+</language>

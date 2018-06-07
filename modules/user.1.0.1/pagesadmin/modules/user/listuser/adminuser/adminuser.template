@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="modules/user/listuser/adminuser">
+
+  <container id="application" type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone size="250">
+__FORMUSER__
+    </zone>
+    <zone id="extra" size="*">
+      <container type="separatorContainer" width="max" height="max" mode="horizontal" auto="yes">
+        <zone size="*">
+          <element type="htmlElement" id="user_profiles"></element>
+        </zone>
+        <zone size="*">
+          <element type="htmlElement" id="user_accesses"></element>
+        </zone>
+      </container>
+    </zone>
+  </container>
+
+  <element type="codeElement"><![CDATA[
+  
+function modules_user_adminuser_formlistener(type, mode, key, data)
+{
+  if (!key || mode == 1)
+  {  // esconder los dos tabs extras
+    WA.$N('modules/user/listuser/adminuser|single|application').hideZone('extra');
+    WA.toDOM('modules/user/listuser/adminuser|single|user_accesses').style.display = 'none';
+    WA.toDOM('modules/user/listuser/adminuser|single|user_profiles').style.display = 'none';
+  }
+  else
+  {  // ensenar los dos tabs extras y cargarlos
+    WA.$N('modules/user/listuser/adminuser|single|application').showZone('extra');
+    WA.toDOM('modules/user/listuser/adminuser|single|user_accesses').style.display = 'block';
+    WA.toDOM('modules/user/listuser/adminuser|single|user_profiles').style.display = 'block';
+    var request = WA.Managers.ajax.createRequest('/admin/modules/user/listuser/adminuser/accesses/html', 'POST', null, modules_user_adminuser_fillaccesses, false);
+    request.addParameter('key', key);
+    request.send();
+    var request = WA.Managers.ajax.createRequest('/admin/modules/user/listuser/adminuser/profiles/html', 'POST', null, modules_user_adminuser_fillprofiles, false);
+    request.addParameter('key', key);
+    request.send();
+  }
+}
+
+function modules_user_adminuser_fillaccesses(request)
+{
+  WA.toDOM('modules/user/listuser/adminuser|single|user_accesses').innerHTML = request.responseText;
+}
+
+function modules_user_adminuser_fillprofiles(request)
+{
+  WA.toDOM('modules/user/listuser/adminuser|single|user_profiles').innerHTML = request.responseText;
+}
+
+function modules_user_adminuser_switchprofile(key, id)
+{
+  var req = WA.Managers.ajax.createRequest('/admin/modules/user/listuser/adminuser/setprofile/json', 'POST', 'key='+key+'&id='+id, modules_user_adminuser_responseprofile, true);
+}
+
+function modules_user_adminuser_responseprofile(request)
+{
+  var code = WA.JSON.decode(request.responseText);
+  if (code.estatus != 'OK')
+    alert(request.responseText);
+}
+
+function modules_user_adminuser_switchaccess(key, id, val)
+{
+  var req = WA.Managers.ajax.createRequest('/admin/modules/user/listuser/adminuser/setaccess/json', 'POST', 'key='+key+'&id='+id+'&val='+val, modules_user_adminuser_responseaccess, true);
+}
+
+function modules_user_adminuser_responseaccess(request)
+{
+  var code = WA.JSON.decode(request.responseText);
+  if (code.estatus != 'OK')
+    alert(request.responseText);
+}
+
+  ]]></element>
+  
+  <event type="start">
+    <code><![CDATA[
+    function(e)
+    {
+      WA.$N('modules/user/listuser/adminuser|single|formuser').addListener(modules_user_adminuser_formlistener);
+    }
+    ]]></code>
+  </event>
+
+</application>

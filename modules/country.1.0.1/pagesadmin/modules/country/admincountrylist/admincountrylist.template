@@ -1,17 +1,79 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <application id="modules/country/admincountrylist">
-  <container type="gridContainer" id="countries" width="max" height="max" haslistener="yes">
-    <zone type="column" size="50" field="key" title="Clave">
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone id="filtrocontainer" size="80">
+      <element type="htmlElement" ><![CDATA[
+
+<div style="padding: 10px;">
+  ##title##<br />
+  ##help1##<br />
+  <input type="button" value="##reload##" onclick="admincountrylist_reload();" />
+  <input type="button" value="##new##" onclick="admincountrylist_go('');" />
+</div>
+
+      ]]></element>
     </zone>
-    <zone type="column" size="50" field="flag" title="Bandera">
+    
+    <zone id="contenedorescontainer" size="*">
+      <container type="gridContainer" id="countries" width="max" height="max" haslistener="yes">
+        <zone type="column" size="80" field="key" title="##key##">
+        </zone>
+        <zone type="column" size="50" field="flag" title="##flag##">
+        </zone>
+        <zone type="column" size="80" field="iso3" title="##iso3##">
+        </zone>
+        <zone type="column" size="100" field="geoip" title="##geoip##">
+        </zone>
+        <zone type="column" size="300" field="name" title="##name##">
+        </zone>
+        <zone type="column" size="200" field="commands" title="##commands##">
+        </zone>
+        
+        <event type="click">
+          <code><![CDATA[
+function(data)
+{
+  if (!data || !data.data)
+    return;
+    
+  admincountrylist_go(data.data.clave);
+}
+          ]]></code>
+        </event>
+      </container>
     </zone>
-    <zone type="column" size="80" field="iso3" title="ISO">
-    </zone>
-    <zone type="column" size="80" field="geoip" title="Región GeoIP">
-    </zone>
-    <zone type="column" size="200" field="name" title="Nombre">
-    </zone>
+    
   </container>
   
+  <element type="codeElement"><![CDATA[
+  
+function admincountrylist_reload()
+{
+  WA.$N('admincountrylist|single|countries').reload();
+}
+
+function admincountrylist_edit(key)
+{
+  admincountrylist_go(key, 2);
+}
+
+function admincountrylist_delete(key)
+{
+  admincountrylist_go(key, 3);
+}
+
+function admincountrylist_go(key, mode)
+{
+  // abrimos una ventana para editar este mailing
+  var node = WA.$N('adminindex|single|app_admincountrylist/edit');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_admincountrylist/edit',title:'Edición Derechos',closeable:'yes',application:'modules/country/admincountrylist/edit|single',params:'key='+key+(mode?'&mode='+mode:'')}};
+    WA.$N('adminindex|single|application').app.createTree('application', tree);
+  }
+  WA.$N('adminindex|single|application').activateZone('app_admincountrylist/edit');
+}
+
+  ]]></element>
   
 </application>

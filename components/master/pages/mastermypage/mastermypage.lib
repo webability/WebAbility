@@ -122,7 +122,7 @@ class mastermypage extends \common\WAApplication
 
     if ($success)
     {
-      $master = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'master.conf'));
+      $master = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'master.conf'));
       $master->user = $username;
       $master->email = $email;
       if ($password)

@@ -121,7 +121,7 @@ try
   $base = new \common\BaseSite($config);
   $base->mainpage = 'home';
 
-  \core\WAMessage::setMessagesFile($base->BASEDIR.'/components/static/'.$base->Language.'.xml');
+  \core\WAMessage::setMessagesFile($base->config->BASEDIR.'/components/static/'.$base->Language.'.xml');
 
   if (isset($_GET['OrderSecurity']) && $_GET['OrderSecurity'] == 'Disconnect')
   {
@@ -242,7 +242,7 @@ EOF;
       print showlog_string($SHOW_EXCEPTION, $ob);
 
     if ($SHOW_EXCEPTION > 0)
-      showlog_string($SHOW_EXCEPTION, $exception->__toString());
+      print showlog_string($SHOW_EXCEPTION, $exception->__toString());
 
     if (($SHOW_OB >= 2 || $SHOW_EXCEPTION >= 2))
     {

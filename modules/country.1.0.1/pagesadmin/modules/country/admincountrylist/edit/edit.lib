@@ -1,0 +1,250 @@
+<?php
+
+class edit extends \common\WAApplication
+{
+  private $countryEntity;
+  
+  private $key;
+  private $mode;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->countryEntity = \modules\country\entities\countryEntity::getInstance();
+    
+    $this->key = $this->base->HTTPRequest->getParameter('key');
+    $this->mode = $this->base->HTTPRequest->getParameter('mode');
+  }
+
+  // we add our own parameters to application
+  public function getParameters($engine, $params)
+  {
+    return array(
+       'FORMCOUNTRY' => $this->getformcountry()->compile(),
+    );
+  }
+
+  // FORMA PARA CAMBIAR EL country
+  private function createMaskDefinitionCountry()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, $this);
+    $M->maskid = 'formcountry';
+    $M->key = null;
+    $M->mode = \dommask\DomMask::INSERT;
+    $M->alertmessage = '##formcountry.errormessage##';
+    $M->servermessage = '##formcountry.servermessage##';
+    $M->titles[\dommask\DomMask::INSERT] = '##formcountry.titleinsert##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##formcountry.titleupdate##';
+    $M->titles[\dommask\DomMask::VIEW] = '##formcountry.titleview##';
+    $M->titles[\dommask\DomMask::DELETE] = '##formcountry.titledelete##';
+
+    $M->jsonfailure = "function(params) { this.icontainer.setMessages(params); }";
+
+    $ti = 1;
+
+    $F = new \dommask\DomMaskTextField('key');
+    $F->title = '##countrykey.title##';
+    $F->helpsummary = '##countrykey.help.summary##';
+    $F->helptitle = '##countrykey.help.title##';
+    $F->helpdescription = '##countrykey.help.description##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskTextField('name');
+    $F->title = '##countryname.title##';
+    $F->helpsummary = '##countryname.help.summary##';
+    $F->helptitle = '##countryname.help.title##';
+    $F->helpdescription = '##countryname.help.description##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    // BOTONES
+    $F = new \dommask\DomMaskButtonField('firstcountry');
+    $F->action = 'first';
+    $F->title = '##formcountry.first##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('previouscountry');
+    $F->action = 'previous';
+    $F->title = '##formcountry.previous##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('nextcountry');
+    $F->action = 'next';
+    $F->title = '##formcountry.next##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('lastcountry');
+    $F->action = 'last';
+    $F->title = '##formcountry.last##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('insertcountry');
+    $F->action = 'insert';
+    $F->title = '##formcountry.insert##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('updatecountry');
+    $F->action = 'update';
+    $F->title = '##formcountry.update##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('deletecountry');
+    $F->action = 'delete';
+    $F->title = '##formcountry.delete##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submitcountry');
+    $F->action = 'submit';
+    $F->title[\dommask\DomMask::INSERT] = '##formcountry.submitinsert##';
+    $F->title[\dommask\DomMask::UPDATE] = '##formcountry.submitupdate##';
+    $F->title[\dommask\DomMask::DELETE] = '##formcountry.submitdelete##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('resetcountry');
+    $F->action = 'reset';
+    $F->title = '##formcountry.reset##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('viewcountry');
+    $F->action = 'view';
+    $F->title[\dommask\DomMask::INSERT] = '##formcountry.viewinsert##';
+    $F->title[\dommask\DomMask::UPDATE] = '##formcountry.viewupdate##';
+    $F->title[\dommask\DomMask::DELETE] = '##formcountry.viewdelete##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    return $M;
+  }
+  
+  private function getformcountry()
+  {
+    $M = $this->createMaskDefinitionCountry();
+
+    if (!$this->key)
+    {
+      $M->mode = \dommask\DomMask::INSERT;
+    }
+    else
+    {
+      $M->key = $this->key;
+      if ($this->mode == 2)
+        $M->mode = \dommask\DomMask::UPDATE;
+      elseif ($this->mode == 3)
+        $M->mode = \dommask\DomMask::DELETE;
+      else
+        $M->mode = \dommask\DomMask::VIEW;
+      $rec = $this->countryEntity->selectCountry($this->key);
+      $M->record = array(
+        'key' => $rec->key,
+        'name' => $rec->name,
+      );
+    }
+    return $M->code();
+  }
+  
+  public function formcountry()
+  {
+    $order = $this->base->HTTPRequest->getParameter('order');
+    $key = $this->base->HTTPRequest->getParameter('key');
+    $mode = $this->base->HTTPRequest->getParameter('mode');
+    switch($order)
+    {
+      case 'first':
+        $rec = $this->countryEntity->selectCountry(null, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'last':
+        $rec = $this->countryEntity->selectCountry(null, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'next':
+        $rec = $this->countryEntity->selectCountry(array(new \dominion\DB_Condition('key', '>', $key)), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'previous':
+        $rec = $this->countryEntity->selectCountry(array(new \dominion\DB_Condition('key', '<', $key)), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'getrecord': // Buscamos este, o el anterior o el siguiente
+        $rec = $this->countryEntity->selectCountry($key);
+        if (!$rec)
+        {
+          $rec = $this->countryEntity->selectCountry(array(new \dominion\DB_Condition('key', '>', $key)), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC), 1);
+          if ($rec) $rec = $rec[0];
+        }
+        if (!$rec)
+        {
+          $rec = $this->countryEntity->selectCountry(array(new \dominion\DB_Condition('key', '<', $key)), new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC), 1);
+          if ($rec) $rec = $rec[0];
+        }
+        return $this->buildRecord($rec);
+      case 'submit':
+        break;
+      default:
+        return null; // nothing to do
+    }
+    
+    try
+    {
+      $success = true;
+      $key = $this->base->HTTPRequest->getParameter('key');
+      $name = $this->base->HTTPRequest->getParameter('name');
+      if ($mode == 1) // insert
+      {
+        $key = $this->countryEntity->insertAdminDerecho(array('key' => $key, 'name' => $name));
+        $data = 'OK';
+      }
+      elseif ($mode == 2)  // update
+      {
+        $this->countryEntity->updateAdminDerecho($key, array('key' => $key, 'name' => $name));
+        $data = 'OK';
+      }
+      elseif ($mode == 3)  // delete
+      {
+        $this->countryEntity->deleteAdmincountry($key);
+        $data = 'OK';
+      }
+    }
+    catch (\Exception $e)
+    {
+      $success = false;
+      $key = $key;
+      $data = ''.$e;
+    }
+    return array('success' => $success, 'key' => $key, 'messages' => array('main' => 'Resultado: ' . $data));
+  }
+  
+  private function buildRecord($rec)
+  {
+    if (!$rec)
+      return array();
+    
+    return array($rec->key => array(
+      'key' => $rec->key,
+      'name' => $rec->name,
+    ));
+  }
+
+}
+
+?>

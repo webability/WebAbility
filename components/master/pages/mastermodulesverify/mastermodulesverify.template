@@ -1,57 +1,86 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <application id="mastermodulesverify">
-  <element type="htmlElement" classname="maintitle"><![CDATA[##title##]]></element>
-  <element type="buttonElement"><![CDATA[Buscar Actualizaciones]]>
-    <event type="click">
-      <code>
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone size="120">
+      <element type="htmlElement" classname="maintitle"><![CDATA[##title##]]></element>
+      <element type="buttonElement" right="10px" top="10px"><![CDATA[##buttonsearch##]]>
+        <event type="click">
+          <code>
 <![CDATA[
 function()
 {
-  console.log('clicked');
   mastermodulesverify_startverify(1);
 }
 ]]>
-      </code>
-    </event>
-  </element>
+          </code>
+        </event>
+      </element>
+      <element type="htmlElement" right="210px" top="14px"><![CDATA[[##lastsearch## <span id="mastermodulesverify|single|lastretrieve"></span>]]]></element>
 
-  <element type="buttonElement"><![CDATA[Buscar Módulos Disponibles]]>
-    <event type="click">
-      <code>
+      <container type="simpleContainer" classname="simplecontent" style="margin-top: 5px;">
+        <zone id="corestatus" classname="modulestatus_1">
+          <element type="htmlElement" id="status" style="float: left; padding: 6px;"><![CDATA[
+WA Core: ##coreactual## <span class="moduleversion">[<span id="mastermodulesverify|single|currentversion"></span>]</span>     ##lastversion## <span class="moduleversion">[<span id="mastermodulesverify|single|lastversion"></span>]</span><br />
+]]>
+          </element>
+          <element id="coreupgrade" type="buttonElement" display="none" style="float: left; margin-left: 10px;">
+<![CDATA[##coreupgrade##]]>
+            <event type="click">
+              <code>
 <![CDATA[
 function()
 {
-  console.log('clicked');
-  mastermodulesverify_startverify(2);
+  var node = WA.$N('masterindex|single|app_module_wa');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_module_wa',title:'##modulewa##',closeable:'yes',application:'mastermodule|wa',params:'Mod=wa'}};
+    this.app.createTree('masterindex|single|application', tree);
+  }
+  this.app.getNode('masterindex|single|application').activateZone('app_module_wa');
 }
 ]]>
-      </code>
-    </event>
-  </element>
+              </code>
+            </event>
+          </element>
+          <element type="htmlElement" style="clear: both;"></element>
+        </zone>
+      </container>
 
-  <element id="loading" type="htmlElement" classname="mastermodule_loading" left="0" top="0" width="max" height="max" display="none"></element>
-
-  <container type="simpleContainer" classname="simplecontent">
-    <zone id="modulestatus">
-      <element type="textElement" id="status">
-      </element>
+      <container type="simpleContainer" classname="simplecontent" style="margin-top: 5px;">
+        <zone id="modulesfilter" classname="moduleneutral">
+          <element type="htmlElement"><![CDATA[
+##modules## 
+  <input type="radio" id="mastermodulesverify|single|filter1" onclick="mastermodulesverify_dofilter(1);"> Installed 
+  <input type="radio" id="mastermodulesverify|single|filter1" onclick="mastermodulesverify_dofilter(2);"> Local, not installed 
+  <input type="radio" id="mastermodulesverify|single|filter1" onclick="mastermodulesverify_dofilter(3);"> Local, all 
+  <input type="radio" id="mastermodulesverify|single|filter1" onclick="mastermodulesverify_dofilter(4);"> Available for download<br />
+]]>
+          </element>
+        </zone>
+      </container>
     </zone>
-  </container>
-
-  <container type="simpleContainer" classname="simplecontent">
-    <zone id="modulenew">
-      <element type="textElement" id="new">
-      </element>
+    <zone size="*">
+      <container type="gridContainer" id="modules" width="max" height="max" haslistener="yes">
+        <zone type="column" size="80" field="id" title="##id##">
+        </zone>
+        <zone type="column" size="60" field="version" title="##version##">
+        </zone>
+        <zone type="column" size="60" field="availableversion" title="##availableversion##">
+        </zone>
+        <zone type="column" size="60" field="lastversion" title="##lastversion##">
+        </zone>
+        <zone type="column" size="400" field="name" title="##name##">
+        </zone>
+        <zone type="column" size="80" field="date" title="##date##">
+        </zone>
+        <zone type="column" size="200" field="commands" title="##commands##">
+        </zone>
+      </container>
     </zone>
   </container>
 
   <element type="codeElement">
 <![CDATA[
-
-function mastermodulesverify_start()
-{
-  WA.Managers.ajax.createRequest('/master/mastermodulesverify/status/json', 'POST', null, mastermodulesverify_getstatus, true);
-}
 
 function mastermodulesverify_startverify(verify)
 {
@@ -61,8 +90,35 @@ function mastermodulesverify_startverify(verify)
 function mastermodulesverify_getstatus(r)
 {
   var data = WA.JSON.decode(r.responseText);
-  WA.toDOM('mastermodulesverify|single|status').innerHTML = data.message + '<br />';
-  WA.toDOM('mastermodulesverify|single|status').innerHTML += 'Installed:<br />' + data.uptodate + '<br />Available:<br />' + data.available;
+  
+  WA.toDOM('mastermodulesverify|single|lastretrieve').innerHTML = data.lastretrieve;
+  WA.toDOM('mastermodulesverify|single|currentversion').innerHTML = data.currentversion;
+  WA.toDOM('mastermodulesverify|single|lastversion').innerHTML = data.lastversion;
+  if (data.status == 'Error')
+  {
+    WA.toDOM('mastermodulesverify|single|corestatus').className = 'modulestatus_2';
+    WA.toDOM('mastermodulesverify|single|coreupgrade').style.display = 'none';
+  }
+  else if (data.currentversion == data.lastversion)
+  {
+    WA.toDOM('mastermodulesverify|single|corestatus').className = 'modulestatus_1';
+    WA.toDOM('mastermodulesverify|single|coreupgrade').style.display = 'none';
+  }
+  else
+  {
+    WA.toDOM('mastermodulesverify|single|corestatus').className = 'modulestatus_2';
+    WA.toDOM('mastermodulesverify|single|coreupgrade').style.display = 'block';
+  }
+}
+
+function mastermodulesverify_dofilter(type)
+{
+  WA.Managers.ajax.createRequest('/master/mastermodulesverify/filter/json', 'POST', 'type='+type, mastermodulesverify_getfilter, true);
+}
+
+function mastermodulesverify_getfilter(request)
+{
+  // reload list
 }
 
 function mastermodulesverify_download(module, version)
@@ -84,7 +140,7 @@ function mastermodulesverify_getdownload(r)
 <![CDATA[
 function()
 {
-  mastermodulesverify_start();
+  mastermodulesverify_startverify(0);
 }
 ]]>
     </code>

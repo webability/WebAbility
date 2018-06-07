@@ -38,6 +38,8 @@ Changes:
   2017-04-20 Phil: Recursivity protection added
   2017-04-20 Phil: Recursivity depth protection added (global maxrecursion=N parameter),
                    and global/local acceptpathparameters=yes/no implemented in .page
+  2017-11-18 Phil: Added support for multilanguage entries into library server (.lib)
+  2018-01-02 Phil: Added support for multilanguage entries into single pages server (.code)
 
 @End_DESCR */
 
@@ -53,7 +55,7 @@ namespace xamboo;
 
 class engine extends \core\WAClass
 {
-  const VERSION = '3.0.3';
+  const VERSION = '3.0.5';
 
   public $URI = '';
   public $maincontext;
@@ -63,6 +65,7 @@ class engine extends \core\WAClass
       'simple' => array(
           'type' => 'server',
           'server' => '\xamboo\XBCodeServer',
+          'language' => true,
           'run' => true
         ),
       'library' => array(
@@ -155,6 +158,7 @@ class engine extends \core\WAClass
     $version = $version?$version:($page->defaultversion?$page->defaultversion:$this->base->Version);
     $language = $language?$language:($page->defaultlanguage?$page->defaultlanguage:$this->base->Language);
     $identities = array($skin . '.' . $version . '.' . $language => array('version' => $version, 'language' => $language));
+    $identities[$skin . '.' . $version . '.' . $this->base->DefaultLanguage] = array('version' => $version, 'language' => $this->base->DefaultLanguage);
     $version2 = $page->defaultversion?$page->defaultversion:$this->base->Version;
     $language2 = $page->defaultlanguage?$page->defaultlanguage:$this->base->Language;
     $i2 = $skin . '.'.$version2 . '.' . $language2;
@@ -170,11 +174,14 @@ class engine extends \core\WAClass
     if ($skin)
     {
       $i5 = '.'.$version . '.' . $language;
+      $i51 = '.'.$version . '.' . $this->base->DefaultLanguage;
       $i6 = '.'.$version2 . '.' . $language2;
       $i7 = '.'.$this->base->Version . '.' . $this->base->Language;
       $i8 = '.'.$this->base->DefaultVersion . '.' . $this->base->DefaultLanguage;
       if (!isset($identities[$i5]))
         $identities[$i5] = array('version' => $version, 'language' => $language);
+      if (!isset($identities[$i51]))
+        $identities[$i51] = array('version' => $version, 'language' => $this->base->Language);
       if (!isset($identities[$i6]))
         $identities[$i6] = array('version' => $version2, 'language' => $language2);
       if (!isset($identities[$i7]))
@@ -288,8 +295,17 @@ class engine extends \core\WAClass
         }
         if ($code)
         {
+          $language = null;
+          if ($this->pagetypes[$page->type]['language'])
+          {
+            foreach($identities as $id => $data)
+            {
+              $language = XBLanguageServer::getInstance($P.$id)->read();
+              if ($language) break;
+            }
+          }
           if ($this->pagetypes[$page->type]['run'])
-            $text = $code->run($this, $params, $method);
+            $text = $code->run($this, $params, $method, $language);
           else
             $text = $code;
         }
@@ -329,7 +345,8 @@ class engine extends \core\WAClass
         $libname = '\\'.str_replace(array('-'), '_', $uid);
         $pagelib = new $libname($template, $language);
         $text = $pagelib->run($this, $params, $method);
-        $text = $pagelib->applyLanguage($text);
+        if (is_string($text))
+          $text = $pagelib->applyLanguage($text);
       }
     }
 
@@ -399,6 +416,7 @@ class engine extends \core\WAClass
     if (!$page || !isset($page->status) || !$page->status || $page->status == 'hidden')
       return false;
   
+    // ******* WE SHOULD CHECK THE NEW PARAMETER ACCEPT PARAMS (i.e  /aaa/bbb/ccc after page)
     // common checks
     switch($context)
     {

@@ -47,11 +47,11 @@ class installer extends \common\installer
 
     // we insert the default data values in the database
     // we load the language
-    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/client_accessgroup.'.$this->base->Language.'.xml'));
+    $l = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/client_accessgroup.'.$this->base->Language.'.xml'));
     $this->accessEntity->createAccessGroup( array('key' => 'clientlogin', 'name' => $l->getEntry('name.login'), 'module' => self::ID) );
 
     // we insert 3 basic rights
-    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/client_access.'.$this->base->Language.'.xml'));
+    $l = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/client_access.'.$this->base->Language.'.xml'));
     $this->accessEntity->createAccess( array('key' => '&notconnected', 'name' => $l->getEntry('name.notconnected'), 'group' => 'clientlogin') );
     $this->accessEntity->createAccess( array('key' => '&connected', 'name' => $l->getEntry('name.connected'), 'group' => 'clientlogin') );
     $this->accessEntity->createAccess( array('key' => '&public', 'name' => $l->getEntry('name.public'), 'group' => 'clientlogin') );
@@ -59,9 +59,9 @@ class installer extends \common\installer
     $messages .= $this->language->records;
 
     // copy pages
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->config->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->config->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->config->ADMINDIR);
 
     $messages .= $this->language->pagesadmin . "<br />\n";
 

@@ -88,7 +88,7 @@ class installer extends \common\installer
     // we load the language
     $messages .= $this->language->getEntry('records');
 
-    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/base_syslogtype.'.$this->base->Language.'.xml'));
+    $l = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/base_syslogtype.'.$this->base->Language.'.xml'));
     $this->baseLogEntity->createSysLogType( array('key' => 1, 'name' => $l->getEntry('name.1')) );
     $this->baseLogEntity->createSysLogType( array('key' => 2, 'name' => $l->getEntry('name.2')) );
     $this->baseLogEntity->createSysLogType( array('key' => 3, 'name' => $l->getEntry('name.3')) );

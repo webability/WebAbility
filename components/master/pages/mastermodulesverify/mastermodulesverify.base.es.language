@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="mastermodulesverify" lang="es">
+  <entry id="title"><![CDATA[Centro de control de actualizaciones]]></entry>
+
+  <entry id="buttonsearch"><![CDATA[Buscar actualizaciones]]></entry>
+  <entry id="lastsearch"><![CDATA[Última búsqueda:]]></entry>
+
+  <entry id="coreactual"><![CDATA[Actual:]]></entry>
+  <entry id="lastversion"><![CDATA[Última versión:]]></entry>
+  <entry id="coreupgrade"><![CDATA[Actualizar el core]]></entry>
+  <entry id="modulewa"><![CDATA[Módulo: wa]]></entry>
+  
+  <entry id="modules"><![CDATA[Módulos:]]></entry>
+  <entry id="id"><![CDATA[ID:]]></entry>
+  <entry id="version"><![CDATA[instalada:]]></entry>
+  <entry id="availableversion"><![CDATA[Disponible:]]></entry>
+  <entry id="lastversion"><![CDATA[Última:]]></entry>
+  <entry id="name"><![CDATA[Nombre:]]></entry>
+  <entry id="date"><![CDATA[Fecha:]]></entry>
+  <entry id="commands"><![CDATA[Comandos:]]></entry>
+
+  <entry id="download"><![CDATA[Descargar disponible:]]></entry>
+  
+</language>

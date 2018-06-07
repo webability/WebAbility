@@ -42,9 +42,9 @@ class installer extends \common\installer
     $this->setModule();
 
     // copy pages
-//    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
-//    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
-//    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+//    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->config->BASEDIR.'application/pagesadmin');
+//    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->config->BASEDIR.'application/pagessite');
+//    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->config->ADMINDIR);
 
 //    $messages .= $this->language->getEntry('pagesadmin') . "<br />\n";
 

@@ -228,7 +228,7 @@ class DomMaskField extends \core\WAClass
   {
   }
 
-  public function postInsert($record)
+  public function postInsert($key, $record)
   {
   }
 

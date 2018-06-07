@@ -1,0 +1,193 @@
+<?php
+
+class listuser extends \common\WAApplication
+{
+  private $userEntity;
+  private $accessEntity;
+
+  private $FILTERSTATUS;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->userEntity = \modules\user\entities\userEntity::getInstance();
+    $this->accessEntity = \modules\user\entities\accessEntity::getInstance();
+    
+    $this->FILTERSTATUS = $this->base->user->getParameter('user', 'LISTUSERSTATUS');
+    if (!$this->FILTERSTATUS)
+    {
+      $this->FILTERSTATUS = 1;
+      $this->base->user->setParameter('user', 'LISTUSERSTATUS', $this->FILTERSTATUS);
+    }
+  }
+
+  public function code($engine, $params)
+  {
+    $check = '';
+    if ($this->FILTERSTATUS == 1)
+    {
+      $check = ' checked="checked"';
+    }
+    
+    $this->template->metaElements(
+      array(
+        'checkfilter' => $check,
+      )
+    );
+    $code = $this->template->resolve();
+    return $code;
+  }
+  
+  public function filter($engine, $params)
+  {
+    if ($this->FILTERSTATUS == 1)
+      $this->FILTERSTATUS = 2;
+    else
+      $this->FILTERSTATUS = 1;
+    $this->base->user->setParam('user', 'LISTUSERSTATUS', $this->FILTERSTATUS );
+
+    return array('status' => 'OK', 'filter' => $this->FILTERSTATUS);
+  }
+  
+  public function containerdata()
+  {
+    $init = microtime(true);
+    $data = null;
+    if (isset($_POST['data']))
+      $data = json_decode($_POST['data']);
+    
+    if (!$data)
+    {
+      $data = array(array(0, 49));
+    }
+
+    $query = null;
+    if ($this->FILTERSTATUS == 1)
+    {
+      $query = array(new \dominion\DB_Condition('status', 'in', "('A', 'S')"));
+    }
+
+    $t1 = microtime(true);
+    $total = $this->userEntity->countUser($query);
+    $t2 = microtime(true);
+    $rec = array('total' => $total, 'row' => array());
+    $rec['subtimetotal'] = $t2 - $t1;
+
+    // condicionar por orden y lista
+    foreach($data as $set)
+    {
+      $min = $set[0];
+      $max = $set[1];
+      
+      $t1 = microtime(true);
+      $entries = $this->userEntity->readUser($query, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC), $max-$min+1, $min);
+      $t2 = microtime(true);
+      $rec['subtime'] = $t2 - $t1;
+      $num = $set[0];
+
+      if ($entries)
+      {
+        $turn = true;
+        foreach($entries as $entry)
+        {
+          // search for profiles with this user
+          $profiles = $this->searchprofiles($entry->key);
+          $accesses = $this->searchaccesses($entry->key);
+          
+          $buttons = <<<EOF
+  <input type="button" value="Modificar" onclick="modules_user_listuser_edit('{$entry->key}');" />
+  <input type="button" value="Borrar" onclick="modules_user_listuser_delete('{$entry->key}');" />
+EOF;
+          $rec['row'][$num++] = array('key' => $entry->key,
+          'status' => $entry->status,
+          'name' => $entry->name . '<br />' . $entry->email,
+          'profiles' => $profiles,
+          'accesses' => $accesses,
+          'commands' => $buttons
+          );
+          $turn = !$turn;
+        }
+      }
+    }
+    // flag "fullload" is not set since we load only a part of the dynamic data
+    $end = microtime(true);
+    $rec['time'] = $end - $init;
+    
+    return $rec;
+  }
+  
+  private function searchprofiles($key)
+  {
+    $resultado = array();
+    $recs = $this->accessEntity->selectUserprofile(array(new \dominion\DB_Condition('user', '=', $key)), new \dominion\DB_OrderBy('profile', \dominion\DB_OrderBy::ASC));
+    if ($recs)
+    {
+      foreach($recs as $rec)
+      {
+        $perfil = $this->accessEntity->selectProfile($rec->profile);
+        $resultado[] = '[<b>' . $perfil->key.'</b>]';
+      }
+    }
+    if (!$resultado)
+      return '--';
+    
+    return implode(', ', $resultado);
+  }
+  
+  private function searchaccesses($key)
+  {
+    $resultado = array();
+    $derechos = array();
+
+    // derechos directos con este derecho SI/NO
+    $recs = $this->accessEntity->selectUseraccess(array(new \dominion\DB_Condition('user', '=', $key)), new \dominion\DB_OrderBy('access', \dominion\DB_OrderBy::ASC));
+    if ($recs)
+    {
+      foreach($recs as $rec)
+      {
+        if ($rec->estatus == 1)
+          $color = 'green';
+        elseif ($rec->estatus == 2)
+          $color = 'red';
+        else
+          $color = 'black';
+        
+        $derechos[$rec->access] = $color;
+      }
+    }
+
+    // derechos indirectos a traves del perfil
+    $recs = $this->accessEntity->selectUserprofile(array(new \dominion\DB_Condition('user', '=', $key)), new \dominion\DB_OrderBy('profile', \dominion\DB_OrderBy::ASC));
+    if ($recs)
+    {
+      foreach($recs as $rec)
+      {
+        $subrecs = $this->accessEntity->selectAdminProfileaccess(array(new \dominion\DB_Condition('profile', '=', $rec->perfil)), new \dominion\DB_OrderBy('access', \dominion\DB_OrderBy::ASC));
+        if ($subrecs)
+        {
+          foreach($subrecs as $subrec)
+          {
+            if ($subrec->estatus == 1)
+              $color = 'green';
+            elseif ($subrec->estatus == 2)
+              $color = 'red';
+            else
+              $color = 'black';
+            $derechos[$subrec->access] = $color;
+          }
+        }
+      }
+    }
+
+    if (!$derechos)
+      return '--';
+
+    foreach($derechos as $derecho => $color)
+      $resultado[] = '<span style="color: '.$color.';">[' . $derecho.']</span>';
+    
+    return implode(', ', $resultado);
+  }
+}
+
+?>

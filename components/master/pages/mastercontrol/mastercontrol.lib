@@ -60,7 +60,7 @@ class mastercontrol extends \common\WAApplication
         $nextstep = '/skins/master/icons/step-next-ok.png';
         $names = $this->base->getDatabases();
         $Connectors = $this->base->loadConnectors();
-        $repo = $names[$Connectors['Main']['type']];
+        $repo = $names[$Connectors['main']['type']];
         break;
       case 2:
         $c1->setClassname('installer_connector_error');
@@ -71,7 +71,7 @@ class mastercontrol extends \common\WAApplication
         $nextstep = '/skins/master/icons/step-next-error.png';
         $names = $this->base->getDatabases();
         $Connectors = $this->base->loadConnectors();
-        $repo = $names[$Connectors['Main']['type']];
+        $repo = $names[$Connectors['main']['type']];
         break;
     }
     $h1 = new \wajaf\htmlElement($image.'<span class="generaltitle">'.$title.'</span><br /><br />'.$message.'<br />'.$repo);
@@ -84,7 +84,7 @@ function(e)
   var node = WA.\$N('masterindex|single|app_connector_Main');
   if (!node)
   {
-    var tree = {tag:'zone',attributes:{id:'app_connector_Main',title:'$tabtitle Main',closeable:'yes',application:'masterconnector|Main',params:'Order=Modif&CONNECTORID=Main'}};
+    var tree = {tag:'zone',attributes:{id:'app_connector_Main',title:'$tabtitle main',closeable:'yes',application:'masterconnector|Main',params:'Order=Modif&CONNECTORID=main'}};
     this.app.createTree('masterindex|single|application', tree);
   }
   this.app.getNode('masterindex|single|application').activateZone('app_connector_Main');
@@ -362,12 +362,12 @@ EOF;
 
   private function getBaseDirectory()
   {
-    return $this->base->BASEDIR;
+    return $this->base->config->BASEDIR;
   }
 
   private function getRepositoryDirectory()
   {
-    return $this->base->REPOSITORYDIR;
+    return $this->base->config->REPOSITORYDIR;
   }
 
   private function getMainConnector()
@@ -376,7 +376,7 @@ EOF;
     $Connectors = $this->base->loadConnectors();
 
     // first the main connector
-    if (!isset($Connectors['Main']))
+    if (!isset($Connectors['main']))
     {
       $txt = 'Main connector: not present';
     }
@@ -386,11 +386,11 @@ EOF;
       $c = $this->base->getGlobalStatus();
     	if ($c['fconnector'] == 1)
       {
-        $txt = 'Main connector: '.$names[$Connectors['Main']['type']].' :: OK';
+        $txt = 'Main connector: '.$names[$Connectors['main']['type']].' :: OK';
       }
       else
       {
-        $txt = 'Main connector: '.$names[$Connectors['Main']['type']].' :: Connection Error';
+        $txt = 'Main connector: '.$names[$Connectors['main']['type']].' :: Connection Error';
       }
     }
     return $txt;

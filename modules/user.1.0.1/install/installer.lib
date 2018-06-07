@@ -31,14 +31,14 @@ class installer extends \common\installer
      
     );
 
-  public function __construct()
+  public function __construct($language)
   {
-    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/');
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
   }  
   
-  public function install($language)
+  public function install()
   {
-    $messages = $this->installDatabase($language);
+    $messages = $this->installDatabase();
     
     $this->setModule(self::ID, $this->BASEDIR);
 
@@ -58,64 +58,59 @@ class installer extends \common\installer
     }
 
     // access groups
-    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/user_accessgroup.'.$this->base->Language.'.xml'));
+    $l = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/user_accessgroup.'.$this->base->Language.'.xml'));
     $accessEntity = \modules\user\entities\accessEntity::getInstance();
-    $accessEntity->user_accessgroup->doInsert( array('key' => 'user', 'name' => $l->getEntry('name.login'), 'module' => self::ID) );
-    $accessEntity->user_accessgroup->doInsert( array('key' => 'client', 'name' => $l->getEntry('name.login'), 'module' => self::ID) );
+    $accessEntity->user_accessgroup->doInsert( array('key' => 'user', 'name' => $l->user_name, 'module' => self::ID) );
 
     // we insert access rights
-    $l = new \core\WALanguage(file_get_contents($this->base->BASEDIR . $this->BASEDIR . 'install/languages/database/user_access.'.$this->base->Language.'.xml'));
-    $accessEntity->user_access->doInsert( array('key' => 'console', 'name' => $l->getEntry('name.notconnected'), 'group' => 'user') );
-    $accessEntity->user_access->doInsert( array('key' => 'config', 'name' => $l->getEntry('name.public'), 'group' => 'user') );
-    $accessEntity->user_access->doInsert( array('key' => 'explorer', 'name' => $l->getEntry('name.public'), 'group' => 'user') );
-    $accessEntity->user_access->doInsert( array('key' => 'users', 'name' => $l->getEntry('name.public'), 'group' => 'user') );
-    $accessEntity->user_access->doInsert( array('key' => 'useraccesses', 'name' => $l->getEntry('name.public'), 'group' => 'user') );
-    $accessEntity->user_access->doInsert( array('key' => 'userprofiles', 'name' => $l->getEntry('name.public'), 'group' => 'user') );
-
-    $accessEntity->user_access->doInsert( array('key' => 'clients', 'name' => $l->getEntry('name.notconnected'), 'group' => 'client') );
-    $accessEntity->user_access->doInsert( array('key' => 'clientaccesses', 'name' => $l->getEntry('name.notconnected'), 'group' => 'client') );
-    $accessEntity->user_access->doInsert( array('key' => 'clientprofiles', 'name' => $l->getEntry('name.notconnected'), 'group' => 'client') );
+    $l = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/user_access.'.$this->base->Language.'.xml'));
+    $accessEntity->user_access->doInsert( array('key' => 'console', 'name' => $l->console_name, 'group' => 'user') );
+    $accessEntity->user_access->doInsert( array('key' => 'config', 'name' => $l->config_name, 'group' => 'user') );
+    $accessEntity->user_access->doInsert( array('key' => 'explorer', 'name' => $l->explorer_name, 'group' => 'user') );
+    $accessEntity->user_access->doInsert( array('key' => 'users', 'name' => $l->users_name, 'group' => 'user') );
+    $accessEntity->user_access->doInsert( array('key' => 'useraccesses', 'name' => $l->useraccesses_name, 'group' => 'user') );
+    $accessEntity->user_access->doInsert( array('key' => 'userprofiles', 'name' => $l->userprofiles_name, 'group' => 'user') );
     
-    $messages .= $language->getEntry('records');
+    $messages .= $this->language->getEntry('records');
 
     // link securityEntity
-    $master = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'master.conf'));
+    $master = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'master.conf'));
     $master->security = '\modules\user\entities\securityEntity';
     $this->base->writeConfig('master', $master);
-    $admin = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'admin.conf'));
+    $admin = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'admin.conf'));
     $admin->security = '\modules\user\entities\securityEntity';
     $this->base->writeConfig('admin', $admin);
 
     // copy pages
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->config->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->config->ADMINDIR);
 
-    $messages .= $language->getEntry('pagesadmin') . "<br />\n";
+    $messages .= $this->language->getEntry('pagesadmin') . "<br />\n";
 
     // run the scripter
-    $messages .= $this->installScript($language);
+    $messages .= $this->installScript();
     
     return $messages;
   }
   
-  public function uninstall($language)
+  public function uninstall()
   {
     // run the scripter
-    $messages = $this->uninstallScript($language);
+    $messages = $this->uninstallScript();
 
     // unlink securityEntity
-    $master = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'master.conf'));
+    $master = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'master.conf'));
     unset($master->security);
     $this->base->writeConfig('master', $master);
-    $admin = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'admin.conf'));
+    $admin = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'admin.conf'));
     unset($admin->security);
     $this->base->writeConfig('admin', $admin);
     
-    $messages .= $language->getEntry('security') . "<br />\n";;
+    $messages .= $this->language->getEntry('security') . "<br />\n";;
 
     $this->delModule(self::ID);
 
-    $messages .= $this->uninstallDatabase($language);
+    $messages .= $this->uninstallDatabase();
     return $messages;
   }
   

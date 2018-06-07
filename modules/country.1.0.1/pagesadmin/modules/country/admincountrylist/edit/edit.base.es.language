@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="edit" lang="es">
+
+  <entry id="formcountry.errormessage"><![CDATA[Los datos aún no son bien capturados. Por favor, verifique los mensajes y los campos en rojo antes de enviar la información.]]></entry>
+  <entry id="formcountry.servermessage"><![CDATA[Error: Los datos del registro no pudierón ser recuperados del servidor.]]></entry>
+  <entry id="formcountry.titleupdate"><![CDATA[Modificar los datos del país/estado:]]></entry>
+  <entry id="formcountry.titleview"><![CDATA[Datos del país/estado:]]></entry>
+  <entry id="formcountry.titleinsert"><![CDATA[Insertar un nuevo país/estado:]]></entry>
+  <entry id="formcountry.titledelete"><![CDATA[Borrar el país/estado:]]></entry>
+
+  <entry id="countrykey.title"><![CDATA[Clave:]]></entry>
+  <entry id="countrykey.help.summary"><![CDATA[La clave es alfanumérica]]></entry>
+  <entry id="countrykey.help.title"><![CDATA[Clave.]]></entry>
+  <entry id="countrykey.help.description"><![CDATA[La clave es alfanumérica]]></entry>
+  <entry id="countrykey.status.notnull"><![CDATA[La clave no puede ser vacia.]]></entry>
+
+  <entry id="countryname.title"><![CDATA[Nombre:]]></entry>
+  <entry id="countryname.help.summary"><![CDATA[El nombre es alfanumérico]]></entry>
+  <entry id="countryname.help.title"><![CDATA[Nombre:]]></entry>
+  <entry id="countryname.help.description"><![CDATA[El nombre es alfanumérico]]></entry>
+  <entry id="countryname.status.notnull"><![CDATA[El nombre no puede ser vacio.]]></entry>
+
+  <entry id="formcountry.first"><![CDATA[Ir al primero]]></entry>
+  <entry id="formcountry.next"><![CDATA[Siguiente]]></entry>
+  <entry id="formcountry.previous"><![CDATA[Anterior]]></entry>
+  <entry id="formcountry.last"><![CDATA[Ir al último]]></entry>
+  <entry id="formcountry.insert"><![CDATA[Crear uno nuevo]]></entry>
+  <entry id="formcountry.update"><![CDATA[Modificar los datos]]></entry>
+  <entry id="formcountry.delete"><![CDATA[Eliminar]]></entry>
+
+  <entry id="formcountry.submitinsert"><![CDATA[Grabar la información nueva]]></entry>
+  <entry id="formcountry.submitupdate"><![CDATA[Grabar los cambios]]></entry>
+  <entry id="formcountry.submitdelete"><![CDATA[Confirmar la eliminación de este renglón]]></entry>
+  <entry id="formcountry.reset"><![CDATA[Deshacer los cambios realizados]]></entry>
+  <entry id="formcountry.viewinsert"><![CDATA[Cancelar inserción]]></entry>
+  <entry id="formcountry.viewupdate"><![CDATA[Cancelar la modificación]]></entry>
+  <entry id="formcountry.viewdelete"><![CDATA[Cancelar la eliminación]]></entry>
+</language>

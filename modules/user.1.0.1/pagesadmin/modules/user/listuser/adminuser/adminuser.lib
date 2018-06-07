@@ -1,0 +1,432 @@
+<?php
+
+class adminuser extends \common\WAApplication
+{
+  private $userEntity;
+  private $accessEntity;
+  
+  private $FILTERSTATUS;
+
+  private $key;
+  private $mode;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->userEntity = \modules\user\entities\userEntity::getInstance();
+    $this->accessEntity = \modules\user\entities\accessEntity::getInstance();
+    
+    $this->FILTERSTATUS = $this->base->user->getParameter('user', 'LISTUSERSTATUS');
+    if (!$this->FILTERSTATUS)
+    {
+      $this->FILTERSTATUS = 1;
+      $this->base->user->setParameter('user', 'LISTUSERSTATUS', $this->FILTERSTATUS);
+    }
+
+    $this->key = $this->base->HTTPRequest->getParameter('key');
+    $this->mode = $this->base->HTTPRequest->getParameter('mode');
+  }
+
+  // we add our own parameters to application
+  public function getParameters($engine, $params)
+  {
+    return array(
+                 'FORMUSER' => $this->getformuser()->compile(),
+    );
+  }
+  
+
+  // FORMA PARA CAMBIAR EL user
+  
+  private function createMaskDefinitionuser()
+  {
+    // then we create the mask object
+    $M = new \dommask\DomMask(null, null, $this);
+    $M->maskid = 'formuser';
+    $M->key = null;
+    $M->mode = \dommask\DomMask::INSERT;
+    $M->alertmessage = '##formuser.errormessage##';
+    $M->servermessage = '##formuser.servermessage##';
+    $M->titles[\dommask\DomMask::INSERT] = '##formuser.titleinsert##';
+    $M->titles[\dommask\DomMask::UPDATE] = '##formuser.titleupdate##';
+    $M->titles[\dommask\DomMask::VIEW] = '##formuser.titleview##';
+    $M->titles[\dommask\DomMask::DELETE] = '##formuser.titledelete##';
+
+    $M->jsonfailure = "function(params) { this.icontainer.setMessages(params); }";
+
+    $ti = 1;
+
+    $F = new \dommask\DomMaskTextField('key');
+    $F->title = '##userkey.title##';
+    $F->helpsummary = '##userkey.help.summary##';
+    $F->helptitle = '##userkey.help.title##';
+    $F->helpdescription = '##userkey.help.description##';
+    $F->viewmodes = \dommask\DomMask::UPDATE | $F->viewmodes;
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::DELETE;
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskTextField('name');
+    $F->title = '##usernombre.title##';
+    $F->helpsummary = '##usernombre.help.summary##';
+    $F->helptitle = '##usernombre.help.title##';
+    $F->helpdescription = '##usernombre.help.description##';
+    $F->notnullmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##usernombre.status.notnull##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskLOOField('status');
+    $F->title = '##userestatus.title##';
+    $F->helpsummary = '##userestatus.help.summary##';
+    $F->helptitle = '##userestatus.help.title##';
+    $F->helpdescription = '##userestatus.help.description##';
+    $F->options = array('A' => 'Activo', 'S' => 'Super user', 'X' => 'Desactivado');
+    $F->notnullmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##userestatus.status.notnull##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskTextField('email');
+    $F->title = '##usercorreo.title##';
+    $F->helpsummary = '##usercorreo.help.summary##';
+    $F->helptitle = '##usercorreo.help.title##';
+    $F->helpdescription = '##usercorreo.help.description##';
+    $F->notnullmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##usercorreo.status.notnull##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskTextField('password');
+    $F->title = '##usercontrasena.title##';
+    $F->helpsummary = '##usercontrasena.help.summary##';
+    $F->helptitle = '##usercontrasena.help.title##';
+    $F->helpdescription = '##usercontrasena.help.description##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT;
+    $F->notnullmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##usercontrasena.status.notnull##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskLOOField('sex');
+    $F->title = '##userestatus.title##';
+    $F->helpsummary = '##userestatus.help.summary##';
+    $F->helptitle = '##userestatus.help.title##';
+    $F->helpdescription = '##userestatus.help.description##';
+    $F->options = array('F' => 'Feminino', 'M' => 'Masculino');
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->notnullmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##userestatus.status.notnull##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskTextField('client');
+    $F->title = '##userchef.title##';
+    $F->helpsummary = '##userchef.help.summary##';
+    $F->helptitle = '##userchef.help.title##';
+    $F->helpdescription = '##userchef.help.description##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->notnullmodes = \dommask\DomMask::INSERT | \dommask\DomMask::UPDATE;
+    $F->statusnotnull = '##userchef.status.notnull##';
+    $F->size = 800;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    
+    // BOTONES
+    $F = new \dommask\DomMaskButtonField('firstuser');
+    $F->action = 'first';
+    $F->title = '##formuser.first##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('previoususer');
+    $F->action = 'previous';
+    $F->title = '##formuser.previous##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('nextuser');
+    $F->action = 'next';
+    $F->title = '##formuser.next##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('lastuser');
+    $F->action = 'last';
+    $F->title = '##formuser.last##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('insertuser');
+    $F->action = 'insert';
+    $F->title = '##formuser.insert##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('updateuser');
+    $F->action = 'update';
+    $F->title = '##formuser.update##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('deleteuser');
+    $F->action = 'delete';
+    $F->title = '##formuser.delete##';
+    $F->authmodes = \dommask\DomMask::VIEW;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('submituser');
+    $F->action = 'submit';
+    $F->title[\dommask\DomMask::INSERT] = '##formuser.submitinsert##';
+    $F->title[\dommask\DomMask::UPDATE] = '##formuser.submitupdate##';
+    $F->title[\dommask\DomMask::DELETE] = '##formuser.submitdelete##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('resetuser');
+    $F->action = 'reset';
+    $F->title = '##formuser.reset##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    $F = new \dommask\DomMaskButtonField('viewuser');
+    $F->action = 'view';
+    $F->title[\dommask\DomMask::INSERT] = '##formuser.viewinsert##';
+    $F->title[\dommask\DomMask::UPDATE] = '##formuser.viewupdate##';
+    $F->title[\dommask\DomMask::DELETE] = '##formuser.viewdelete##';
+    $F->authmodes = \dommask\DomMask::UPDATE | \dommask\DomMask::INSERT | \dommask\DomMask::DELETE;
+    $F->tabindex = $ti++;
+    $M->addMaskField($F);
+
+    return $M;
+  }
+  
+  private function getformuser()
+  {
+    $M = $this->createMaskDefinitionuser();
+
+    if (!$this->key)
+    {
+      $M->mode = \dommask\DomMask::INSERT;
+    }
+    else
+    {
+      $M->key = $this->key;
+      if ($this->mode == 2)
+        $M->mode = \dommask\DomMask::UPDATE;
+      elseif ($this->mode == 3)
+        $M->mode = \dommask\DomMask::DELETE;
+      else
+        $M->mode = \dommask\DomMask::VIEW;
+      $rec = $this->userEntity->selectUser($this->key);
+      $M->record = array(
+        'key' => $rec->key,
+        'name' => $rec->name,
+        'status' => $rec->status,
+        'email' => $rec->email,
+        'password' => $rec->password,
+        'sex' => $rec->sex,
+        'client' => $rec->client
+      );
+    }
+    return $M->code();
+  }
+  
+  public function formuser()
+  {
+    $order = $this->base->HTTPRequest->getParameter('order');
+    $key = $this->base->HTTPRequest->getParameter('key');
+    $mode = $this->base->HTTPRequest->getParameter('mode');
+    
+    $query = array();
+    if ($this->FILTERSTATUS == 1)
+    {
+      $query = array(new \dominion\DB_Condition('status', 'in', "('A', 'S')"));
+    }
+    
+    switch($order)
+    {
+      case 'first':
+        $rec = $this->userEntity->readUser($query, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'last':
+        $rec = $this->userEntity->readUser($query, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'next':
+        $query[] = new \dominion\DB_Condition('key', '>', $key, $query?'and':null);
+        $rec = $this->userEntity->readUser($query, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'previous':
+        $query[] = new \dominion\DB_Condition('key', '<', $key, $query?'and':null);
+        $rec = $this->userEntity->readUser($query, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC), 1);
+        return $this->buildRecord($rec?$rec[0]:null);
+      case 'getrecord': // Buscamos este, o el anterior o el siguiente
+        $rec = $this->userEntity->readUser($key);
+        if (!$rec)
+        {
+          $query[] = new \dominion\DB_Condition('key', '>', $key, $query?'and':null);
+          $rec = $this->userEntity->readUser($query, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::ASC), 1);
+          if ($rec) $rec = $rec[0];
+        }
+        if (!$rec)
+        {
+          $query[] = new \dominion\DB_Condition('key', '<', $key, $query?'and':null);
+          $rec = $this->userEntity->readUser($query, new \dominion\DB_OrderBy('key', \dominion\DB_OrderBy::DESC), 1);
+          if ($rec) $rec = $rec[0];
+        }
+        return $this->buildRecord($rec);
+      case 'submit':
+        break;
+      default:
+        return null; // nothing to do
+    }
+    
+    try
+    {
+      $success = true;
+      $name = $this->base->HTTPRequest->getParameter('name');
+      $status = $this->base->HTTPRequest->getParameter('status');
+      $mail = $this->base->HTTPRequest->getParameter('mail');
+      $un = $this->base->HTTPRequest->getParameter('un');
+      $pw = $this->base->HTTPRequest->getParameter('pw');
+      $sex = $this->base->HTTPRequest->getParameter('sex');
+
+      if ($mode == 1) // insert
+      {
+        $key = $this->userEntity->insertUser(array('key' => 0, 'name' => $name, 'status' => $status, 'mail' => $mail, 'pw' => $pw, 'sex' => $sex, 'un' => $un));
+        $data = 'OK';
+      }
+      elseif ($mode == 2)  // update
+      {
+        $this->userEntity->updateUser($key, array('name' => $name, 'status' => $status, 'mail' => $mail, 'pw' => $pw, 'sex' => $sex, 'un' => $un));
+        $data = 'OK';
+      }
+      elseif ($mode == 3)  // delete
+      {
+        $this->userEntity->deleteUser($key);
+        $data = 'OK';
+      }
+    }
+    catch (\Exception $e)
+    {
+      $success = false;
+      $data = ''.$e;
+    }
+    return array('success' => $success, 'key' => $key, 'messages' => array('main' => 'Resultado: ' . $data));
+  }
+  
+  private function buildRecord($rec)
+  {
+    if (!$rec)
+      return array();
+    
+    return array($rec->key => array(
+      'key' => $rec->key,
+      'name' => $rec->name,
+      'status' => $rec->status,
+      'un' => $rec->un,
+      'pw' => $rec->pw,
+      'mail' => $rec->mail,
+      'sex' => $rec->sex
+    ));
+  }
+  
+  public function accesses($engine, $params)
+  {
+    $text = 'Derechos que tiene este user:<br />';
+    $derechos = $this->accessEntity->selectAccess(null, new \dominion\DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+    if ($derechos)
+    {
+      foreach($derechos as $d)
+      {
+        $data = $this->accessEntity->selectUseraccess(array(new \dominion\DB_Condition('user', '=', $this->key), new \dominion\DB_Condition('access', '=', $d->key, 'and')));
+        $c1 = $c2 = $c3 = '';
+        if ($data && $data[0]->estatus == 1)
+          $c1 = 'checked="checked"';
+        elseif ($data && $data[0]->estatus == 2)
+          $c2 = 'checked="checked"';
+        else
+          $c3 = 'checked="checked"';
+
+        $text .= <<<EOF
+<div style="border-bottom: 1px dotted #ccc;"><input type="radio" value="1" name="cb_{$d->key}" id="cb_{$d->key}_si" onclick="users_editar_switchderecho('{$this->key}', '{$d->key}', 1);" $c1 /> Si <input type="radio" value="2" name="cb_{$d->key}" id="cb_{$d->key}_no" onclick="users_editar_switchderecho('{$this->key}', '{$d->key}', 2);" $c2 /> No <input type="radio" value="3" name="cb_{$d->key}" id="cb_{$d->key}_pr" onclick="users_editar_switchderecho('{$this->key}', '{$d->key}', 3);" $c3 /> Perfil | {$d->nombre} {$d->correo} ({$d->key})</div>
+EOF;
+      }
+    }
+    return $text;
+  }
+  
+  public function profiles($engine, $params)
+  {
+    $text = 'Perfiles que tiene este user:<br />';
+    $perfiles = $this->accessEntity->selectProfile(null, new \dominion\DB_OrderBy('name', \dominion\DB_OrderBy::ASC));
+    if ($perfiles)
+    {
+      foreach($perfiles as $perfil)
+      {
+        $data = $this->accessEntity->selectUserprofile(array(new \dominion\DB_Condition('profile', '=', $perfil->key), new \dominion\DB_Condition('user', '=', $this->key, 'and')));
+        if ($data)
+          $c = 'checked="checked"';
+        else 
+          $c = '';
+
+        $text .= <<<EOF
+<div style="border-bottom: 1px dotted #ccc;"><input type="checkbox" value="1" name="cb_{$perfil->key}" id="cb_{$perfil->key}" onclick="users_editar_switchperfil('{$this->key}', '{$perfil->key}');" $c /> {$perfil->nombre} ({$perfil->key})</div>
+EOF;
+      }
+    }
+    return $text;
+  }
+  
+  public function setprofile($engine, $params)
+  {
+    $id = $this->base->HTTPRequest->getParameter('id');
+    
+    $data = $this->accessEntity->selectAdminperfiluser(array(new \dominion\DB_Condition('user', '=', $this->key), new \dominion\DB_Condition('perfil', '=', $id, 'and')));
+    if ($data)
+      $this->accessEntity->deleteAdminperfiluser($data[0]->key);
+    else
+      $this->accessEntity->insertAdminperfiluser(array('key' => 0, 'user' => $this->key, 'perfil' => $id));
+    return array('estatus' => 'OK');
+  }
+  
+  public function setaccess($engine, $params)
+  {
+    $id = $this->base->HTTPRequest->getParameter('id');
+    $val = $this->base->HTTPRequest->getParameter('val');
+
+    if ($val == 3) // perfil toma control: borramos de esta tabla
+    {
+      $this->accessEntity->deleteAdminderechouser(array(new \dominion\DB_Condition('user', '=', $this->key), new \dominion\DB_Condition('derecho', '=', $id, 'and')));
+    }
+    else
+    {
+      $data = $this->accessEntity->selectAdminderechouser(array(new \dominion\DB_Condition('user', '=', $this->key), new \dominion\DB_Condition('derecho', '=', $id, 'and')));
+      if ($data)
+        $this->accessEntity->updateAdminderechouser($data[0]->key, array('estatus' => $val));
+      else
+        $this->accessEntity->insertAdminderechouser(array('key' => 0, 'user' => $this->key, 'derecho' => $id, 'estatus' => $val));
+    }
+    return array('estatus' => 'OK');
+  }
+  
+}
+
+?>

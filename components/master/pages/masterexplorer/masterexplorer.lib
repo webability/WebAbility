@@ -29,7 +29,7 @@ class masterexplorer extends \common\WAApplication
 
   private function getTree()
   {
-    $dir = $this->base->BASEDIR;
+    $dir = $this->base->config->BASEDIR;
  
     $handle=opendir($dir);
     
@@ -54,7 +54,7 @@ class masterexplorer extends \common\WAApplication
   private function getsubtree()
   {
     $father = $this->base->HTTPRequest->getParameter('father');
-    $dir = $this->base->BASEDIR;
+    $dir = $this->base->config->BASEDIR;
  
     $handle=opendir($dir . $father);
     

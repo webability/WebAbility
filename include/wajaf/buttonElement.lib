@@ -30,6 +30,7 @@ class buttonElement extends Xelement
   {
     parent::__construct('buttonElement', $id);
     $this->registerAttributes( array('visible', 'action', 'status', 'extra') );
+    $this->registerPossibleMessages( array('titleinsert', 'titleupdate', 'titledelete', 'titleview') );
 
     $this->setData($text);
   }

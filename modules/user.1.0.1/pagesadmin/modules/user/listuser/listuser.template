@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="modules/user/listuser">
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone id="filtercontainer" size="80">
+      <element type="htmlElement" ><![CDATA[
+
+<div style="padding: 10px;">
+  ##title##<br />
+  ##intro##<br />
+  <input type="button" value="##button_reload##" onclick="modules_user_listuser_reloadall();" />
+  <input type="button" value="##button_insert##" onclick="modules_user_listuser_go('');" />
+  <input type="checkbox" id="/modules/user/listuser|single|actives" value="1" onclick="modules_user_listuser_changefilter();"{{checkfilter}} /> ##check_active##
+</div>
+
+      ]]></element>
+    </zone>
+    
+    <zone id="contenedorescontainer" size="*">
+      <container type="gridContainer" id="containerdata" width="max" height="max" haslistener="yes" classname="grid colored">
+        <zone type="column" size="50" field="key" title="Clave">
+        </zone>
+        <zone type="column" size="30" field="status" title="Estatus">
+        </zone>
+        <zone type="column" size="250" field="name" title="Nombre [chef] / correo">
+        </zone>
+        <zone type="column" size="300" field="profiles" title="Perfiles">
+        </zone>
+        <zone type="column" size="300" field="accesses" title="Derechos">
+        </zone>
+        <zone type="column" size="200" field="commands" title="Comandos">
+        </zone>
+        
+        <event type="click">
+          <code><![CDATA[
+function(data)
+{
+  if (!data || !data.data)
+    return;
+    
+  modules_user_listuser_go(data.data.clave);
+}
+          ]]></code>
+        </event>
+        
+        
+      </container>
+    </zone>
+    
+  </container>
+  
+  <element type="codeElement"><![CDATA[
+  
+function modules_user_listuser_reloadall()
+{
+  WA.$N('modules/user/listuser|single|containerdata').reload();
+}
+
+function modules_user_listuser_edit(key)
+{
+  modules_user_listuser_go(key, 2);
+}
+
+function modules_user_listuser_delete(key)
+{
+  modules_user_listuser_go(key, 3);
+}
+
+function modules_user_listuser_go(key, mode)
+{
+  // abrimos una ventana para editar este mailing
+  var node = WA.$N('adminindex|single|app_listuser/adminuser');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_listuser/adminuser',title:'Edición Usuarios',closeable:'yes',application:'modules/user/listuser/adminuser|single',params:'key='+key+(mode?'&mode='+mode:'')}};
+    WA.$N('adminindex|single|application').app.createTree('application', tree);
+  }
+  WA.$N('adminindex|single|application').activateZone('app_listuser/adminuser');
+}
+
+function modules_user_listuser_changeactive()
+{
+  var request = WA.Managers.ajax.createRequest('/modules/user/listuser/filter/json', 'POST', null, getmodules_user_listuser_go, false);
+  request.send();
+}
+  
+function getmodules_user_listuser_go(request)
+{
+  modules_user_listuser_reloadall();
+}
+
+
+
+
+  ]]></element></application>

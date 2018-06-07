@@ -25,16 +25,16 @@ class installer extends \core\WAClass
     $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
     $this->baseMenuEntity = \entities\baseMenuEntity::getInstance();
 
-    if (!is_file($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf'))
+    if (!is_file($this->base->config->BASEDIR . $this->BASEDIR . 'install/version.conf'))
       throw new \throwables\masterError('The base directory is not a module compliant directory');
-    if (!is_file($this->base->BASEDIR . $this->BASEDIR . 'install/listoftables.conf'))
+    if (!is_file($this->base->config->BASEDIR . $this->BASEDIR . 'install/listoftables.conf'))
       throw new \throwables\masterError('The base directory is not a module compliant directory');
   }
   
   public function setModule()
   {
-    if (is_file($this->base->REPOSITORYDIR.'modules.conf'))
-      $modules = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'modules.conf'));
+    if (is_file($this->base->config->REPOSITORYDIR.'modules.conf'))
+      $modules = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'modules.conf'));
     else
       $modules = new \xconfig\XConfig(array());
     $modules->{$this->MODULE} = $this->MODULE . '.' . $this->VERSION;
@@ -45,8 +45,8 @@ class installer extends \core\WAClass
   
   public function delModule()
   {
-    if (is_file($this->base->REPOSITORYDIR.'modules.conf'))
-      $modules = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.'modules.conf'));
+    if (is_file($this->base->config->REPOSITORYDIR.'modules.conf'))
+      $modules = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.'modules.conf'));
     else
       $modules = new \xconfig\XConfig(array());
     unset($modules->{$this->MODULE});
@@ -57,8 +57,8 @@ class installer extends \core\WAClass
 
   public function setConfigParam($file, $param, $value)
   {
-    if (is_file($this->base->REPOSITORYDIR.$file.'.conf'))
-      $config = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.$file.'.conf'));
+    if (is_file($this->base->config->REPOSITORYDIR.$file.'.conf'))
+      $config = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.$file.'.conf'));
     else
       $config = new \xconfig\XConfig(array());
     $config->$param = $value;
@@ -67,12 +67,11 @@ class installer extends \core\WAClass
   
   public function delConfigParam($file, $param)
   {
-    if (is_file($this->base->REPOSITORYDIR.$file.'.conf'))
-      $config = new \xconfig\XConfig(file_get_contents($this->base->REPOSITORYDIR.$file.'.conf'));
+    if (is_file($this->base->config->REPOSITORYDIR.$file.'.conf'))
+      $config = new \xconfig\XConfig(file_get_contents($this->base->config->REPOSITORYDIR.$file.'.conf'));
     else
       $config = new \xconfig\XConfig(array());
     unset($config->$param);
-    $config->$param = $value;
     $this->base->writeConfig($file, $config);
   }
 
@@ -89,8 +88,8 @@ class installer extends \core\WAClass
     $messages = '';
     
     // load needed files
-    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
-    $listoftables = $this->loadListoftables($this->base->BASEDIR . $this->BASEDIR . 'install/listoftables.conf');
+    $module = $this->baseModuleEntity->loadVersion($this->base->config->BASEDIR . $this->BASEDIR . 'install/version.conf');
+    $listoftables = $this->loadListoftables($this->base->config->BASEDIR . $this->BASEDIR . 'install/listoftables.conf');
 
     // create all tables
     foreach($listoftables->table as $v)
@@ -98,8 +97,8 @@ class installer extends \core\WAClass
       try
       {
         $messages .= $this->language->table . $v;
-        require $this->base->BASEDIR . $this->BASEDIR . 'tables/' . $v . '.inc';
-        $$v->setDB($this->base->connector['Main']);
+        require $this->base->config->BASEDIR . $this->BASEDIR . 'tables/' . $v . '.inc';
+        $$v->setDB($this->base->connectors['main']);
         $$v->synchronize(false);
       }
       catch (\Exception $exception)
@@ -150,14 +149,14 @@ class installer extends \core\WAClass
   // UnLoad DB definition and remove all tables
   function uninstallDatabase()
   {
-    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
+    $module = $this->baseModuleEntity->loadVersion($this->base->config->BASEDIR . $this->BASEDIR . 'install/version.conf');
 
     $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
 
     $this->baseModuleEntity->base_moduletable->doDeleteCondition(new \dominion\DB_Condition('module', '=', $module->id));
     $this->baseModuleEntity->base_module->doUpdate($module->id, array('installed' => 0));
     
-    $listoftables = $this->loadListoftables($this->base->BASEDIR . $this->BASEDIR . 'install/listoftables.conf');
+    $listoftables = $this->loadListoftables($this->base->config->BASEDIR . $this->BASEDIR . 'install/listoftables.conf');
 
     $messages = '';
     foreach($listoftables->table as $v)
@@ -165,8 +164,8 @@ class installer extends \core\WAClass
       $messages .= $this->language->tabledelete . $v;
       try
       {
-        require $this->base->BASEDIR.$this->BASEDIR.'tables/'.$v.'.inc';
-        $$v->setDB($this->base->connector['Main']);
+        require $this->base->config->BASEDIR.$this->BASEDIR.'tables/'.$v.'.inc';
+        $$v->setDB($this->base->connectors['main']);
         $$v->deleteTable();
       }
       catch (\Exception $exception)
@@ -177,7 +176,7 @@ class installer extends \core\WAClass
     }
     
     // If we uninstall the core, there is no more module log table !
-    if ($module->id != 'base')
+    if ($module->id != 'wa')
       $this->baseModuleEntity->createModuleLog(array('key' => 0, 'module' => $module->id, 'version' => $this->VERSION, 'date' => 'sysdate', 'action' => $this->language->databasedelete));
     
     return $messages;
@@ -187,7 +186,7 @@ class installer extends \core\WAClass
   // Install the components based on script
   function installScript()
   {
-    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
+    $module = $this->baseModuleEntity->loadVersion($this->base->config->BASEDIR . $this->BASEDIR . 'install/version.conf');
     $this->MODULE = $module->id;
 
     $this->baseModuleEntity = \entities\baseModuleEntity::getInstance();
@@ -248,7 +247,7 @@ class installer extends \core\WAClass
   // Uninstall the components based on reverse script
   function uninstallScript()
   {
-    $module = $this->baseModuleEntity->loadVersion($this->base->BASEDIR . $this->BASEDIR . 'install/version.conf');
+    $module = $this->baseModuleEntity->loadVersion($this->base->config->BASEDIR . $this->BASEDIR . 'install/version.conf');
     $this->MODULE = $module->id;
 
     $this->baseMenuEntity = \entities\baseMenuEntity::getInstance();
@@ -588,11 +587,11 @@ class installer extends \core\WAClass
   {
     switch($order['Where'])
     {
-      case 'Site': $basedir = $this->base->SITEDIR; break;
-      case 'Admin': $basedir = $this->base->ADMINDIR; break;
-      case 'Repository': $basedir = $this->base->REPOSITORYDIR; break;
+      case 'Site': $basedir = $this->base->config->SITEDIR; break;
+      case 'Admin': $basedir = $this->base->config->ADMINDIR; break;
+      case 'Repository': $basedir = $this->base->config->REPOSITORYDIR; break;
     }
-    WAFile::copyFile($this->base->BASEDIR .$this->CONTEXTDIR.'/'.$order['Origin'], $basedir.$order['Destination']);
+    WAFile::copyFile($this->base->config->BASEDIR .$this->CONTEXTDIR.'/'.$order['Origin'], $basedir.$order['Destination']);
     return $order['Destination'];
   }
 
@@ -605,11 +604,11 @@ class installer extends \core\WAClass
   {
     switch($order['Where'])
     {
-      case 'Site': $basedir = $this->base->SITEDIR; break;
-      case 'Admin': $basedir = $this->base->ADMINDIR; break;
-      case 'Repository': $basedir = $this->base->REPOSITORYDIR; break;
+      case 'Site': $basedir = $this->base->config->SITEDIR; break;
+      case 'Admin': $basedir = $this->base->config->ADMINDIR; break;
+      case 'Repository': $basedir = $this->base->config->REPOSITORYDIR; break;
     }
-    WAFile::copyFile($this->base->BASEDIR .$this->CONTEXTDIR.'/'.$order['Origin'], $basedir.$order['Destination']);
+    WAFile::copyFile($this->base->config->BASEDIR .$this->CONTEXTDIR.'/'.$order['Origin'], $basedir.$order['Destination']);
     return $order['Destination'];
   }
 
@@ -622,7 +621,7 @@ class installer extends \core\WAClass
   {
     // load the library
     // call the function
-    include_once($this->base->BASEDIR . $this->CONTEXTDIR.'/'.$order['Dir'] . '/' . $order['File']);
+    include_once($this->base->config->BASEDIR . $this->CONTEXTDIR.'/'.$order['Dir'] . '/' . $order['File']);
     $aclass = $order['Script'];
     $cl = new $aclass($order['Params'], $this->language);
     if ($type == 1)

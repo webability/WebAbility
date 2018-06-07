@@ -350,8 +350,8 @@ EOF;
         'deffilemask' => 0644,
 
         // directories
-        'BASEDIR' => $this->base->BASEDIR,
-        'REPOSITORYDIR' => $this->base->REPOSITORYDIR,
+        'BASEDIR' => $this->base->config->BASEDIR,
+        'REPOSITORYDIR' => $this->base->config->REPOSITORYDIR,
         'MASTERDIR' => $masterdir,
         'ADMINDIR' => $masterdir,
         'SITEDIR' => $masterdir,
@@ -397,6 +397,10 @@ EOF;
 
       $config = new \xconfig\XConfig(array('entries' => $master));
       $this->base->writeConfig('master', $config);
+      
+      // modules
+      $config = new \xconfig\XConfig(null);
+      $this->base->writeConfig('modules', $config);
       
       $messages['text'] = $this->language->getEntry('success');
     }

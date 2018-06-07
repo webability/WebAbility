@@ -27,18 +27,21 @@ class adminindex extends \common\WAApplication
     {
       foreach($themes as $theme)
       {
-        foreach($theme['children'] as $option)
+        if ($theme['children'])
         {
-          if (substr($option['link'], 0, 1) == '@')
+          foreach($theme['children'] as $option)
           {
-            // load the library to get the pages
-            $lib = substr($option['link'], 1);
-            $language = $engine->run('system/' . $lib, 1, array('language'));
-            // fusion the language
-            if ($language && $language instanceof Iterator)
+            if (substr($option['link'], 0, 1) == '@')
             {
-              foreach ($language as $k => $l)
-                $this->language->$k = $l;
+              // load the library to get the pages
+              $lib = substr($option['link'], 1);
+              $language = $engine->run('system/' . $lib, 1, array('language'));
+              // fusion the language
+              if ($language && $language instanceof Iterator)
+              {
+                foreach ($language as $k => $l)
+                  $this->language->$k = $l;
+              }
             }
           }
         }
@@ -65,27 +68,30 @@ class adminindex extends \common\WAApplication
         $tree[] = array('id' => $theme['key'], 'template' => $theme['template']?$theme['template']:'theme', 'loadable' => false, 'closeable' => true, 'closed' => $closed,
         'name' => $this->language->getEntry($theme['name']), 'icon' => $theme['icon'], 'help.summary' => $this->language->getEntry($theme['help'].'.summary'), 'help.title' => $this->language->getEntry($theme['help'].'.title'), 'help.description' => $this->language->getEntry($theme['help'].'.description') );
 
-        foreach($theme['children'] as $option)
+        if ($theme['children'])
         {
-          if (substr($option['link'], 0, 1) == '@')
+          foreach($theme['children'] as $option)
           {
-            // load the library to get the pages
-            $lib = substr($option['link'], 1);
-            $opt = $engine->run('system/' . $lib, 1, null);
-//            $opt = $olib->getData($option['father']?$option['father']:$theme['key']);
-            if ($opt)
-              $tree = array_merge($tree, $opt);
-          }
-          else
-          {
-            // 1rst time: the options are opened
-            $closed = $this->base->user->getParameter('indextree', $option['key'])?true:false;
+            if (substr($option['link'], 0, 1) == '@')
+            {
+              // load the library to get the pages
+              $lib = substr($option['link'], 1);
+              $opt = $engine->run('system/' . $lib, 1, null);
+  //            $opt = $olib->getData($option['father']?$option['father']:$theme['key']);
+              if (is_array($opt))
+                $tree = array_merge($tree, $opt);
+            }
+            else
+            {
+              // 1rst time: the options are opened
+              $closed = $this->base->user->getParameter('indextree', $option['key'])?true:false;
 
-            // we should load the language if the options are not BASE option
+              // we should load the language if the options are not BASE option
 
 
-            $tree[] = array('id' => $option['key'], 'template' => $option['template']?$option['template']:'option', 'father' => $option['father']?$option['father']:$theme['key'], 'loadable' => false, 'closeable' => $option['condition']=='+'?true:false, 'closed' => $closed,
-            'name' => $this->language->getEntry($option['name']), 'link' => $option['link'], 'icon' => $option['icon'], 'help.summary' => $this->language->getEntry($option['help'].'.summary'), 'help.title' => $this->language->getEntry($option['help'].'.title'), 'help.description' => $this->language->getEntry($option['help'].'.description') );
+              $tree[] = array('id' => $option['key'], 'template' => $option['template']?$option['template']:'option', 'father' => $option['father']?$option['father']:$theme['key'], 'loadable' => false, 'closeable' => $option['condition']=='+'?true:false, 'closed' => $closed,
+              'name' => $this->language->getEntry($option['name']), 'link' => $option['link'], 'icon' => $option['icon'], 'help.summary' => $this->language->getEntry($option['help'].'.summary'), 'help.title' => $this->language->getEntry($option['help'].'.title'), 'help.description' => $this->language->getEntry($option['help'].'.description') );
+            }
           }
         }
       }
@@ -102,13 +108,16 @@ class adminindex extends \common\WAApplication
     {
       foreach($themes as $theme)
       {
-        foreach($theme['children'] as $option)
+        if ($theme['children'])
         {
-          if (substr($option['link'], 0, 1) == '@')
+          foreach($theme['children'] as $option)
           {
-            // load the library to get the pages
-            $lib = substr($option['link'], 1);
-            $templates .= $engine->run('system/' . $lib, 1, array('template'));
+            if (substr($option['link'], 0, 1) == '@')
+            {
+              // load the library to get the pages
+              $lib = substr($option['link'], 1);
+              $templates .= $engine->run('system/' . $lib, 1, array('template'));
+            }
           }
         }
       }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="admincountrylist" lang="es">
+
+  <entry id="title"><![CDATA[Lista de paises y estados:]]></entry>
+  <entry id="help"><![CDATA[Haz click en un renglón para editarlo]]></entry>
+  <entry id="reload"><![CDATA[Recargar la lista]]></entry>
+  <entry id="new"><![CDATA[Nuevo renglón]]></entry>
+
+  <entry id="key"><![CDATA[Clave ISO-2]]></entry>
+  <entry id="flag"><![CDATA[Bandera]]></entry>
+  <entry id="iso3"><![CDATA[Clave ISO-3]]></entry>
+  <entry id="geoip"><![CDATA[Región GeoIP]]></entry>
+  <entry id="name"><![CDATA[Nombre]]></entry>
+  <entry id="commands"><![CDATA[Comandos]]></entry>
+
+  <entry id="modif"><![CDATA[Modificar]]></entry>
+  <entry id="delete"><![CDATA[Borrar]]></entry>
+</language>

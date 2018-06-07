@@ -1,0 +1,65 @@
+<?php
+
+namespace modules\google\install;
+
+class installer extends \common\installer
+{
+  const ID = 'google';
+  const VERSION = '1.0.1';
+  
+  protected $script = array(
+    array( 'Order' => 'CreateMenuTheme',
+           'Id' => 'google',
+           'Template' => null,
+           'Name' => 'google',
+           'Icon' => '/skins/admin/modules/google/google.gif',
+           'Cond' => null,
+           'Help' => 'google' ),
+
+    array( 'Order' => 'CreateMenu',
+           'Id' => 'country_',
+           'Theme' => 'google',
+           'Father' => null,
+           'Template' => null,
+           'Access' => 'google',
+           'Name' => 'google',
+           'Link' => '@admingoogle',
+           'Params' => null,
+           'Icon' => null,
+           'Cond' => null,
+           'Help' => 'google' ),
+    );  
+  
+  public function __construct($language)
+  {
+    parent::__construct('modules/'.self::ID.'.'.self::VERSION.'/', self::ID, self::VERSION, $language);
+  }  
+  
+  public function install()
+  {
+    $messages = $this->installDatabase();
+
+    $this->setModule(self::ID, $this->BASEDIR);
+
+    // copy pages
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->config->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->config->ADMINDIR);
+
+    // run the scripter
+    $messages .= $this->installScript();
+
+    return $messages;
+  }
+  
+  public function uninstall()
+  {
+    // run the scripter
+    $messages = $this->uninstallScript();
+    $this->delModule(self::ID);
+    $messages .= $this->uninstallDatabase();
+    return $messages;
+  }
+  
+};
+
+?>

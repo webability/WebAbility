@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language id="adminuser" lang="es">
+
+  <entry id="formuser.errormessage"><![CDATA[Los datos aún no son bien capturados. Por favor, verifique los mensajes y los campos en rojo antes de enviar la información.]]></entry>
+  <entry id="formuser.servermessage"><![CDATA[Error: Los datos del registro no pudierón ser recuperados del servidor.]]></entry>
+  <entry id="formuser.titleupdate"><![CDATA[Modificar los datos del user:]]></entry>
+  <entry id="formuser.titleview"><![CDATA[Datos del user:]]></entry>
+  <entry id="formuser.titleinsert"><![CDATA[Insertar un nuevo user:]]></entry>
+  <entry id="formuser.titledelete"><![CDATA[Borrar el user:]]></entry>
+
+  <entry id="userclave.title"><![CDATA[Clave:]]></entry>
+  <entry id="userclave.help.summary"><![CDATA[La clave es alfanumérica]]></entry>
+  <entry id="userclave.help.title"><![CDATA[Clave.]]></entry>
+  <entry id="userclave.help.description"><![CDATA[La clave es alfanumérica]]></entry>
+  <entry id="userclave.status.notnull"><![CDATA[La clave no puede ser vacia.]]></entry>
+
+  <entry id="usernombre.title"><![CDATA[Nombre:]]></entry>
+  <entry id="usernombre.help.summary"><![CDATA[El nombre es alfanumérico]]></entry>
+  <entry id="usernombre.help.title"><![CDATA[Nombre:]]></entry>
+  <entry id="usernombre.help.description"><![CDATA[El nombre es alfanumérico]]></entry>
+  <entry id="usernombre.status.notnull"><![CDATA[El nombre no puede ser vacio.]]></entry>
+
+  <entry id="userestatus.title"><![CDATA[Estatus:]]></entry>
+  <entry id="userestatus.help.summary"><![CDATA[Seleccionar el estatus del user]]></entry>
+  <entry id="userestatus.help.title"><![CDATA[Estatus:]]></entry>
+  <entry id="userestatus.help.description"><![CDATA[Seleccionar el estatus del user]]></entry>
+  <entry id="userestatus.status.notnull"><![CDATA[El estatus no puede ser vacio.]]></entry>
+
+  <entry id="usercontrasena.title"><![CDATA[Contraseña:]]></entry>
+  <entry id="usercontrasena.help.summary"><![CDATA[La contraseña es alfanumérica]]></entry>
+  <entry id="usercontrasena.help.title"><![CDATA[Contraseña:]]></entry>
+  <entry id="usercontrasena.help.description"><![CDATA[La contraseña es alfa numérica]]></entry>
+  <entry id="usercontrasena.status.notnull"><![CDATA[La contraseña no puede ser vacia.]]></entry>
+
+  <entry id="usercorreo.title"><![CDATA[Correo:]]></entry>
+  <entry id="usercorreo.help.summary"><![CDATA[El correo de kiwilimon]]></entry>
+  <entry id="usercorreo.help.title"><![CDATA[Correo:]]></entry>
+  <entry id="usercorreo.help.description"><![CDATA[El correo de kiwilimon]]></entry>
+  <entry id="usercorreo.status.notnull"><![CDATA[El correo no puede ser vacio.]]></entry>
+
+  <entry id="usersexo.title"><![CDATA[Sexo:]]></entry>
+  <entry id="usersexo.help.summary"><![CDATA[El sexo es M or F]]></entry>
+  <entry id="usersexo.help.title"><![CDATA[Sexo:]]></entry>
+  <entry id="usersexo.help.description"><![CDATA[El sexo es M o F]]></entry>
+  <entry id="usersexo.status.notnull"><![CDATA[El sexo no puede ser vacio.]]></entry>
+
+  <entry id="userchef.title"><![CDATA[Chef:]]></entry>
+  <entry id="userchef.help.summary"><![CDATA[La clave del chef correspondiente]]></entry>
+  <entry id="userchef.help.title"><![CDATA[Chef:]]></entry>
+  <entry id="userchef.help.description"><![CDATA[La clave del chef correspondiente]]></entry>
+  <entry id="userchef.status.notnull"><![CDATA[La clave no puede ser vacio.]]></entry>
+
+  <entry id="formuser.first"><![CDATA[Ir al primero]]></entry>
+  <entry id="formuser.next"><![CDATA[Siguiente]]></entry>
+  <entry id="formuser.previous"><![CDATA[Anterior]]></entry>
+  <entry id="formuser.last"><![CDATA[Ir al último]]></entry>
+  <entry id="formuser.insert"><![CDATA[Crear uno nuevo]]></entry>
+  <entry id="formuser.update"><![CDATA[Modificar los datos]]></entry>
+  <entry id="formuser.delete"><![CDATA[Eliminar]]></entry>
+
+  <entry id="formuser.submitinsert"><![CDATA[Grabar la información nueva]]></entry>
+  <entry id="formuser.submitupdate"><![CDATA[Grabar los cambios]]></entry>
+  <entry id="formuser.submitdelete"><![CDATA[Confirmar la eliminación de este renglón]]></entry>
+  <entry id="formuser.reset"><![CDATA[Deshacer los cambios realizados]]></entry>
+  <entry id="formuser.viewinsert"><![CDATA[Cancelar inserción]]></entry>
+  <entry id="formuser.viewupdate"><![CDATA[Cancelar la modificación]]></entry>
+  <entry id="formuser.viewdelete"><![CDATA[Cancelar la eliminación]]></entry>
+</language>

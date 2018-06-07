@@ -41,14 +41,26 @@ class installer extends \common\installer
     
     $this->setModule(self::ID, $this->BASEDIR);
 
+    // access groups
+    $l = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/user_accessgroup.'.$this->base->Language.'.xml'));
+    $accessEntity = \modules\user\entities\accessEntity::getInstance();
+    $accessEntity->user_accessgroup->doInsert( array('key' => 'client', 'name' => $l->getEntry('name.login'), 'module' => self::ID) );
+
+    // we insert access rights
+    $l = new \core\WALanguage(file_get_contents($this->base->config->BASEDIR . $this->BASEDIR . 'install/languages/database/user_access.'.$this->base->Language.'.xml'));
+
+    $accessEntity->user_access->doInsert( array('key' => 'clients', 'name' => $l->getEntry('name.notconnected'), 'group' => 'client') );
+    $accessEntity->user_access->doInsert( array('key' => 'clientaccesses', 'name' => $l->getEntry('name.notconnected'), 'group' => 'client') );
+    $accessEntity->user_access->doInsert( array('key' => 'clientprofiles', 'name' => $l->getEntry('name.notconnected'), 'group' => 'client') );
+    
     $messages .= $this->language->getEntry('records');
 
     $this->setConfigParam('site', 'security', '\modules\client\entities\securityEntity');
 
     // copy pages
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->BASEDIR.'application/pagesadmin');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->BASEDIR.'application/pagessite');
-    $res = \core\WAFile::copyFile($this->base->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->ADMINDIR);
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagesadmin', $this->base->config->BASEDIR.'application/pagesadmin');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/pagessite', $this->base->config->BASEDIR.'application/pagessite');
+    $res = \core\WAFile::copyFile($this->base->config->BASEDIR.$this->BASEDIR.'/siteadmin', $this->base->config->ADMINDIR);
 
     $messages .= $this->language->getEntry('pagesadmin') . "<br />\n";
 

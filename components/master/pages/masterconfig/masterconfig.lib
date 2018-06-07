@@ -11,8 +11,27 @@ class masterconfig extends \common\WAApplication
   {
     $a = new \wajaf\Xapplication('masterconfig');
 
+    // pick versions of all components
+    $vCore = \core\WADebug::VERSION;
+    $vConfig = \xconfig\XConfig::VERSION;
+    $vXamboo = \xamboo\engine::VERSION;
+    $vDominion = \dominion\DB_Base::VERSION;
+    $vWajaf = '3.0.3';
+    $vWA = \common\Base::VERSION;
+    $title = $this->language->title;
+    
+    $versions = <<<EOF
+<h1 class="maintitle">$title</h1>
+<div class="modulestatus_1" style="float: left; width: 100px; height: 50px; margin: 10px; text-align: center; font-size: 1.5em; line-height: 1.5em;"><b>DomCore:</b> $vCore</div>
+<div class="modulestatus_1" style="float: left; width: 100px; height: 50px; margin: 10px; text-align: center; font-size: 1.5em; line-height: 1.5em;"><b>XConfig:</b> $vConfig</div>
+<div class="modulestatus_1" style="float: left; width: 100px; height: 50px; margin: 10px; text-align: center; font-size: 1.5em; line-height: 1.5em;"><b>Xamboo:</b> $vXamboo</div>
+<div class="modulestatus_1" style="float: left; width: 100px; height: 50px; margin: 10px; text-align: center; font-size: 1.5em; line-height: 1.5em;"><b>Dominion:</b> $vDominion</div>
+<div class="modulestatus_1" style="float: left; width: 100px; height: 50px; margin: 10px; text-align: center; font-size: 1.5em; line-height: 1.5em;"><b>WAJAF:</b> $vWajaf</div>
+<div class="modulestatus_1" style="float: left; width: 100px; height: 50px; margin: 10px; text-align: center; font-size: 1.5em; line-height: 1.5em;"><b>WebAbility:</b> $vWA</div>
+EOF;
+    
     // main title
-    $e1 = new \wajaf\htmlElement('Config');
+    $e1 = new \wajaf\htmlElement($versions);
     $a->add($e1);
     return $a;
   }

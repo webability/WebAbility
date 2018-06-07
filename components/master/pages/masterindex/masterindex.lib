@@ -95,18 +95,18 @@ class masterindex extends \common\WAApplication
         $image = 'connector-ok.png';
         $names = $this->base->getDatabases();
         $Connectors = $this->base->loadConnectors();
-        $repo = $names[$Connectors['Main']['type']];
+        $repo = $names[$Connectors['main']['type']];
         break;
       case 2:
         $title = $this->language->getEntry('connector.repository.error');
         $image = 'connector-error.png';
         $names = $this->base->getDatabases();
         $Connectors = $this->base->loadConnectors();
-        $repo = $names[$Connectors['Main']['type']];
+        $repo = $names[$Connectors['main']['type']];
         break;
     }
 
-    $full[] = array('id' => 'mainconnector', 'template' => 'mainconnector', 'father' => 'installation', 'uid' => 'Main', 'image' => $image, 'title' => $title, 'type' => $repo, 'loadable' => false, 'closeable' => false);
+    $full[] = array('id' => 'mainconnector', 'template' => 'mainconnector', 'father' => 'installation', 'uid' => 'main', 'image' => $image, 'title' => $title, 'type' => $repo, 'loadable' => false, 'closeable' => false);
     return $full;
   }
 

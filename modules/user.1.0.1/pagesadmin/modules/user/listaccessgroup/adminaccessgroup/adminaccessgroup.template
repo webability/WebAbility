@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<application id="inconsistencias">
+  <container type="separatorContainer" width="max" height="max" mode="vertical" auto="yes">
+    <zone id="filtrocontainer" size="60" style="background-color: #fee;">
+      <element type="htmlElement" ><![CDATA[
+
+<div>
+  <div id="inconsistencias|single|traducido" style="padding: 10px; color: black; ">
+    <div style="float: left;"><h1>Supervisor de consistencia:</h1></div>
+    <div style="float: left; margin-left: 20px;">
+      <input type="button" value="Solo actualizar" onclick="inconsistencias_actualizar();" /><br />
+      <input type="button" value="Recalcular y Actualizar (muy tardado)" onclick="inconsistencias_reiniciar();" />
+    </div>
+    <div style="float: left; margin-left: 20px;"><b>Leyenda: </div>
+    <div style="float: left; margin-left: 20px;">
+      <span style="color: red;" title="GRAVE">ATENCIÓN INMEDIATA: atender lo más pronto posible</span><br />
+      <span style="color: orange;" title="Importante">Importante, hay que revisar</span><br />
+      <span style="color: blue;" title="Leve">Leve, no impacta casi nada</span></div></b>
+  </div>
+</div>
+
+      ]]></element>
+    </zone>
+    
+    <zone id="mensajescontainer" size="*">
+      <container type="separatorContainer" width="max" height="max" mode="horizontal">
+        <zone id="listacontainer" size="300">
+        
+          <container id="menutree" type="treeContainer" haslistener="yes">
+          
+           <template name="folder">
+              <element type="imageElement" classname="imagemenu" width="16" height="16" src="__CDN__/admin5/images/{image}"><![CDATA[{name}]]></element>
+              <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+                <help>
+                  <summary>Click para abrir/cerrar la carpeta</summary>
+                  <title>Carpeta:</title>
+                  <description>Click sobre el nombre para abrir o cerrar la carpeta.</description>
+                </help>
+                <event type="onclick">
+                  <code><![CDATA[
+function(e)
+{
+  var n = this._4gl.app.getNode('menutree');
+  n.switchzone('{id}');
+}
+                  ]]></code>
+                </event>
+              </element>
+              <element type="imageElement" classname="imagemenu" width="16" height="16" src="__CDN__/admin5/images/{image}"><![CDATA[Abrir]]>
+                <event type="onclick">
+                  <code><![CDATA[
+function(e)
+{
+  var node = this._4gl.app.getNode('app_inconsistencias_{id}');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_inconsistencias_{id}',title:'{name}',closeable:'yes',application:'{page}|{id}',params:'contenedor={id}'}};
+    this._4gl.app.createTree('application', tree);
+  }
+  this._4gl.app.getNode('application').activateZone('app_inconsistencias_{id}');
+}
+                  ]]></code>
+                </event>
+              </element>
+            </template>
+
+            <template name="bigfolder">
+              <element type="imageElement" classname="imagemenu" width="16" height="16" src="__CDN__/admin5/images/{image}"><![CDATA[{name}]]></element>
+              <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+                <help>
+                  <summary>Click para abrir/cerrar la carpeta</summary>
+                  <title>Carpeta:</title>
+                  <description>Click sobre el nombre para abrir o cerrar la carpeta.</description>
+                </help>
+                <event type="onclick">
+                  <code><![CDATA[
+function(e)
+{
+  var n = this._4gl.app.getNode('menutree');
+  n.switchzone('{id}');
+}
+                  ]]></code>
+                </event>
+              </element>
+            </template>
+            
+            <template name="opcionmenuedit">
+              <element type="imageElement" classname="imagemenu" width="16" height="16" src="__CDN__/admin5/images/{image}"><![CDATA[{name}]]></element>
+              <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+                <help>
+                  <summary>{resumen}</summary>
+                  <title>{titulo}</title>
+                  <description>{descripcion}</description>
+                </help>
+                <event type="onclick">
+                  <code><![CDATA[
+function(e)
+{
+  var node = this._4gl.app.getNode('app_inconsistencias_{id}');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_inconsistencias_{id}',title:'{namefather}',closeable:'yes',application:'{page}|{id}',params:'contenedor={id}'}};
+    this._4gl.app.createTree('application', tree);
+  }
+  this._4gl.app.getNode('application').activateZone('app_inconsistencias_{id}');
+}
+                  ]]></code>
+                </event>
+              </element>
+            </template>
+            
+            <template name="opcionmenu">
+              <element type="imageElement" classname="imagemenu" width="16" height="16" src="__CDN__/admin5/images/{image}"><![CDATA[{name}]]></element>
+              <element type="textElement" classname="textmenulink"><![CDATA[{name}]]>
+                <help>
+                  <summary>{resumen}</summary>
+                  <title>{titulo}</title>
+                  <description>{descripcion}</description>
+                </help>
+                <event type="onclick">
+                  <code><![CDATA[
+function(e)
+{
+  var node = this._4gl.app.getNode('app_inconsistencias_{father}');
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_inconsistencias_{father}',title:'{namefather}',closeable:'yes',application:'{page}|{father}',params:'contenedor={father}'}};
+    this._4gl.app.createTree('application', tree);
+  }
+  this._4gl.app.getNode('application').activateZone('app_inconsistencias_{father}');
+}
+                  ]]></code>
+                </event>
+              </element>
+            </template>
+            
+          </container>
+        </zone>
+        
+        <zone id="tablacontainer" size="*">
+          <container id="application" type="tabContainer" width="max" height="max" mode="top">
+            <zone id="controlcenter" title="Dashboard"></zone>
+          </container>
+        </zone>
+      </container>
+        
+    </zone>
+    
+  </container>
+  
+  <element type="codeElement"><![CDATA[
+  
+function inconsistencias_actualizar()
+{
+  WA.$N('inconsistencias|single|menutree').reload();
+}
+
+function inconsistencias_reiniciar(tipo)
+{
+  // borrar cache AND reload
+  var request = WA.Managers.ajax.createRequest('/inconsistencias/flush/json', 'POST', null, inconsistencias_reiniciar_respuesta, true);
+}
+
+function inconsistencias_reiniciar_respuesta(request)
+{
+  inconsistencias_actualizar();
+}
+
+function inconsistencia_abrirfamilia(clave)
+{
+  var node =  WA.$N('main|single|app_editarfamilia_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editarfamilia_'+clave,title:'Familia: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/adminfamilia?FAMILIACLAVE='+clave+'&ADMOrder=Update&P=adminfamilia"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editarfamilia_'+clave);
+}
+
+function inconsistencia_abrirclasificacion(clave)
+{
+  var node =  WA.$N('main|single|app_editarclasificacion_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editarclasificacion_'+clave,title:'Clasificacion: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/adminclasificacion?CLASIFICACIONCLAVE='+clave+'&ADMOrder=Update&P=adminclasificacion"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editarclasificacion_'+clave);
+}
+
+function inconsistencia_abrirtipsfamilia(clave)
+{
+  var node =  WA.$N('main|single|app_editartipsfamilia_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editartipsfamilia_'+clave,title:'Tip Familia: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/adminsecretofamilia?SECRETOFAMILIACLAVE='+clave+'&ADMOrder=Update&P=adminsecretofamilia"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editartipsfamilia_'+clave);
+}
+
+function inconsistencia_abrirtipsclasificacion(clave)
+{
+  var node =  WA.$N('main|single|app_editartipsclasificacion_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editartipsclasificacion_'+clave,title:'Tip Clasificacion: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/adminsecretoclasificacion?SECRETOCLASIFICACIONCLAVE='+clave+'&ADMOrder=Update&P=adminsecretoclasificacion"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editartipsclasificacion_'+clave);
+}
+
+function inconsistencia_abrirreceta(clave)
+{
+  var node =  WA.$N('main|single|app_editarreceta_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editarreceta_'+clave,title:'Receta: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/adminreceta?RECETACLAVE='+clave+'&ADMOrder=Update&P=adminreceta"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editarreceta_'+clave);
+}
+
+function inconsistencia_abrirrecetaimagen(clave)
+{
+  var node =  WA.$N('main|single|app_recetaimagen_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_recetaimagen_'+clave,title:'Imagenes Receta: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/recetaimagen?FILTRORECETA='+clave+'&DomMaskOrder=Do&P=recetaimagen&Order=Do"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_recetaimagen_'+clave);
+}
+
+function inconsistencialista_recetas_clfam_ajustarclasificacionfamilia(clave)
+{
+  var request = WA.Managers.ajax.createRequest('/inconsistencias/detalle/corregirclasificacionfamilia/json', 'POST', 'clave='+clave, inconsistencialista_recetas_clfam_ajustarclasificacionfamilia_respuesta, true);
+}
+
+function inconsistencialista_recetas_clfam_ajustarclasificacionfamilia_respuesta(request)
+{
+  alert(request.responseText);
+}
+
+function inconsistencialista_tips_clfam_ajustarclasificacionfamilia(clave)
+{
+  var request = WA.Managers.ajax.createRequest('/inconsistencias/detalle/corregirclasificaciontipsfamilia/json', 'POST', 'clave='+clave, inconsistencialista_tips_clfam_ajustarclasificacionfamilia_respuesta, true);
+}
+
+function inconsistencialista_tips_clfam_ajustarclasificacionfamilia_respuesta(request)
+{
+  alert(request.responseText);
+}
+
+function inconsistencia_abrirtip(clave)
+{
+  var node =  WA.$N('main|single|app_editartip_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editartip_'+clave,title:'Tip: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/adminsecreto?SECRETOCLAVE='+clave+'&ADMOrder=Update&P=adminsecreto"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editartip_'+clave);
+}
+
+function inconsistencia_abrirtipomenu(clave)
+{
+  var node =  WA.$N('main|single|app_editartipomenu_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editartipomenu_'+clave,title:'Tipo de menú: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/admintipomenu?TIPOMENUCLAVE='+clave+'&ADMOrder=Update&P=admintipomenu"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editartipomenu_'+clave);
+}
+
+function inconsistencia_abrirmenu(clave)
+{
+  var node =  WA.$N('main|single|app_editarmenu_'+clave);
+  if (!node)
+  {
+    var tree = {tag:'zone',attributes:{id:'app_editarmenu_'+clave,title:'Menú: '+clave,closeable:'yes'},'children':[{tag:'element',attributes:{type:'htmlElement',width:'max',height:'max'},data:'<iframe style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: white;" src="/adminmenu?MENUCLAVE='+clave+'&ADMOrder=Update&P=adminmenu"></iframe>'}]};
+    WA.$A('main|single|application').app.createTree('application', tree);
+  }
+  WA.$A('main|single|application').app.getNode('application').activateZone('app_editarmenu_'+clave);
+}
+
+
+function inconsistencialista_imagenesmetricas()
+{
+  var request = WA.Managers.ajax.createRequest('/inconsistencias/detalle/corregirimagenesmetricas/json', 'POST', 'clave='+clave, inconsistencialista_imagenesmetricas_respuesta, true);
+}
+
+function inconsistencialista_imagenesmetricas_respuesta(request)
+{
+  alert(request.responseText);
+}
+
+  ]]></element>
+  
+</application>

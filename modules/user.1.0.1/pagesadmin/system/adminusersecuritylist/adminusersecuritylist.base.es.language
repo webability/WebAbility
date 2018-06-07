@@ -6,21 +6,40 @@
   <entry id="usersecurity.title"><![CDATA[Seguridad:]]></entry>
   <entry id="usersecurity.description"><![CDATA[Este tema permite visualizar las opciones disponibles de seguridad.]]></entry>
 
-  <entry id="users"><![CDATA[Usuarios]]></entry>
-  <entry id="users.summary"><![CDATA[Abrir o cerrar las lista de usuarios.]]></entry>
-  <entry id="users.title"><![CDATA[Usuarios:]]></entry>
-  <entry id="users.description"><![CDATA[Esta opción permite visualizar las lista de todos los usuarios dados de alta en el sistema, y administrarlos.]]></entry>
-
-  <entry id="useraccesses"><![CDATA[Accesos]]></entry>
-  <entry id="useraccesses.summary"><![CDATA[Abrir o cerrar las lista de accesos.]]></entry>
-  <entry id="useraccesses.title"><![CDATA[Accesos:]]></entry>
-  <entry id="useraccesses.description"><![CDATA[Esta opción permite visualizar las lista de todos los accesos del sistema, y administrarlos.]]></entry>
-
   <entry id="useraccessgroup"><![CDATA[Accesos]]></entry>
-  <entry id="useraccessgrouphelpsum"><![CDATA[Grupos de derechos de acceso]]></entry>
-  <entry id="useraccessgrouphelptitle"><![CDATA[Herramientas de administración de los grupos de derechos de accesos]]></entry>
-  <entry id="useraccessgrouphelpdesc"><![CDATA[Permite administrar los grupos de derechos de acceso, los derechos de acceso, los perfiles afiliados y los usuarios que tienen estos derechos.]]></entry>
+  <entry id="useraccessgroup_summary"><![CDATA[Grupos de derechos de acceso]]></entry>
+  <entry id="useraccessgroup_title"><![CDATA[Herramientas de administración de los grupos de derechos de accesos]]></entry>
+  <entry id="useraccessgroup_description"><![CDATA[Permite administrar los grupos de derechos de acceso, los derechos de acceso, los perfiles afiliados y los usuarios que tienen estos derechos.]]></entry>
+  <entry id="useraccessgroup_new"><![CDATA[Nuevo grupo de acceso]]></entry>
+  <entry id="useraccessgroup_new_app"><![CDATA[Nuevo grupo de acceso]]></entry>
+  <entry id="useraccessgroup_new_summary"><![CDATA[Nuevo grupo de acceso]]></entry>
+  <entry id="useraccessgroup_new_title"><![CDATA[Nuevo grupo de acceso]]></entry>
+  <entry id="useraccessgroup_new_description"><![CDATA[Nuevo grupo de acceso]]></entry>
+
+  <entry id="useraccessgroup_list"><![CDATA[Lista de Grupos y Accesos]]></entry>
+  <entry id="useraccessgroup_list_app"><![CDATA[Lista de Grupos y Accesos]]></entry>
+  <entry id="useraccessgroup_list_summary"><![CDATA[Lista de Grupos y Accesos]]></entry>
+  <entry id="useraccessgroup_list_title"><![CDATA[Lista de Grupos y Accesos]]></entry>
+  <entry id="useraccessgroup_list_description"><![CDATA[Lista de Grupos y Accesos]]></entry>
   
   <entry id="userprofiles"><![CDATA[Perfiles]]></entry>
+  <entry id="userprofiles_summary"><![CDATA[Abrir o cerrar las lista de perfiles.]]></entry>
+  <entry id="userprofiles_title"><![CDATA[Perfiles:]]></entry>
+  <entry id="userprofiles_description"><![CDATA[Esta opción permite visualizar las lista de los perfiles de suaurios dados de alta en el sistema, y administrarlos.]]></entry>
+
+  <entry id="users"><![CDATA[Usuarios]]></entry>
+  <entry id="users_summary"><![CDATA[Abrir o cerrar la lista de usuarios.]]></entry>
+  <entry id="users_title"><![CDATA[Lista de usuarios:]]></entry>
+  <entry id="users_description"><![CDATA[Esta opción permite visualizar abrir o cerrar la lista de los 10 últimos usuarios con movimientos recientes en el sistema.]]></entry>
+  <entry id="user_new"><![CDATA[Nuevo usuario]]></entry>
+  <entry id="user_new_app"><![CDATA[Administrar usuario]]></entry>
+  <entry id="user_new_summary"><![CDATA[Crear un nuevo usuario.]]></entry>
+  <entry id="user_new_title"><![CDATA[Nuevo usuario:]]></entry>
+  <entry id="user_new_description"><![CDATA[Esta opción permite dar de alta un nuevo usuario en el sistema y administrarlo.]]></entry>
+  <entry id="user_list"><![CDATA[Lista de usuarios]]></entry>
+  <entry id="user_list_app"><![CDATA[Lista de usuarios]]></entry>
+  <entry id="user_list_summary"><![CDATA[Abrir la lista de usuarios.]]></entry>
+  <entry id="user_list_title"><![CDATA[Lista de usuarios:]]></entry>
+  <entry id="user_list_description"><![CDATA[Esta opción permite visualizar las lista de todos los usuarios dados de alta en el sistema, y administrarlos.]]></entry>
 
 </language>

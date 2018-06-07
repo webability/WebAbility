@@ -1,0 +1,844 @@
+<?php
+
+class inconsistencias extends \common\WAApplication
+{
+  private $recetaEntity;
+  private $secretosEntity;
+  private $menuEntity;
+  private $graphEntity;
+  private $utilEntity;
+  private $redirectEntity;
+  
+  private $cache;
+  
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->recetaEntity = \entities\adminRecetaEntity::getInstance();
+    $this->secretosEntity = \entities\adminSecretosEntity::getInstance();
+    $this->menuEntity = \entities\adminMenuEntity::getInstance();
+    $this->graphEntity = \entities\graphEntity::getInstance();
+    $this->utilEntity = \entities\utilEntity::getInstance();
+    $this->redirectEntity = \entities\redirectEntity::getInstance();
+    
+    $this->cache = new \common\cacheObject('inconsistencias');
+  }
+
+  public function code($engine, $params)
+  {
+    $code = $this->template->resolve();
+    return $code;
+  }
+  
+  public function menutree($engine, $params)
+  {
+    $menu = $this->getMenutree();
+    
+    $result = array('row' => $menu);
+    return $result;
+  }
+
+  private function buildoptionedit($id, $nombre, $father, $page = null)
+  {
+    $data = array(
+      'id' => $id,
+      'template' => 'opcionmenuedit',
+      'image' => 'opcion.png',
+      'name' => $nombre,
+      'namefather' => $nombre,
+      'father' => $father,
+      'closeable' => false,
+      'loadable' => false,
+    );
+    if ($page)
+      $data['page'] = $page;
+    return $data;
+  }
+
+  public function getmenutree()
+  {
+    $cursor = new \dominion\DB_Cursor($this->base->connectors['main']);
+    $Order = $this->base->HTTPRequest->getParameter('Order');
+    
+    if ($Order == 'getchildren')
+    {
+      $father = $this->base->HTTPRequest->getParameter('father');
+      switch($father)
+      {
+        case 'recetas': $result = $this->getRecetasProblemasMenu(); break;
+        case 'tips': $result = $this->getTipsProblemasMenu(); break;
+        case 'menus': $result = $this->getMenusProblemasMenu(); break;
+        case 'imagenes': $result = $this->getImagenesProblemasMenu(); break;
+        default: $result = array(); break;
+      }
+    }
+    elseif ($Order == 'openclose')
+    {
+      $result = array();
+    }
+    else
+    {
+      $result = array();
+      
+      $recetas = $this->getRecetasProblemas();
+      $cv = $ca = $cl= 'green';
+      if ($recetas['problemas'] > 0) $cv = 'red';
+      if ($recetas['atencion'] > 0) $ca = 'orange';
+      if ($recetas['leve'] > 0) $cl = 'blue';
+      $result[] = array(
+        'id' => 'recetas',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Recetas <b>(<span style="color: '.$cv.';" title="GRAVE">' . $recetas['problemas'] . '</span>/<span style="color: '.$ca.';" title="Importante">' . $recetas['atencion'] . '</span>/<span style="color: '.$cl.';" title="Leve">' . $recetas['leve'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Inconsistencias de Recetas',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+
+      $tips = $this->getTipsProblemas();
+      $cv = $ca = $cl= 'green';
+      if ($tips['problemas'] > 0) $cv = 'red';
+      if ($tips['atencion'] > 0) $ca = 'orange';
+      if ($tips['leve'] > 0) $cl = 'blue';
+      $result[] = array(
+        'id' => 'tips',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Tips <b>(<span style="color: '.$cv.';" title="GRAVE">' . $tips['problemas'] . '</span>/<span style="color: '.$ca.';" title="Importante">' . $tips['atencion'] . '</span>/<span style="color: '.$cl.';" title="Leve">' . $tips['leve'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Inconsistencias de Tips',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+      
+      $menus = $this->getMenusProblemas();
+      $cv = 'green';
+      if ($menus['problemas'] > 0) $cv = 'red';
+      $result[] = array(
+        'id' => 'menus',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Menús <b>(<span style="color: '.$cv.';">' . $menus['problemas'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Inconsistencias de Menus',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+
+      $rutas = $this->getRutasProblemas();
+      $cv = 'green';
+      if ($rutas['problemas'] > 0) $cv = 'red';
+      $result[] = array(
+        'id' => 'rutas',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Rutas URLs <b>(<span style="color: '.$cv.';">' . $rutas['problemas'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Rutas URLs',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+
+      $traduccion = $this->getTraduccionProblemas();
+      $cv = 'green';
+      if ($traduccion['problemas'] > 0) $cv = 'red';
+      $result[] = array(
+        'id' => 'traduccion',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Traducción <b>(<span style="color: '.$cv.';">' . $traduccion['problemas'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Traducción',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+      
+      $solr = $this->getIndexacionSOLR();
+      $cv = 'green';
+      if ($solr['problemas'] > 0) $cv = 'red';
+      $result[] = array(
+        'id' => 'solr',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Indexación SOLR <b>(<span style="color: '.$cv.';">' . $solr['problemas'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Indexación SOLR',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+      
+      $mongo = $this->getIndexacionMongo();
+      $cv = 'green';
+      if ($mongo['problemas'] > 0) $cv = 'red';
+      $result[] = array(
+        'id' => 'mongo',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Indexación Mongo <b>(<span style="color: '.$cv.';">' . $mongo['problemas'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Indexación Mongo',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+      
+      $imagenes = $this->getImagenesProblemas();
+      $cv = 'green';
+      if ($imagenes['problemas'] > 0) $cv = 'red';
+      $result[] = array(
+        'id' => 'imagenes',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes CDN <b>(<span style="color: '.$cv.';">' . $imagenes['problemas'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Imágenes CDN',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+      
+      $videos = $this->getVideosProblemas();
+      $cv = 'green';
+      if ($videos['problemas'] > 0) $cv = 'red';
+      $result[] = array(
+        'id' => 'video',
+        'template' => 'bigfolder',
+        'image' => 'carpeta.png',
+        'name' => 'Videos <b>(<span style="color: '.$cv.';">' . $videos['problemas'] . '</span>)</b>',
+        'father' => null,
+        'namefather' => 'Videos',
+        'closeable' => true,
+        'closed' => true,
+        'loadable' => true,
+      );
+      
+      
+    }
+    return $result;
+  }
+  
+  // ================= ANALISIS DE RECETAS ====================
+  private function getRecetasProblemasMenu()
+  {
+    $result = array();
+    
+    $famim = count($this->getData('recetas_famim'));
+    $cv = 'green';
+    if ($famim > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'recetas_famim',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes de Familias <b>(<span style="color: '.$cv.';">' . $famim . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Imágenes de Familias',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $clfam = count($this->getData('recetas_clfam'));
+    $cv = 'green';
+    if ($clfam > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'recetas_clfam',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Familia de clasificaciones <b>(<span style="color: '.$cv.';">' . $clfam . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Familia de clasificacion',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $claim = count($this->getData('recetas_claim'));
+    $cv = 'green';
+    if ($claim > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'recetas_claim',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes de Clasificaciones <b>(<span style="color: '.$cv.';">' . $claim . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Imágenes de Clasificaciones',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $rec_err = $this->count_error($this->getData('recetas_sta'), 1);
+    $rec_att = $this->count_error($this->getData('recetas_sta'), 2);
+    $rec_leve = $this->count_error($this->getData('recetas_sta'), 3);
+    $cv = $ca = $cl = 'green';
+    if ($rec_err > 0) $cv = 'red';
+    if ($rec_att > 0) $ca = 'orange';
+    if ($rec_leve > 0) $cl = 'blue';
+    $result[] = array(
+        'id' => 'recetas_sta',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Recetas pendientes <b>(<span style="color: '.$cv.';">' . $rec_err . '</span>/<span style="color: '.$ca.';">' . $rec_att . '</span>/<span style="color: '.$cl.';">' . $rec_leve . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Recetas pendientes',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $clpr = count($this->getData('recetas_clpr'));
+    $cv = 'green';
+    if ($clpr > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'recetas_clpr',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Clasif principal receta <b>(<span style="color: '.$cv.';">' . $clpr . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Clasificacion principal',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+    
+    $clobl = count($this->getData('recetas_clobl'));
+    $cv = 'green';
+    if ($clobl > 0) $cv = 'orange';
+    $result[] = array(
+        'id' => 'recetas_clobl',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Clasif oblig receta <b>(<span style="color: '.$cv.';">' . $clobl . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Clasificaciones obligatorias',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $img_err = $this->count_error($this->getData('recetas_img'), 1) + $this->count_error($this->getData('recetas_img'), 2) + $this->count_error($this->getData('recetas_img'), 3);
+    $img_att = $this->count_error($this->getData('recetas_img'), 4);
+    $img_leve = $this->count_error($this->getData('recetas_img'), 5);
+    $cv = $ca = $cl = 'green';
+    if ($img_err > 0) $cv = 'red';
+    if ($img_att > 0) $ca = 'orange';
+    if ($img_leve > 0) $cl = 'blue';
+    $result[] = array(
+        'id' => 'recetas_img',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Fotos de recetas <b>(<span style="color: '.$cv.';">' . $img_err . '</span>/<span style="color: '.$ca.';">' . $img_att . '</span>/<span style="color: '.$cl.';">' . $img_leve . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Fotos de recetas',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $ing_err = $this->count_error($this->getData('recetas_ing'), 1);
+    $ing_att = $this->count_error($this->getData('recetas_ing'), 2);
+    $ing_leve = $this->count_error($this->getData('recetas_ing'), 3);
+    $cv = $ca = $cl = 'green';
+    if ($ing_err > 0) $cv = 'red';
+    if ($ing_att > 0) $ca = 'orange';
+    if ($ing_leve > 0) $cl = 'blue';
+    $result[] = array(
+        'id' => 'recetas_ing',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Ingredientes <b>(<span style="color: '.$cv.';">' . $ing_err . '</span>/<span style="color: '.$ca.';">' . $ing_att . '</span>/<span style="color: '.$cl.';">' . $ing_leve . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Ingredientes',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $pas = count($this->getData('recetas_pas'));
+    $cv = 'green';
+    if ($pas > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'recetas_pas',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Pasos <b>(<span style="color: '.$cv.';">' . $pas . '</span>)</b>',
+        'father' => 'recetas',
+        'namefather' => 'Pasos',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+      return $result;
+  }
+  
+  private function getRecetasProblemas()
+  {
+    $famim = count($this->getData('recetas_famim'));
+
+    $clfam = count($this->getData('recetas_clfam'));
+    $claim = count($this->getData('recetas_claim'));
+
+    $clpr = count($this->getData('recetas_clpr'));
+    $clobl = count($this->getData('recetas_clobl'));
+
+    $img_err = $this->count_error($this->getData('recetas_img'), 1) + $this->count_error($this->getData('recetas_img'), 2) + $this->count_error($this->getData('recetas_img'), 3);
+    $img_att = $this->count_error($this->getData('recetas_img'), 4);
+    $img_leve = $this->count_error($this->getData('recetas_img'), 5);
+    $ing_err = $this->count_error($this->getData('recetas_ing'), 1);
+    $ing_att = $this->count_error($this->getData('recetas_ing'), 2);
+    $ing_leve = $this->count_error($this->getData('recetas_ing'), 3);
+    $pas = count($this->getData('recetas_pas'));
+    
+    $rec_err = $this->count_error($this->getData('recetas_sta'), 1);
+    $rec_att = $this->count_error($this->getData('recetas_sta'), 2);
+    $rec_leve = $this->count_error($this->getData('recetas_sta'), 3);
+
+    return array('problemas' => $clpr + $clfam + $img_err + $ing_err + $pas + $rec_err + $famim + $claim, 'atencion' => $clobl + $img_att + $ing_att + $rec_att, 'leve' => $img_leve + $ing_leve + $rec_leve);
+  }
+  
+  // ================= ANALISIS DE TIPS ====================
+  private function getTipsProblemasMenu()
+  {
+    $result = array();
+
+    $famimg = count($this->getData('tips_famimg'));
+    $cv = 'green';
+    if ($famimg > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'tips_famimg',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes de Familias <b>(<span style="color: '.$cv.';">' . $famimg . '</span>)</b>',
+        'father' => 'tips',
+        'namefather' => 'Imágenes de Familias',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $clfam = count($this->getData('tips_clfam'));
+    $cv = 'green';
+    if ($clfam > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'tips_clfam',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Familia de clasificaciones <b>(<span style="color: '.$cv.';">' . $clfam . '</span>)</b>',
+        'father' => 'tips',
+        'namefather' => 'Familia de clasificacion',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $claimg = count($this->getData('tips_claimg'));
+    $cv = 'green';
+    if ($claimg > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'tips_claimg',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes de Clasificaciones <b>(<span style="color: '.$cv.';">' . $claimg . '</span>)</b>',
+        'father' => 'tips',
+        'namefather' => 'Imágenes de Clasificaciones',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $tip_err = $this->count_error($this->getData('tips_sta'), 1);
+    $tip_att = $this->count_error($this->getData('tips_sta'), 2);
+    $tip_leve = $this->count_error($this->getData('tips_sta'), 3);
+    $cv = $ca = $cl = 'green';
+    if ($tip_err > 0) $cv = 'red';
+    if ($tip_att > 0) $ca = 'orange';
+    if ($tip_leve > 0) $cl = 'blue';
+    $result[] = array(
+        'id' => 'tips_sta',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Tips pendientes <b>(<span style="color: '.$cv.';">' . $tip_err . '</span>/<span style="color: '.$ca.';">' . $tip_att . '</span>/<span style="color: '.$cl.';">' . $tip_leve . '</span>)</b>',
+        'father' => 'tips',
+        'namefather' => 'Tips pendientes',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $clpr = count($this->getData('tips_clpr'));
+    $cv = 'green';
+    if ($clpr > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'tips_clpr',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Error clasificacion principal <b>(<span style="color: '.$cv.';">' . $clpr . '</span>)</b>',
+        'father' => 'tips',
+        'namefather' => 'Error clasificacion principal',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+    
+    $img_err = $this->count_error($this->getData('tips_img'), 1) + $this->count_error($this->getData('tips_img'), 2);
+    $img_att = $this->count_error($this->getData('tips_img'), 3);
+    $cv = $ca = 'green';
+    if ($img_err > 0) $cv = 'red';
+    if ($img_att > 0) $ca = 'orange';
+    $result[] = array(
+        'id' => 'tips_img',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Fotos de tips <b>(<span style="color: '.$cv.';">' . $img_err . '</span>/<span style="color: '.$ca.';">' . $img_att . '</span>)</b>',
+        'father' => 'tips',
+        'namefather' => 'Fotos de tips',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $pas = count($this->getData('tips_pas'));
+    $cv = 'green';
+    if ($pas > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'tips_pas',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Pasos <b>(<span style="color: '.$cv.';">' . $pas . '</span>)</b>',
+        'father' => 'tips',
+        'namefather' => 'Pasos',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    return $result;
+  }
+  
+  private function getTipsProblemas()
+  {
+    $famimg = count($this->getData('tips_famimg'));
+
+    $clfam = count($this->getData('tips_clfam'));
+    $claimg = count($this->getData('tips_claimg'));
+
+    $clpr = count($this->getData('tips_clpr'));
+
+    $img_err = $this->count_error($this->getData('tips_img'), 1) + $this->count_error($this->getData('tips_img'), 2);
+    $img_att = $this->count_error($this->getData('tips_img'), 3);
+    $pas = count($this->getData('tips_pas'));
+    
+    $tip_err = $this->count_error($this->getData('tips_sta'), 1);
+    $tip_att = $this->count_error($this->getData('tips_sta'), 2);
+    $tip_leve = $this->count_error($this->getData('tips_sta'), 3);
+
+    return array('problemas' => $clpr + $clfam + $img_err + $pas + $tip_err + $famimg + $claimg, 'atencion' => $img_att + $tip_att, 'leve' => $tip_leve);
+  }
+  
+  // ================= ANALISIS DE MENUS ====================
+  private function getMenusProblemasMenu()
+  {
+    $result = array();
+
+    $tmenus_vacio = count($this->getData('tmenu_vacio'));
+    $cv = 'green';
+    if ($tmenus_vacio > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'tmenu_vacio',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Tipo de menus <b>(<span style="color: '.$cv.';">' . $tmenus_vacio . '</span>)</b>',
+        'father' => 'menus',
+        'namefather' => 'Tipos de menús',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $tmenu_img = count($this->getData('tmenu_img'));
+    $cv = 'green';
+    if ($tmenu_img > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'tmenu_img',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes de Tipos de menu <b>(<span style="color: '.$cv.';">' . $tmenu_img . '</span>)</b>',
+        'father' => 'menus',
+        'namefather' => 'Imágenes de Tipos de menu',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $menu_vacio = count($this->getData('menu_vacio'));
+    $cv = 'green';
+    if ($menu_vacio > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'menu_vacio',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Menus <b>(<span style="color: '.$cv.';">' . $menu_vacio . '</span>)</b>',
+        'father' => 'menus',
+        'namefather' => 'Menús',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    $menu_img = count($this->getData('menu_img'));
+    $cv = 'green';
+    if ($menu_img > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'menu_img',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes de Menu <b>(<span style="color: '.$cv.';">' . $menu_img . '</span>)</b>',
+        'father' => 'menus',
+        'namefather' => 'Imágenes de Menu',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+
+    return $result;
+  }
+
+  private function getMenusProblemas()
+  {
+    // menus sin recetas
+    // verificar que menu no se calcula en graph si su tipo de menu no esta publicado (pero si los tipos extras: retos, compilaciones etc)
+    $tmenu_vacio = count($this->getData('tmenu_vacio'));
+    $tmenu_img = count($this->getData('tmenu_img'));
+    $menu_vacio = count($this->getData('menu_vacio'));
+    $menu_img = count($this->getData('menu_img'));
+
+    return array('problemas' => $tmenu_vacio + $menu_vacio + $tmenu_img + $menu_img);
+  }
+
+  
+  
+  
+  
+  
+  
+  private function getRutasProblemas()
+  {
+    // Por cada contenedor, checkar si la cantidad de rutas corresponde a lo que hay en base de datos y si falta algo, 
+    // y/o si algo no esta bien construido segun las reglas
+    // generar/borrar segun existe o ya no existe 
+
+    return array('problemas' => 0, 'atencion' => 0, 'leve' => 0);
+  }
+
+  private function getTraduccionProblemas()
+  {
+    // Por cada contenedor, cuenta si no hay faltantes
+    // Verificar todos los archivos JS y Mob y archivos .language si no falta algo
+    // azul: cantidad de cosas aun en google
+
+    return array('problemas' => 0, 'atencion' => 0, 'leve' => 0);
+  }
+  
+  private function getIndexacionSOLR()
+  {
+    // Recetas BDD vs SOLR: cantidad presentes de un lado u otro y faltantes, (generar, borrar)
+    // Tips BDD vs SOLR: cantidad presentes de un lado u otro y faltantes, (generar, borrar)
+    // Clasificaciones BDD vs SOLR: cantidad presentes de un lado u otro y faltantes, (generar, borrar)
+    // otras cosas en los indices solr chefs ? familia de tips ? menus ? etc
+
+    return array('problemas' => 0, 'atencion' => 0, 'leve' => 0);
+  }
+  
+  private function getIndexacionMongo()
+  {
+    // Recetas BDD vs Mongo: cantidad presentes de un lado u otro y faltantes, (generar, borrar)
+    // Tips BDD vs Mongo: cantidad presentes de un lado u otro y faltantes, (generar, borrar)
+    // Clasificaciones BDD vs Mongo: cantidad presentes de un lado u otro y faltantes, (generar, borrar)
+    // otras cosas en los indices mongo chefs ? familia de tips ? menus ? etc
+
+    return array('problemas' => 0, 'atencion' => 0, 'leve' => 0);
+  }
+  
+  // ================= ANALISIS DE IMAGENES ====================
+  private function getImagenesProblemasMenu()
+  {
+    $result = array();
+/*
+    $img_metricas = $this->count_error($this->getData('recetas_img'), 2);
+
+    $cv = 'green';
+    if ($img_metricas > 0) $cv = 'red';
+    $result[] = array(
+        'id' => 'imagenes_metricas',
+        'template' => 'opcionmenuedit',
+        'image' => 'carpeta.png',
+        'name' => 'Imágenes sin métricas <b>(<span style="color: '.$cv.';">' . $img_metricas . '</span>)</b>',
+        'father' => 'imagenes',
+        'namefather' => 'Imágenes sin métricas',
+        'closeable' => false,
+        'closed' => false,
+        'loadable' => false,
+        'page' => 'inconsistencias/detalle'
+      );
+*/
+    return $result;
+    
+  }
+
+  private function getImagenesProblemas()
+  {
+    // imagenes ligadas en base de datos que no existen en disco duro (buscar, modificar base de datos)
+    // imagenes en base de datos sin metricas (generar)
+    // imagenes en disco duro que no existen en base de datos (borrar)
+    // imagenes no sincronizadas entre repository y cdn (cdn mas viejo que repository) (generar)
+    // imagenes faltantes en el cdn segun la definición de los contenedores (generar)
+    // imágenes sobrantes en el cdn segun la definición de los contenedores (borrar)
+
+    return array('problemas' => 0, 'atencion' => 0, 'leve' => 0);
+  }
+  
+  private function getVideosProblemas()
+  {
+    // videos de baja (no deberian de existir, se borran cuando no estan en brightcove ?)
+    // videos no ligados con nada (alerta, hay que ligarlos en tip o receta o pantalla)
+    // videos sin imagen (recuperar de brightcove, generar)
+    // videos en varias cosas a la ves (con flag OK o Checkar)
+
+    return array('problemas' => 0, 'atencion' => 0, 'leve' => 0);
+  }
+  
+  
+  // =============================================================
+  // ================ FUENTES DE DATOS ===========================
+  // =============================================================
+  private function getData($contenedor)
+  {
+    // tomar del cache
+    $data = $this->cache->doSelect($contenedor);
+    if ($data === null)
+    {
+      switch($contenedor)
+      {
+        case 'recetas_famim':
+          $data = $this->recetaEntity->getFamiliasImagenesError();
+          break;
+          
+        case 'recetas_clfam':
+          $data = $this->recetaEntity->getClasificacionesFamiliaError();
+          break;
+        case 'recetas_claim':
+          $data = $this->recetaEntity->getClasificacionesImagenesError();
+          break;
+
+        case 'recetas_sta':
+          $data = $this->recetaEntity->getRecetasError();
+          break;
+        case 'recetas_clpr':
+          $data = $this->recetaEntity->getRecetasClasificacionPrincipalError();
+          break;
+        case 'recetas_clobl':
+          $data = $this->recetaEntity->getRecetasClasificacionObligatoriaError();
+          break;
+        case 'recetas_img':
+          $data = $this->recetaEntity->getRecetasImagenesError();
+          break;
+        case 'recetas_ing':
+          $data = $this->recetaEntity->getRecetasIngredientesError();
+          break;
+        case 'recetas_pas':
+          $data = $this->recetaEntity->getRecetasPasosError();
+          break;
+
+        case 'tips_famimg':
+          $data = $this->secretosEntity->getFamiliasImagenesError();
+          break;
+
+        case 'tips_clfam':
+          $data = $this->secretosEntity->getClasificacionesFamiliaError();
+          break;
+        case 'tips_claimg':
+          $data = $this->secretosEntity->getClasificacionesImagenesError();
+          break;
+
+        case 'tips_clpr':
+          $data = $this->secretosEntity->getTipsClasificacionPrincipalError();
+          break;
+        case 'tips_sta':
+          $data = $this->secretosEntity->getTipsError();
+          break;
+        case 'tips_img':
+          $data = $this->secretosEntity->getTipsImagenesError();
+          break;
+        case 'tips_pas':
+          $data = $this->secretosEntity->getTipsPasosError();
+          break;
+          
+        case 'tmenu_vacio':
+          $data = $this->menuEntity->getTipomenusError();
+          break;
+        case 'tmenu_img':
+          $data = $this->menuEntity->getTipomenusImagenesError();
+          break;
+        case 'menu_vacio':
+          $data = $this->menuEntity->getMenusError();
+          break;
+        case 'menu_img':
+          $data = $this->menuEntity->getMenusImagenesError();
+          break;
+          
+      }
+      $this->cache->doUpsert($contenedor, $data);
+    }
+    return $data;
+  }
+  
+  public function flush()
+  {
+    // borra los caches
+    $this->cache->flush();
+    return array('status' => 'OK');
+  }
+  
+  private function count_error($array, $error)
+  {
+    $count = 0;
+    foreach($array as $rec)
+    {
+      if ($rec['error'] == $error)
+        $count++;
+    }
+    return $count;
+  }
+
+}
+
+?>

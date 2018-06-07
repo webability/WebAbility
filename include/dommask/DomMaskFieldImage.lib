@@ -1,0 +1,313 @@
+<?php
+
+/* @DESCR -- Do not edit
+
+Dominion Version: 6
+Module: DomMask
+Language: >= PHP5 only
+Creation: 05/Abr/2006
+Copyright: 1999-2006 Philippe Thomassigny
+Mail: info@webability.info
+Msn: metalwolf69@hotmail.com
+Site: http://www.webability.info/?P=dominion&NLanguage=en
+
+-
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+
+@End_DESCR */
+
+/* @UML_Box -- Do not edit
+|------------------------------------------------------------------|
+| DB_MaskFieldImage:                                               |
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+|------------------------------------------------------------------|
+@End_UML_Box */
+
+namespace dommask;
+
+class DomMaskFieldImage extends DomMaskField
+{
+  public $DeleteButton = '[Delete]';
+  public $ExtensionsAuth = array(".gif", ".jpg", ".jpeg", ".png");   // mandatory
+  public $OriginDir = null;   // dir and path on where is the image preview (if needed)
+  public $OriginPath = null;
+  public $DestinationDir = null;
+  public $DestinationPath = null;
+  public $createName = null;  // function to call to create the name of the file
+                              // params: ($record_key, $record_array, $field_new_value, $field_old_value)
+                              // if insert mode,
+
+  private $imagename = null;
+  private $ext = null;
+
+  function __construct($name = '', $iftable = false)
+  {
+    parent::__construct($name, $iftable);
+    $this->type = 'file';
+  }
+  
+  public function create()
+  {
+    $f = new \wajaf\mmcfieldElement($this->name);
+
+//    $f->setSize($this->size);
+//    $f->setMinlength($this->minlength);
+//    $f->setMaxlength($this->maxlength);
+//    $f->setMinwords($this->minwords);
+//    $f->setMaxwords($this->maxwords);
+//    $f->setFormat($this->formatjs);
+
+    $f->setVisible($this->DomMask->createModes($this->authmodes));
+    $f->setInfo($this->DomMask->createModes($this->viewmodes));
+    $f->setReadonly($this->DomMask->createModes($this->readonlymodes));
+    $f->setNotnull($this->DomMask->createModes($this->notnullmodes));
+    $f->setDisabled($this->DomMask->createModes($this->disabledmodes));
+    $f->setHelpmode($this->DomMask->createModes($this->helpmodes));
+
+    $f->setData($this->title);
+
+    $f->setMessage('defaultvalue', $this->default);
+    $f->setMessage('helpdescription', $this->helpdescription);
+    $f->setMessage('statusnotnull', $this->statusnotnull);
+//    $f->setMessage('statusbadformat', $this->statusbadformat);
+//    $f->setMessage('statustooshort', $this->statustooshort);
+//    $f->setMessage('statustoolong', $this->statustoolong);
+//    $f->setMessage('statustoofewwords', $this->statustoofewwords);
+//    $f->setMessage('statustoomanywords', $this->statustoomanywords);
+//    $f->setMessage('statuscheck', $this->statuscheck);
+
+    return $f;
+  }  
+  
+  
+
+  function getXML($x, $y, $form, $previous = '0')
+  {
+    $size = $this->Length * 12;
+    $sizenext = $this->Length * 12 + 20;
+    $sizenexterror = $this->Length * 12 + 30;
+    $nn = $this->NotNull?'yes':'no';
+    $yt = $y + 3;
+    $helptitle = $this->helptitle;
+    $helpsummary = $this->helpsummary;
+    $helpdescription = $this->helpdescription;
+
+    $xml = <<<EOF
+<element id="$this->urlvariable" type="filefieldElement" anchortop="$previous" top="$y" anchorleft="$x" left="[+25" width="$size" notnull="$nn" link="$form"><![CDATA[$this->Default]]>
+  <extension>.jpg</extension>
+  <extension>.gif</extension>
+  <extension>.png</extension>
+</element>
+<element type="imageElement" width="20" height="20" anchortop="$previous" top="$yt" anchorleft="$x" left="[" link="$this->urlvariable" src="__CDN__/img/static/dot.gif" />
+<element type="titleElement" anchortop="$previous" top="$yt" anchorleft="$x" left="]-25" link="$this->urlvariable" ><![CDATA[$this->Title]]></element>
+<element type="statusElement" anchortop="$previous" top="$y" anchorleft="$x" left="]-5" link="$this->urlvariable" />
+<element type="helpElement" anchortop="$previous" top="$y" anchorleft="$x" left="[$sizenext" link="$this->urlvariable">
+  <help>
+    <title><![CDATA[$helptitle]]></title>
+    <summary><![CDATA[$helpsummary]]></summary>
+    <description><![CDATA[$helpdescription]]></description>
+  </help>
+</element>
+<element type="errorElement" anchortop="$previous" top="$y" anchorleft="$x" left="[$sizenexterror" link="$this->urlvariable" />
+EOF;
+    return $xml;
+  }
+
+  function getField()
+  {
+    $val = $this->getValue($this->typeofmask);
+
+    if ($this->typeofmask == DB_Mask::INSERT && $this->Auto)
+    {
+      $field = $this->formatField($val) . ($val?' ':'') . $this->AutoMessage;
+    }
+    elseif ($this->IfInfo || (($this->typeofmask == DB_Mask::DELETE || $this->typeofmask == DB_Mask::VIEW) && !$this->Force) )
+    {
+      $field = $this->formatField($val);
+    }
+    else
+    {
+      $field = "<input type=\"hidden\" id=\"".$this->urlvariable."\" name=\"".$this->urlvariable."\"".
+               " value=\"".htmlentities($val, ENT_COMPAT, $this->maskdef->CharSet)."\"".
+               " />";
+      $field .= "<input type=\"hidden\" id=\"".$this->urlvariable."_file\" name=\"".$this->urlvariable."_file\"".
+                " value=\"\" />";
+      $field .= "<input type=\"file\" id=\"".$this->urlvariable."_download\" name=\"".$this->urlvariable."_download\"".
+                ($this->TabIndex?" tabindex=\"".$this->TabIndex."\"":"").
+                ($this->Class?" class=\"".$this->Class."\"":"").
+                ($this->Length?" size=\"".$this->Length."\"":"").
+                ($this->IfJS()&&$this->ClassFocus?" onfocus=\"this.className='".$this->ClassFocus."';\" onblur=\"this.className='".$this->Class."';\"":"").
+                " />";
+    }
+
+    if (!$val)
+      $image = "__CDN__/img/static/dot.gif";
+    else
+      $image = $this->Path.$val;
+    $field .= "<img id=\"".$this->urlvariable."_image\" name=\"".$this->urlvariable."_image\" src=\"".$image."\" height=\"40\" class=\"cleanimage\" />";
+
+    if (!($this->IfInfo || (($this->typeofmask == DB_Mask::DELETE || $this->typeofmask == DB_Mask::VIEW) && !$this->Force) ))
+    {
+      $field .= "<a href=\"#\" onclick=\"WA.toDOM('".$this->urlvariable."_image').src='__CDN__/img/static/dot.gif'; WA.toDOM('".$this->urlvariable."').value='';\">".$this->DeleteButton."</a>";
+    }
+    return $field;
+  }
+
+  public function getParameter()
+  {
+    $val = $this->__getVariable($this->urlvariable);
+    if ($this->NullOnEmpty && !$val)
+    { $val = null; }
+    if ($this->EmptyOnNull && !$val)
+    { $val = ''; }
+    return $val;
+  }
+
+  private function checkExtension($xml = false)
+  {
+    $File_name = null;
+    
+    if ($xml)
+    {
+      if (isset($_POST[$this->urlvariable]["temporal"]) && $_POST[$this->urlvariable]["temporal"])
+      {
+        $File_name = $_POST[$this->urlvariable]["temporal"];
+      }
+    }
+    else
+    {
+      if (isset($_POST[$this->urlvariable."_file"]) && $_POST[$this->urlvariable."_file"])
+      {
+        $File_name = $_POST[$this->urlvariable."_file"];
+      }
+      elseif (isset($_FILES[$this->urlvariable."_download"]["name"]))
+      {
+        $File_name = $_FILES[$this->urlvariable."_download"]["name"];
+      }
+    }
+    if ($File_name)
+    {
+      $this->imagename = $File_name;
+      $hasext = false;
+      foreach ($this->ExtensionsAuth as $ext)
+      {
+        if (strtolower(substr($File_name, -strlen($ext))) == $ext)
+        {
+          $hasext = true;
+          $this->ext = strtolower(substr($File_name, -strlen($ext)));
+          break;
+        }
+      }
+      if (!$hasext)
+        throw new InsertError("The extension of the file is not recognized.");
+    }
+  }
+
+  // control fields
+  public function preInsert($newval, $xml = false)
+  {
+    $this->checkExtension($xml);
+    return $this->imagename;
+  }
+
+  public function preUpdate($key, $newval, $oldval, $xml = false)
+  {
+    $this->checkExtension($xml);
+    if ($this->ext)
+      return $this->imagename;
+    return $newval;
+  }
+
+  private function saveImage($key, &$newval, $oldval, $xml = false)
+  {
+    if (!$this->ext)
+      return;
+
+    if ($this->createName)
+    {
+      $fct = $this->createName;
+      if ($this->Caller)
+        $File_name_store = $this->Caller->$fct($key, $this->record, $newval, $oldval, $this->ext);
+      else
+        $File_name_store = $fct($key, $this->record, $newval, $oldval, $this->ext);
+    }
+    else
+      $File_name_store = $this->Name.$key.$this->ext;
+
+    // there are 2 origins of files:
+    // 1. the this->urlvariable."_file" hidden field (priority)
+    $tmp = $_POST[$this->urlvariable."_file"];
+    $hasfile = true;
+    if (!$tmp)
+    {
+      // 2. the _FILES
+      $tmp = $_FILES[$this->urlvariable."_download"]["tmp_name"];
+      $hasfile = false;
+    }
+    if ($tmp)
+    {
+      $DPATH = str_replace('{KEY}', $key, $this->DestinationPath);
+      \core\WAFile::createDirectory($this->DestinationDir, $DPATH);
+
+      if ($hasfile)
+      {
+        $tmp = $this->OriginDir.$this->OriginPath.$tmp;
+        copy($tmp, $this->DestinationDir . $DPATH . $File_name_store);
+//        unlink($tmp);
+      }
+      else
+        move_uploaded_file($tmp, $this->DestinationDir . $DPATH . $File_name_store);
+      if ($this->IfTable)
+      {
+        $rec = array($this->Name => $File_name_store);
+        $this->maskdef->Table->doUpdate($key, $rec);
+      }
+      $newval = $File_name_store;
+    }
+  }
+
+  public function postInsert($key, $newval)
+  {
+    $this->saveImage($key, $newval, null);
+  }
+
+  public function postUpdate($key, $newval, $oldval, $xml = false)
+  {
+    if ($oldval && !$newval)
+    {
+      // delete file !
+      $DPATH = str_replace('{KEY}', $key, $this->DestinationPath);
+      if (file_exists($this->DestinationDir . $DPATH . $oldval))
+        unlink($this->DestinationDir . $DPATH . $oldval);
+      $newval = null;
+    }
+    $this->saveImage($key, $newval, $oldval, $xml);
+  }
+
+  public function postDelete($key, $oldval)
+  {
+    if ($oldval)
+    {
+      // delete file !
+      $DPATH = str_replace('{KEY}', $key, $this->DestinationPath);
+      unlink($this->DestinationDir . $DPATH . $oldval);
+    }
+  }
+
+}
+
+?>

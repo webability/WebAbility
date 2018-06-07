@@ -1,0 +1,120 @@
+<?php
+
+class listprofile extends \common\WAApplication
+{
+  private $usuarioEntity;
+
+  public function __construct($template, $language)
+  {
+    parent::__construct($template, $language);
+
+    $this->usuarioEntity = \entities\usuarioEntity::getInstance();
+  }
+
+  public function code($engine, $params)
+  {
+    $code = $this->template->resolve();
+    return $code;
+  }
+  
+  public function contenedoresdata()
+  {
+    $init = microtime(true);
+    $data = null;
+    if (isset($_POST['data']))
+      $data = json_decode($_POST['data']);
+    
+    if (!$data)
+    {
+      $data = array(array(0, 49));
+    }
+
+    $t1 = microtime(true);
+    $total = $this->usuarioEntity->countAdminPerfil(null);
+    $t2 = microtime(true);
+    $rec = array('total' => $total, 'row' => array());
+    $rec['subtimetotal'] = $t2 - $t1;
+
+    // condicionar por orden y lista
+    foreach($data as $set)
+    {
+      $min = $set[0];
+      $max = $set[1];
+      
+      $t1 = microtime(true);
+      $entradas = $this->usuarioEntity->readAdminPerfil(null, new \dominion\DB_OrderBy('clave', \dominion\DB_OrderBy::ASC), $max-$min+1, $min);
+      $t2 = microtime(true);
+      $rec['subtime'] = $t2 - $t1;
+      $num = $set[0];
+
+      if ($entradas)
+      {
+        $turn = true;
+        foreach($entradas as $entrada)
+        {
+          // Busca perfiles con este perfiles
+          $derechos = $this->searchderechos($entrada->clave);
+          $usuarios = $this->searchusuarios($entrada->clave);
+          
+          $botones = <<<EOF
+  <input type="button" value="Modificar" onclick="perfiles_editar('{$entrada->clave}');" />
+  <input type="button" value="Borrar" onclick="perfiles_borrar('{$entrada->clave}');" />
+EOF;
+          $rec['row'][$num++] = array('clave' => $entrada->clave,
+          'nombre' => $entrada->nombre,
+          'derechos' => $derechos,
+          'usuarios' => $usuarios,
+          'comandos' => $botones
+          );
+          $turn = !$turn;
+        }
+      }
+    }
+    // flag "fullload" is not set since we load only a part of the dynamic data
+    $end = microtime(true);
+    $rec['time'] = $end - $init;
+    
+    return $rec;
+  }
+  
+  private function searchderechos($key)
+  {
+    $resultado = array();
+    $recs = $this->usuarioEntity->selectAdminperfilderecho(array(new \dominion\DB_Condition('perfil', '=', $key)), new \dominion\DB_OrderBy('derecho', \dominion\DB_OrderBy::ASC));
+    if ($recs)
+    {
+      foreach($recs as $rec)
+      {
+        $derecho = $this->usuarioEntity->selectAdminDerecho($rec->derecho);
+        $resultado[] = '[<b>' . $derecho->clave.'</b>]';
+      }
+    }
+    if (!$resultado)
+      return '--';
+    
+    return implode(', ', $resultado);
+  }
+  
+  private function searchusuarios($key)
+  {
+    $resultado = array();
+    $recs = $this->usuarioEntity->selectAdminperfilusuario(array(new \dominion\DB_Condition('perfil', '=', $key)), new \dominion\DB_OrderBy('usuario', \dominion\DB_OrderBy::ASC));
+    if ($recs)
+    {
+      foreach($recs as $rec)
+      {
+        $usuario = $this->usuarioEntity->selectUsuario($rec->usuario);
+        if ($usuario->estatus == 'X')
+          continue;
+        
+        $resultado[] = '[' . $usuario->nombre.']';
+      }
+    }
+    if (!$resultado)
+      return '--';
+    
+    return implode(', ', $resultado);
+  }
+}
+
+?>
